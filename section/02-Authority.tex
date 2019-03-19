@@ -10,11 +10,11 @@ fact  Offer  [id: Symbol, giver: Party, receiver: Party]
 fact  Accept [id: Symbol, accepter: Party]
 
 rule  transfer
-await Accept [id = ?i, accepter = ?a] gain a
+await Accept [id = ?i, accepter = ?a]
   and Offer  [id = i,  giver = ?g, receiver = ?r] gain r
   and Coin   [issuer = ?s, holder = g] gain s
 to
-  say Coin  [issuer =  s, holder = r]
+  say Coin   [issuer = s,  holder = r]
    by \{s, r\} use \{transfer\}
 \end{alltt}
 \end{small}
@@ -55,19 +55,18 @@ Given the @Coin@, @Offer@, and @Accept@ facts, the @transfer@ rule from Figure~\
 This new fact shows that the coin now belongs to Bob, or alternatively, the old coin has been destroyed and a new one created that is owned by Bob. In financial terms this workflow is known as a \emph{bilateral transfer} because the receiver must explicitly accept the offered coin, rather than being an \emph{unilateral transfer}, where the receiver has no say in whether the transfer takes place.
 
 
+% -------------------------------------------------------------------------------------------------
 \subsection{Rules}
-The @transfer@ rule of Figure~\ref{f:CoinTransfer} how the facts of the above types can be combined. The rule is written in a syntax similar to existing production rule systems based on OPS5.
+The @transfer@ rule of Figure~\ref{f:CoinTransfer} how the facts of the above types can be combined. The rule is written in a syntax similar to existing production rule systems based on OPS5. The rule definition has the form (@rule@ \emph{name} @await@ \emph{pattern} @to@ \emph{body}) where \emph{name} of the rule, \emph{pattern} specifies which facts must be matched for the rule to fire, and \emph{body} is a term that optionally adds new facts to the ledger.
+
+
+Names prefixed by @?@ are binding occurrences of variables, so the rule waits for an @Accept@ fact with its @id@ field set to some value, binds it to @i@, and then waits for an @Offer@ fact whose @id@ field is set to the same value. The runtime intuition is that matching of facts proceeds in sequence, so the rule will wait for an @Accept@ fact, then an @Offer@ fact, then a @Coin@ fact. Variables bound in earlier facts are in scope when matching latter facts, and also in the body. Implementations of traditional production rule engines use the RETE~\cite{Forgy1981:RETE} algorithm, or some extension of it, to implement rule matching in an efficient way. We defer implementation questions to \REF.
+
+By default, when a rule matches on a given fact, that fact is \emph{spent}, meaning that it is removed from the active ledger state. As we will see in \REF the knowledge that that fact once existed is not lost, as the implementation retains the full history of transactions, but after a fact is spent it can no longer be matched in a subsequent rule.
 
 
 
 
 
-
-
-includes the fact and rule definitions for the Coin Transfer example from before, as well as a \emph{scenario} which specifies a representitive test case.
-
-Describe facts and their meta data.
-
-Describe the intended execution model. The rules specify the valid transitions of the system, but the timliness is left to the ambient system. We could have a managed system run by a trusted hosting company, or have multiple nodes connected in a distrubted ledger. The semantics itself does not pescribe the implementation.
 
 
