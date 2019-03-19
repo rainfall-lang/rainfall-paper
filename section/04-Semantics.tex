@@ -1,0 +1,106 @@
+
+\clearpage{}
+\section{Semantics}
+
+% ---------------------------------------------------------
+\begin{figure}
+\begin{small}
+\begin{alltt}
+Name   ::= ...
+Ctor   ::= ...
+Label  ::= ...
+
+Decl   ::= rule Name Rule
+Rule   ::= await Guard+ to Action
+Guard  ::= Ctor as Var where Term
+
+Type   ::= unit | text | symbol | nat | party
+        |  set Type | Type \(\to\) Type
+
+Term   ::= Var | Term Term | \(\lambda\) Var : Type \(\to\) Term
+        |  [ (Label = Term)* ] | Term . Label
+
+Value  ::= Lit | \(\lambda\) Var : Type \(\to\) Term
+        |  [ (Label = Value)* ]
+
+Action ::= done | Action ; Action
+        |  say Ctor [ (Label = Exp)* ]
+           by  Term  use Term  for Term  obs Term
+\end{alltt}
+\end{small}
+
+\caption{Core Language Grammar}
+\end{figure}
+
+
+% ---------------------------------------------------------
+\begin{figure*}
+
+$$
+\begin{array}{cl}
+
+% -- runs -----------------------------
+\fbox{$\jRun{Auth}{Env}{Action}{Store}$}
+\\[2ex]
+
+
+% -- match ----------------------------
+\fbox{$\jMatch{Auth}{Env}{Store}{Guard}{Auth}{Env}{Store}$}
+\\[2ex]
+
+% -- MatchGuard
+\ruleI
+{ \begin{array}{ll}
+     E''   = E,~X\mapsto~\krecord~E'
+  &  A \supseteq A_\iby \cup A_\iobs
+  \\ S'' \ = S' [\ C~E'~A_{\iby}~A_{\iobs}~A_{\ifor}~M_{\iuse}~\mapsto~0 \ ]
+  &  ~~ \jEval{\cdot}{M_\iuse~(\kauth~A)}{\ktrue}
+  \\ S~~ \ = S' [\ C~E'~A_{\iby}~A_{\iobs}~A_{\ifor}~M_{\iuse}~\mapsto~1 \ ]
+  &  \jEval{E''}{M}{\ktrue} \qq A' = A \cup A_\ifor
+  \end{array}
+}
+{   \jMatch{A}{E}{S}{C~\kas~X~\kwhere~M}{A'}{E''}{S''}
+}
+& (\trm{Match})
+\\[4ex]
+
+
+% -- Matches ---------------------------
+\fbox{$\jMatches{Auth}{Env}{Store}{Guard}{Auth}{Env}{Store}$}
+\\[2ex]
+
+% -- MatchNil
+\ruleI
+{ }
+{\jMatches{A}{E}{S}{\cdot}{A}{E}{S}
+}
+& (\trm{MatchesNil})
+\\[2ex]
+
+% -- MatchCons
+\ruleI
+{   \jMatch  {A}{E}{S}{G}{A'}{E'}{S'}
+\qq \jMatches{A'}{E'}{S'}{Gs}{A''}{E''}{S''}
+}
+{   \jMatches{A}{E}{S}{G,~Gs}{A''}{E''}{S''}}
+& (\trm{MatchesCons})
+\\[4ex]
+
+
+% -- Fire -----------------------------
+\fbox{$\jFire{Auth}{Store}{Decl}{Store}$}
+\\[2ex]
+\ruleI
+{   \jMatches{A}{\cdot}{S}{G^n}{A'}{E'}{S'}
+\qq \jRun{A'}{E'}{N}{S''}
+}
+{\jFire{A}{S}{\kawait~G^n~\kto~N}{S' \cup S''}
+}
+& (\trm{Fire})
+\\[4ex]
+
+\end{array}
+$$
+
+\caption{Operational Semantics}
+\end{figure*}

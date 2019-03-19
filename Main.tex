@@ -1,0 +1,71 @@
+\documentclass{sigplanconf}
+% \usepackage{pdf14}
+\usepackage{graphicx}
+\usepackage{alltt}
+% \usepackage{flushend}
+\usepackage{style/code}
+\usepackage{style/utils}
+\usepackage{style/proof}
+
+% -----------------------------------------------------------------------------
+\begin{document}
+\toappear{}
+\title
+{       Authorized Production Rules}
+
+\authorinfo
+{       Ben Lippmeier$^\alpha$ \and
+        Andrae Muys$^\beta$
+}
+{
+  \vspace{5pt}
+  \shortstack{
+    $^{\alpha,\beta}$Digital Asset \\
+    \\[2pt]
+    \textsf{first.last@digitalasset.com}
+  }
+  \shortstack{
+    ~~~$^{\alpha}$UNSW (Australia) \\
+    \\[2pt]
+    ~~~~~~ \textsf{first.last@unsw.edu.au}
+  }
+}
+
+
+\maketitle
+\makeatactive
+
+% -----------------------------------------------------------------------------
+\begin{abstract}
+We present an approach to managing assets in distributed ledger systems, where the asset is represented as a fact in a database. System allows workflows to be define to allow mutually distrusting parties to manage those assets. Our intended application is asset management on distributed ledger systems such as Bitcoin and Ethereum. Ambient system manages authority to ensure that no workflow can be defined that permits assets to be claimed from, or assigned to parties without their explicit approval.
+
+
+\end{abstract}
+
+\category
+        {D.3.4}
+        {Programming Languages}
+        {Processors---Compilers; Optimization}
+
+\keywords
+        Contracts; Authority
+
+
+% -----------------------------------------------------------------------------
+\input{section/01-Introduction.tex}
+\input{section/02-Authority.tex}
+\input{section/03-Privacy.tex}
+\input{section/04-Semantics.tex}
+\input{section/05-Implementation.tex}
+\input{section/06-Related.tex}
+
+
+\textbf{Acknowledgements}
+Thanks to Raphael Speyer for the connection with Join Caclulus and The Chemical Abstract Machine.
+
+% -----------------------------------------------------------------------------
+\bibliographystyle{plain}
+\bibliography{Main}
+
+
+\end{document}

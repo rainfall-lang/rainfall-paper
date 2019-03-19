@@ -1,0 +1,24 @@
+
+\section{Introduction}
+Distributed ledger systems allow information about virtual assets to be recorded and modified by mutually distrusting parties. A prime application of Distributed Ledger Technology (DLT) is to define cryptocurrency systems such as Bitcoin, Litecoin, Dogecoin and so on. In such systems, some of the rules that define the currency are baked into the system, while others are user definable. For example, in Bitcoin the rules defining how units of currency are created are baked into the overall system, while the rules defining who can spend the balance of an account are used defined. In Bitcoin the latter is defined in Bitcoin Script, which is a simple, strongly-normalizing, Forth-like language where the program text is attached directly to the account that it governs.
+
+Latter \emph{smart contract} systems such as Ethereum, EOS.IO and Plutus include more expressive languages in which to define asset management rules. In Ethereum, each account is associated with a program (contract) expressed in EVM bytecode, which is the compiled form of a higher level language such as Solidity or LLL. Contract code is used both to manage the native currency contained in an account, that is the Ethereum balance of an Ethereum account, as well as to define entirely new currencies, colloquially known as \emph{tokens}. Awkwardly, the token balances for each user are typically recorded in array values owned by a native Ethereum account -- so although the Ethereum system and surrounding toolchain has ambient support for asset issuance, transfer, wallet user inferface and so on, the tokens are separate from it. The Ethereum currency has native toolchain support, but changing the rules that govern it requires a modification to the underling protocol a ``hard fork''. On the other hand, defining new tokens with upgradable handling rules is easy and light-weight, but the toolchain support must be handled separately to the existing support for Ethereum.
+
+Besides ``user experience'' issues such as support for wallet interfaces, there is an expressivity gap between code that manages native Ethereum asset and internal tokens. When the set of token balances for all users is maintained as an array owned by a single Ethereum account, it is easy for for the contract code associated with that account to perform \emph{global queries} over the data. For example, to compute the total number of tokens that currently exist, or to find the account with the largest balance. On the other hand, similar queries concerning the native Ethereum currency cannot be expressed by contracts --- the EVM virtual machine does not include opcodes to allow scan through balances of all accounts. Such functionality is currently delegated to the meta-level, where tools that support browsing of all accounts on the ledger operate by querying the native database of the protocol implementation, rather than being expressed as contracts themselves. Proponents of distributed ledger technology often refer to DLT as a special kind of distributed database, but current systems are databases without natural query languages.
+
+With these problems in mind we present new programming model for distributed ledgers which we call \emph{Authorized Production Rules}. Our model combines a production rule framework in the style of OPS5 with an authority system that allows the properties scarcity and ownership to be enforced by the ambient system.
+
+We make the following contributions:
+
+\begin{itemize}
+\item We present a system based on authorized inference rules which allows mutually distrusting parties to define upgradable workflows that manage ownership of facts on a distributed ledger.
+
+\item Our authority system provides two key invariants: 1) that facts about assets owned by a particular party cannot be modified (spent) without their approval and; 2) ownership of facts about assets cannot be assigned to a party without their approval.
+
+\item Our production rule based programming model naturally integrates a query engine. It is trivial to define rules that, say, find all accounts owned by a party with a particular name.
+
+\item We present several key examples using our system, including bilateral asset transfer, collection of multiple signatures, loans and equity brokerage.
+\end{itemize}
+
+The focus of our work is on the language semantics and authority mechanism. We do not specify or require a particular concrete ledger model or consensus mechanism. Our system focuses on public ledgers, the relationship with private ledgers left to future work.
+

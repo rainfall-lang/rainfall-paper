@@ -1,0 +1,46 @@
+
+\clearpage{}
+\section{Privacy}
+
+Suppose we wish to allow parties to transfer coins between each other, without revealing facts about how many coins each party holds to all the others. We can do this by repurposing the existing authority metadata that is attached to facts to manage privacy as well.
+
+Describe visibility system, fact is visible to a party if it appears in its \emph{by} or \emph{obs} set.
+
+Figure \ref{f:PrivateCoinTransfer} contains a modified version of the Coin Transfer from the previous section.
+
+Describe how either the holding party or the Bank has enough authority to complete the transfer. Either the
+
+
+\begin{figure}
+\begin{small}
+\begin{alltt}
+rule  transfer
+await Accept  as accept
+ and  Offer   as offer
+      where   accept.id       == offer.id,
+              accept.accepter == offer.receiver
+ and  Coin    as coin
+      where   coin.holder     == offer.giver
+to
+      say Coin   [ stamp  = coin.stamp
+                 , holder = offer.receiver]
+      by  [auth| Bank, offer.receiver]
+      use (elem offer.receiver)
+
+scenario Bank, Alice, Bob
+to do say Coin   [ stamp = 'Coin1001, holder = Alice]
+      by  [auth| Bank, Alice]
+      use (elem Alice)
+
+      say Offer  [ id    = '1234
+                 , giver = Alice, receiver = Bob]
+      by  Alice use (elem Bob)   obs Bob          -- NEW
+
+      say Accept [ id = '1234,    accepter = Bob]
+      by  Bob   use (const true) obs Alice        -- NEW
+\end{alltt}
+\end{small}
+
+\caption{Private Coin Transfer Workflow}
+\label{f:PrivateCoinTransfer}
+\end{figure}

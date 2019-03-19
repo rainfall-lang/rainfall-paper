@@ -1,0 +1,66 @@
+
+\clearpage{}
+\section{Authority}
+
+\begin{small}
+\begin{alltt}
+fact  Coin   [issuer: Party, holder: Party]
+fact  Offer  [id: Symbol, giver: Party, receiver: Party]
+fact  Accept [id: Symbol, accept: Party]
+
+rule  transfer
+await any Accept [id = ?i, accepter = ?a]
+  and any Offer  [id = i,  giver = ?g, receiver = ?r]
+  and any Coin   [issuer = ?s, holder = g]
+to    say Coin   [stamp  = s,  holder = r]
+      by  \{i, r\} use \{transfer\}
+\end{alltt}
+\end{small}
+
+
+Figure \ref{f:CoinTransfer} includes the fact and rule definitions for the Coin Transfer example from before, as well as a \emph{scenario} which specifies a representitive test case.
+
+Describe facts and their meta data.
+
+Describe the intended execution model. The rules specify the valid transitions of the system, but the timliness is left to the ambient system. We could have a managed system run by a trusted hosting company, or have multiple nodes connected in a distrubted ledger. The semantics itself does not pescribe the implementation.
+
+
+\begin{figure}
+\begin{small}
+\begin{alltt}
+fact  Coin   [stamp: Symbol, holder: Party]
+fact  Offer  [id: Symbol, giver: Party, receiver: Party]
+fact  Accept [id: Symbol, accepter: Party]
+
+node  Bank
+
+rule  transfer
+await Accept  as accept
+ and  Offer   as offer
+      where   accept.id       == offer.id,
+              accept.accepter == offer.receiver
+ and  Coin    as coin
+      where   coin.holder     == offer.giver
+to
+      say Coin [ stamp  = coin.stamp
+               , holder = offer.receiver]
+      by  [auth| Bank, offer.receiver]
+      use (elem offer.receiver)
+
+scenario Bank, Alice, Bob
+to do say Coin   [ stamp = 'Coin1001, holder = Alice]
+      by  [auth| Bank, Alice]
+      use (elem Alice)
+
+      say Offer  [ id    = '1234
+                 , giver = Alice, receiver = Bob]
+      by  Alice use (elem Bob)
+
+      say Accept [ id = '1234,    accepter = Bob]
+      by  Bob   use (const true)
+\end{alltt}
+\end{small}
+
+\caption{Coin Transfer Workflow}
+\label{f:CoinTransfer}
+\end{figure}

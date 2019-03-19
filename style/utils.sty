@@ -1,0 +1,53 @@
+%!TEX root = ../Main.tex
+\newcommand{\TODO}[1]   {\emph{\textbf{TODO:} #1}}
+\newcommand{\ISSUE}[1]  {\emph{\textbf{ISSUE:} #1}}
+\newcommand{\CITE}      {\textbf{CITE} }
+\newcommand{\CITEME}[1] {\textbf{CITE: {#1}}}
+\newcommand{\REF}       {\textbf{REF }}
+
+\newcommand{\qq}        {\quad\quad}
+\newcommand{\trm}[1]    {\textrm{#1}}
+\newcommand{\ruleI}[2]   {\infer{#2}{#1}}
+
+
+
+% -- Keywords
+\newcommand{\kawait}    {\texttt{await}}
+\newcommand{\kto}       {\texttt{to}}
+
+\newcommand{\kas}       {\texttt{as}}
+\newcommand{\kwhere}    {\texttt{where}}
+
+\newcommand{\krecord}   {\texttt{record}}
+
+\newcommand{\kauth}     {\texttt{auth}}
+\newcommand{\ktrue}     {\texttt{true}}
+
+
+% -- Math ops
+\newcommand{\iby}       {\mathit{by}}
+\newcommand{\iobs}      {\mathit{obs}}
+\newcommand{\ifor}      {\mathit{for}}
+\newcommand{\iuse}      {\mathit{use}}
+
+
+% -- Judgment forms
+\newcommand{\jFire}[4] {
+    #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{fire}
+}
+
+\newcommand{\jMatch}[7] {
+    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~|~#6~|~#7~~\textbf{match}
+}
+
+\newcommand{\jMatches}[7] {
+    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~|~#6~|~#7~~\textbf{matches}
+}
+
+\newcommand{\jRun}[4] {
+    #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{run}
+}
+
+\newcommand{\jEval}[3] {
+    #1~\vdash~#2~\Downarrow~#3~~\textbf{eval}
+}
