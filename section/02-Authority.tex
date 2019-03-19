@@ -30,6 +30,7 @@ Rainfall consists of two main components, a ledger of facts and a set of rules. 
 
 % -----------------------------------------------------------------------------
 \subsection{Facts}
+\label{s:Facts}
 Figure~\ref{f:CoinTransfer} contains the fact and rule definitions for a simple coin transfer workflow. A @fact@ declaration gives the \emph{tag} and \emph{payload} types of a particular sort of fact. In this example, a @Coin@ fact describes a single coin that has been created by an @issuer@ party and is currently held by a @holder@. An @Offer@ fact represents an offer by a coin holder, the @giver@, which offers to give their coin to a second party, the @receiver@. The offer also carries a value of abstract @Symbol@, type that is used to uniquely identify the offer. An @Accept@ fact represents that fact that the receiver of the offer does indeed wish to accept a coin offer with the given identifier.
 
 As an example use, suppose we have facts of the above types currently on the ledger:
@@ -56,26 +57,7 @@ Given the @Coin@, @Offer@, and @Accept@ facts, the @transfer@ rule from Figure~\
 
 This new fact shows that the coin now belongs to Bob, or alternatively, the old coin has been destroyed and a new one created that is owned by Bob. In financial terms this workflow is known as a \emph{bilateral transfer} because the receiver must explicitly accept the offered coin, rather than being an \emph{unilateral transfer}, where the receiver has no say in whether the transfer takes place.
 
-
-% -----------------------------------------------------------------------------
-\subsection{Weights}
-\label{s:Weights}
-Suppose @Bob@ already had a coin, and then receives another one. We manage this situation by giving each fact a \emph{weight}, which a non-negative integer. We treat the weight as indicating the number of ``copies'' of the same fact on the ledger. When writing fact values we indicate the weight using @num@ keyword next to it, typically eliding it when it has value one.
-
-\eject
-For example, if the ledger already contained a weighted fact:
-\begin{small}
-\begin{code}
- Coin [issuer = %Ivan, holder = %Bob] num 5
-\end{code}
-\end{small}
-
-And then Alice transfers Bob a new coin, then the new entry on the ledger would become:
-\begin{small}
-\begin{code}
- Coin [issuer = %Ivan, holder = %Bob] num 6
-\end{code}
-\end{small}
+Besides the fact tag and the payload record, each fact contains a few pieces of meta-data, which we introduce in the next few sections.
 
 
 % -----------------------------------------------------------------------------
@@ -89,7 +71,28 @@ By default, when a rule matches on a given fact, that fact is \emph{spent}, mean
 
 
 % -----------------------------------------------------------------------------
+\subsection{Weights}
+\label{s:Weights}
+Suppose @Bob@ already had a coin, and then receives another one. We manage this situation by giving each fact its first piece of meta-data, a \emph{weight}, which a non-negative integer. We treat the weight as indicating the number of ``copies'' of the same fact on the ledger. When writing fact values we indicate the weight using @num@ keyword next to it, typically eliding it when it has value one.
+
+For example, if the ledger already contained a weighted fact:
+\begin{small}
+\begin{code}
+ Coin [issuer = %Ivan, holder = %Bob] num 5
+\end{code}
+\end{small}
+%
+And then Alice transfers Bob a new coin, then the new entry on the ledger would become:
+\begin{small}
+\begin{code}
+ Coin [issuer = %Ivan, holder = %Bob] num 6
+\end{code}
+\end{small}
+%
+
+% -----------------------------------------------------------------------------
 \subsection{Authority}
+\label{s:Authority}
 In any coin transfer example, a natural question is what is stopping people from creating coins out of thin air? The coins we are talking about are not ``real'', they are just facts on the ledger. Any given currency can only retain value when it is \emph{scarce}. Commodity currencies such as gold and silver are scarce due to the physical difficulty of digging them up. Fiat currencies such as the Icelandic Kr\'ona (ISK) are scarce because a central authority, the Icelandic Government, only issues a limited amount per year. Bitcoins are scarce because they represent the solution of a particular cryptographic problem, which at a particular time, required significant energy to solve. Whether a currency \emph{has} ``value'' is an entirely different, deeply philosophical question, but whatever the value might be, the currency needs to be scarce to retain it.
 
 In our coin example, scarcity of coin facts arises from the fact that they were are all issued by a single party @\%Ivan@. We assume that everyone using the system agrees that @\%Ivan@ is a trustworthy individual, and will not add new, signed @Coin@ facts to the ledger in an inappropriate way\footnote{meaning they will not print money, or at least, not too much}.
@@ -97,16 +100,19 @@ In our coin example, scarcity of coin facts arises from the fact that they were 
 To conserve the overall number of coin facts is preserved we must also ensure that rules that add coin facts to the ledger also consume an identical number of coin facts. As we allow the body of a rule to contain arbitrary code, deciding whether or not an arbitrary rule preserves the quantify of some fact would be undecidable. We dodge this issue by requiring that parties that use a particular rule inspect it themselves to determine if it satisfies their requirements. Each fact on the ledger is then annotated with the cryptographic hash of the rules that are able to consume it.
 
 \eject
-Including the weight information from~\S\ref{s:Weights} the full definition of facts with their meta-data, and the overall ledger state is as follows:
+Including the weight information from~\S\ref{s:Weights} the full definition of facts with their meta-data, and the semantics of the overall ledger state is as follows:
 $$
 \begin{array}{ll}
-   Tag     & = Name
-\\ Payload & = List~ (Name, Value)
+   Record  & = List~ (Name, Value)
 \\ Auth    & = Set~ Party
 \\ Rules   & = Set~ Name
-\\ Fact    & = (Name,~ Payload,~ Auth,~ Rules)
+\\ Fact    & = (Name, Record, Auth, Rules)
 \\ State   & = Set~ (Fact, Weight)
 \end{array}
 $$
 
-The current ledger \emph{state} is a set of facts paired with their weight. If a given fact does not appear in the set then we assume that the weight is zero. Note that the ledger itself is a list of transactions, discussed in \REF, and represents the complete history, whereas a $State$ refers to the active facts at a particular point in time.
+The current ledger \emph{state} is a set of facts paired with their weight. If a given fact does not appear in the set then we assume that the weight is zero. The ledger itself is modeled as list of transactions, discussed in \REF, and represents the complete history, whereas a $State$ refers to the active facts at a particular point in time.
+
+In the semantic model we specify the parties that authorize a given fact just by including an $Auth$ set in the fact tuple, similarly for the set of rules. We discuss the concrete implementation details of cryptographic signing and hashing in \REF.
+
+Returning to our coin transfer example, we restate the facts from \S\ref{s:Facts} with all metadata.
