@@ -64,10 +64,11 @@ $$
 % -- MatchGuard
 \ruleI
 { \begin{array}{ll}
-    \jGather{A_{sub}}{S}{E}{X}{G}{F^n}
-  & ~~ E' = E, X \mapsto F
+     \jGather{A_{sub}}{S}{E}{X}{G}{F^n}
+  \\ ~~~~~~~~~\jSelect{F^n}{E}{X}{T}{F~~}
+  &  ~~ E' = E, X \mapsto F
   \\
-  & ~~ N_{rule} \in \trm{rules}~ F
+  &  ~~ N_{rule} \in \trm{rules}~ F
   \end{array}
 }
 {   \jMatch{N_{rule}}{A_{sub}}{S}{E}{X~\kfrom~G~T~C~I}{A_{gain}}{(F,W)}{S'}{E'}
@@ -95,6 +96,27 @@ $$
 }
 & (\trm{EvGather})
 \\[4ex]
+
+
+%% -- select ---------------------------
+\fbox{$\jSelect{Facts}{Env}{Var}{Select}{Fact}$}
+\\[2ex]
+
+\ruleI
+{ F \in F^n }
+{ \jSelect{F^n}{E}{X}{\kany}{F} }
+\qq
+\ruleI
+{ \begin{array}{ll}
+      (V', F')  \in D^m
+  \qq V' = \trm{minimum}~ \{ V ~|~ (V, \_) \in D^m \}
+  \\  ~~~~~~~ D^m \in \{ (V, F) ~|~ F \in F^n, (\jEval{E, X \mapsto F}{M}{V} ) \}
+  \end{array}
+}
+{ \jSelect{F^n}{E}{X}{\kfirst~ M}{F} }
+& (\trm{EvAny/First})
+
+
 
 % -- Matches ---------------------------
 % \fbox{$\jMatches{Auth}{Env}{Store}{Guard}{Auth}{Env}{Store}$}

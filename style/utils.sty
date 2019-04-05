@@ -17,9 +17,12 @@
 
 \newcommand{\kas}       {\texttt{as}}
 \newcommand{\kwhere}    {\texttt{where}}
-\newcommand{\kwhen}     {\texttt{when}}
-\newcommand{\kfrom}     {\texttt{from}}
 
+\newcommand{\kfrom}     {\texttt{from}}
+\newcommand{\kwhen}     {\texttt{when}}
+\newcommand{\kany}      {\texttt{any}}
+\newcommand{\kfirst}    {\texttt{first}}
+\newcommand{\klast}     {\texttt{last}}
 
 \newcommand{\krecord}   {\texttt{record}}
 
@@ -50,6 +53,10 @@
 
 \newcommand{\jGather}[6] {
     #1~|~#2~|~#3~|~#4~\vdash~#5~\Rightarrow~#6~~\textbf{gather}
+}
+
+\newcommand{\jSelect}[5] {
+    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~~\textbf{select}
 }
 
 
