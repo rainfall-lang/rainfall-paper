@@ -10,8 +10,8 @@
 \newcommand{\ruleI}[2]   {\infer{#2}{#1}}
 
 
-
 % -- Keywords
+\newcommand{\krule}     {\texttt{rule}}
 \newcommand{\kawait}    {\texttt{await}}
 \newcommand{\kto}       {\texttt{to}}
 
@@ -20,6 +20,7 @@
 
 \newcommand{\krecord}   {\texttt{record}}
 
+\newcommand{\kunit}     {\texttt{unit}}
 \newcommand{\kauth}     {\texttt{auth}}
 \newcommand{\ktrue}     {\texttt{true}}
 
@@ -32,20 +33,24 @@
 
 
 % -- Judgment forms
-\newcommand{\jFire}[4] {
-    #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{fire}
+\newcommand{\jFire}[6] {
+    #1~|~#2~\vdash~#3~\Rightarrow~#4~|~#5~|~#6~\textbf{fire}
 }
 
 \newcommand{\jMatch}[7] {
     #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~|~#6~|~#7~~\textbf{match}
 }
 
-\newcommand{\jMatches}[7] {
-    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~|~#6~|~#7~~\textbf{matches}
+\newcommand{\jMatches}[9] {
+    #1~|~#2~|~#3~|~#4~\vdash~#5~\Rightarrow~#6~|~#7~|~#8~|~#9~~\textbf{matches}
 }
 
 \newcommand{\jRun}[4] {
     #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{run}
+}
+
+\newcommand{\jExec}[4] {
+    #1~\vdash~#2~\Downarrow~#3~|~#4~~\textbf{exec}
 }
 
 \newcommand{\jEval}[3] {

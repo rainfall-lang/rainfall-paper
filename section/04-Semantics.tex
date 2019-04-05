@@ -39,9 +39,22 @@ Action ::= done | Action ; Action
 $$
 \begin{array}{cl}
 
-% -- runs -----------------------------
-\fbox{$\jRun{Auth}{Env}{Action}{Store}$}
+% -- Fire -----------------------------
+\fbox{$\jFire{Auth}{Store}{Rule}{Factoids}{Factoids}{Store}$}
 \\[2ex]
+\ruleI
+{ \begin{array}{ll}
+  &  \bigwedge \{ A_{has} \supseteq \trm{auth-by}~D~|~D \in D_{new}^m \}
+  \\[1ex] \jMatches{N}{A_{sub}}{\cdot}{S}{G^n}{A_{has}}{D_{spent}^n}{S'}{E'}
+  &  ~~~ \jExec{E'}{M}{\kunit}{D_{new}^m}
+  \end{array}
+}
+{\jFire {A_{sub}}{S}
+        {\krule~N~\kawait~G^n~\kto~M}
+        {D_{spent}^n}{D_{new}^m}{S' \uplus D_{new}^m}
+}
+& (\trm{Fire})
+\\[4ex]
 
 
 % -- match ----------------------------
@@ -66,38 +79,33 @@ $$
 
 
 % -- Matches ---------------------------
-\fbox{$\jMatches{Auth}{Env}{Store}{Guard}{Auth}{Env}{Store}$}
-\\[2ex]
+% \fbox{$\jMatches{Auth}{Env}{Store}{Guard}{Auth}{Env}{Store}$}
+% \\[2ex]
 
 % -- MatchNil
-\ruleI
-{ }
-{\jMatches{A}{E}{S}{\cdot}{A}{E}{S}
-}
-& (\trm{MatchesNil})
-\\[2ex]
+% \ruleI
+% { }
+% {\jMatches{A}{E}{S}{\cdot}{A}{E}{S}
+% }
+% & (\trm{MatchesNil})
+% \\[2ex]
 
 % -- MatchCons
-\ruleI
-{   \jMatch  {A}{E}{S}{G}{A'}{E'}{S'}
-\qq \jMatches{A'}{E'}{S'}{Gs}{A''}{E''}{S''}
-}
-{   \jMatches{A}{E}{S}{G,~Gs}{A''}{E''}{S''}}
-& (\trm{MatchesCons})
-\\[4ex]
+% \ruleI
+% {   \jMatch  {A}{E}{S}{G}{A'}{E'}{S'}
+% \qq \jMatches{A'}{E'}{S'}{Gs}{A''}{E''}{S''}
+% }
+% {   \jMatches{A}{E}{S}{G,~Gs}{A''}{E''}{S''}}
+% & (\trm{MatchesCons})
+% \\[4ex]
 
 
-% -- Fire -----------------------------
-\fbox{$\jFire{Auth}{Store}{Decl}{Store}$}
-\\[2ex]
-\ruleI
-{   \jMatches{A}{\cdot}{S}{G^n}{A'}{E'}{S'}
-\qq \jRun{A'}{E'}{N}{S''}
-}
-{\jFire{A}{S}{\kawait~G^n~\kto~N}{S' \cup S''}
-}
-& (\trm{Fire})
-\\[4ex]
+% -- runs -----------------------------
+% \fbox{$\jRun{Auth}{Env}{Action}{Store}$}
+% \\[2ex]
+
+
+
 
 \end{array}
 $$
