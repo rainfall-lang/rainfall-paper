@@ -67,7 +67,7 @@ $$
      \jGather{A_{sub}}{S}{E}{X}{G}{F^n}
   \\ ~~~~~~~~~\jSelect{F^n}{E}{X}{T}{F~~}
   &  ~~ E' = E, X \mapsto F
-  \\
+  \\ ~~~~ \jConsume{F}{S}{E'}{C}{W}{S'}
   &  ~~ N_{rule} \in \trm{rules}~ F
   \end{array}
 }
@@ -94,7 +94,7 @@ $$
 }
 {   \jGather{A_{sub}}{S}{E}{X}{\kwhen~N_{fact}~M^m}{F^n}
 }
-& (\trm{EvGather})
+& (\trm{EvWhen})
 \\[4ex]
 
 
@@ -115,7 +115,26 @@ $$
 }
 { \jSelect{F^n}{E}{X}{\kfirst~ M}{F} }
 & (\trm{EvAny/First})
+\\[4ex]
 
+
+%% -- consume --------------------------
+\fbox{$\jConsume{Fact}{Store}{Env}{Consume}{Weight}{Store}$}
+\\[2ex]
+
+ \jConsume{F}{S}{E}{\kretain}{0}{S}
+ & (\trm{EvRetain})
+\\[2ex]
+
+\ruleI
+{     \jEval{E}{M}{W_{need}}
+  \qq W_{avail} \geq W_{need}
+}
+{ \jConsume
+        {F}{S[F \mapsto W_{avail}]}{E}
+        {\kconsume~ M}
+        {W_{need}}{S[F \mapsto W_{avail} - W_{need}]}
+}
 
 
 % -- Matches ---------------------------

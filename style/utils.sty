@@ -23,6 +23,8 @@
 \newcommand{\kany}      {\texttt{any}}
 \newcommand{\kfirst}    {\texttt{first}}
 \newcommand{\klast}     {\texttt{last}}
+\newcommand{\kretain}   {\texttt{retain}}
+\newcommand{\kconsume}  {\texttt{consume}}
 
 \newcommand{\krecord}   {\texttt{record}}
 
@@ -59,15 +61,14 @@
     #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~~\textbf{select}
 }
 
-
-\newcommand{\jRun}[4] {
-    #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{run}
+\newcommand{\jConsume}[6] {
+    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~|~#6~~\textbf{consume}
 }
 
 \newcommand{\jExec}[4] {
-    #1~\vdash~#2~\Downarrow~#3~|~#4~~\textbf{exec}
+    #1 \vdash #2 \Downarrow #3 ~|~ #4~~\textbf{exec}
 }
 
 \newcommand{\jEval}[3] {
-    #1~\vdash~#2~\Downarrow~#3~~\textbf{eval}
+    #1 \vdash #2 \Downarrow #3 ~~\textbf{eval}
 }
