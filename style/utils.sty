@@ -17,6 +17,9 @@
 
 \newcommand{\kas}       {\texttt{as}}
 \newcommand{\kwhere}    {\texttt{where}}
+\newcommand{\kwhen}     {\texttt{when}}
+\newcommand{\kfrom}     {\texttt{from}}
+
 
 \newcommand{\krecord}   {\texttt{record}}
 
@@ -37,13 +40,18 @@
     #1~|~#2~\vdash~#3~\Rightarrow~#4~|~#5~|~#6~\textbf{fire}
 }
 
-\newcommand{\jMatch}[7] {
-    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~|~#6~|~#7~~\textbf{match}
-}
-
 \newcommand{\jMatches}[9] {
     #1~|~#2~|~#3~|~#4~\vdash~#5~\Rightarrow~#6~|~#7~|~#8~|~#9~~\textbf{matches}
 }
+
+\newcommand{\jMatch}[9] {
+    #1~|~#2~|~#3~|~#4~\vdash~#5~\Rightarrow~#6~|~#7~|~#8~|~#9~~\textbf{match}
+}
+
+\newcommand{\jGather}[6] {
+    #1~|~#2~|~#3~|~#4~\vdash~#5~\Rightarrow~#6~~\textbf{gather}
+}
+
 
 \newcommand{\jRun}[4] {
     #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{run}

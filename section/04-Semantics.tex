@@ -53,30 +53,48 @@ $$
         {\krule~N~\kawait~G^n~\kto~M}
         {D_{spent}^n}{D_{new}^m}{S' \uplus D_{new}^m}
 }
-& (\trm{Fire})
+& (\trm{EvFire})
 \\[4ex]
 
 
 % -- match ----------------------------
-\fbox{$\jMatch{Auth}{Env}{Store}{Guard}{Auth}{Env}{Store}$}
+\fbox{$\jMatch{Name}{Auth}{Env}{Store}{Match}{Auth}{Factoid}{Store}{Env}$}
 \\[2ex]
 
 % -- MatchGuard
 \ruleI
 { \begin{array}{ll}
-     E''   = E,~X\mapsto~\krecord~E'
-  &  A \supseteq A_\iby \cup A_\iobs
-  \\ S'' \ = S' [\ C~E'~A_{\iby}~A_{\iobs}~A_{\ifor}~M_{\iuse}~\mapsto~0 \ ]
-  &  ~~ \jEval{\cdot}{M_\iuse~(\kauth~A)}{\ktrue}
-  \\ S~~ \ = S' [\ C~E'~A_{\iby}~A_{\iobs}~A_{\ifor}~M_{\iuse}~\mapsto~1 \ ]
-  &  \jEval{E''}{M}{\ktrue} \qq A' = A \cup A_\ifor
+    \jGather{A_{sub}}{S}{E}{X}{G}{F^n}
+  & ~~ E' = E, X \mapsto F
+  \\
+  & ~~ N_{rule} \in \trm{rules}~ F
   \end{array}
 }
-{   \jMatch{A}{E}{S}{C~\kas~X~\kwhere~M}{A'}{E''}{S''}
+{   \jMatch{N_{rule}}{A_{sub}}{S}{E}{X~\kfrom~G~T~C~I}{A_{gain}}{(F,W)}{S'}{E'}
 }
-& (\trm{Match})
+& (\trm{EvMatch})
 \\[4ex]
 
+
+% -- gather ----------------------------
+\fbox{$\jGather{Auth}{Store}{Env}{Var}{Gather}{Facts}$}
+\\[2ex]
+
+\ruleI
+{ F^n = \left \{
+  \begin{array}{rll}
+        F & |~~ (F \mapsto W) \in S
+     \\    & ,~~ \trm{name}~ F = N_{fact}
+             ,~~ \trm{sees}~ A_{sub}~ F
+             ,~~  W \geq 1
+     \\    & ,~~ (\jEval{E,~X \mapsto F}{M^m}{\ktrue})
+     \end{array}
+  \right \}
+}
+{   \jGather{A_{sub}}{S}{E}{X}{\kwhen~N_{fact}~M^m}{F^n}
+}
+& (\trm{EvGather})
+\\[4ex]
 
 % -- Matches ---------------------------
 % \fbox{$\jMatches{Auth}{Env}{Store}{Guard}{Auth}{Env}{Store}$}
