@@ -11,7 +11,7 @@ fact  Accept [id: Symbol, accepter: Party]
 
 rule  transfer
 await Accept [id = ?i, accepter = ?a]  gain a
-  and Offer  [id = i,  giver = ?g, receiver = ?r] gain r
+  and Offer  [id = i,  giver = ?g, receiver = ?a]
   and Coin   [issuer = ?s, holder = g] gain s
 to
   say Coin   [issuer = s, holder = r]
@@ -137,14 +137,13 @@ Returning to our coin transfer example from \S\ref{s:Facts}, we restate the fact
 
 In summary, the @Accept@ in the first fact is the \emph{tag} of the fact, and the following record the \emph{payload}. The @by@ field specifies the \emph{by-authority set}, which contains the parties that the fact has been authorized by. The @obs@ field specifies the \emph{obs-authority set}, which contains the extra parties that can observe the fact but do not necessarily authorize it. The @use@ field gives the \emph{rules set}, which are the names of the rules that consume a fact and gain authority from it. Finally, the @num@ field gives the \emph{weight} of the fact, which can be interpreted as the number of usable ``copies'' of the fact.
 
-When the rule from Figure~\ref{f:CoinTransfer} matches on each of these facts in turn, it gains the authority specified by the @gain@ clause in the pattern match. For the above facts, the first pattern gains authority of @!Bob@, the second the authority of @!Alice@, and the third the authority of @!Isabelle@ and @!Alice@ (the latter of which it already had). When all three patterns have matched the rule \emph{fires} and executes the body with all the matched variables from @?i@, @?a@, @?r@ and so on in scope. In this case the body uses the @say@ clause to produce a new fact, giving it the authority of the issuer (@s@) and new holder (@r@).
+When the rule from Figure~\ref{f:CoinTransfer} matches on each of these facts in turn, it gains the authority specified by the @gain@ clause in the pattern match. For the above facts, the first pattern gains authority of @!Bob@, and the third the authority of @!Isabelle@ and @!Alice@. When all three patterns have matched the rule \emph{fires} and executes the body with all the matched variables from @?i@, @?a@, @?r@ and so on in scope. In this case the body uses the @say@ clause to produce a new fact, giving it the authority of the issuer @!Isabelle@ and new holder @!Bob@. Note that we do not need a @gain g@ clause in the second pattern, because if @Alice@ does not want to give away her coin then she can just not add an @Offer@ fact to the system. The @Offer@ fact can be consumed by virtue of the fact that it has @transfer@ in its valid rules set. The rules needs to gain the authority of @Isabelle@ and @Bob@ to create the new @Coin@ fact, but as no new fact is created with the authority of @Alice@, it does not need hers as well.
 
 We are now in a position to describe the full data model of the ledger, which appears below. The current ledger state is a map from $Fact$ to its current $Weight$, where the $Fact$ includes the \emph{by-authority}, \emph{obs-authority} and \emph{rules-set} along with the tag and payload. If two facts have different authority meta-data then they are taken to be different facts.
 $$
 \begin{array}{ll}
 \\ State   & = Map~ Fact~ Weight
-\\ Fact    & = (Tag, Record, By, Obs, Rules)
-\\ Tag     & = Name
+\\ Fact    & = (Name, Record, By, Obs, Rules)
 \\ Record  & = List~ (Name, Value)
 \\ By      & = Set~ Party
 \\ Obs     & = Set~ Party
@@ -153,7 +152,6 @@ $$
 
 \end{array}
 $$
-
 If a given fact does not appear in the set then we assume that the weight is zero. The $State$ here is the current state of the ledger. As we discussed in \REF the \emph{ledger} itself is modeled as a list of transactions, that includes the full history of all changes, whereas a $State$ refers to the facts that are active after the most recent transaction.
 
 In this semantic model we specify the parties that authorize a given fact just by including their names in the appropriate set of the fact tuple. We discuss the concrete implementation details of cryptographic signing and hashing in \REF.
@@ -161,6 +159,17 @@ In this semantic model we specify the parties that authorize a given fact just b
 
 % -----------------------------------------------------------------------------
 \subsection{Ledger Integrity}
+As mentioned in the previous section, the new facts created by a rule can be authorized by a set of parties that is at most the parties whose authority has been gained by matching on existing facts. This restriction allows Rainfall to operate as an open system, where arbitrary new parties can join, and create whatever new facts and rules they see fit. In doing so, it is not possible for a new party to cause a fact to be created that is carries the authority of another party that did not explicitly agree to its creation. For example, consider the following rule:
 
+\begin{small}
+\begin{code}
+  rule  mint
+  await Mint [minter = ?m] gain m
+   to   say Coin [issuer = 'Isabelle, holder = m]
+         by {'Isabelle, m} use {transfer}
+\end{code}
+\end{small}
+
+An arbitrary party can add a @Mint@ fact to the system to trigger this rule, and state that they should be the holder of the new coin. However, there is no way for the rule to gain the authority of @Isabelle@, the usual coin issuer. As we will see in \REF our operational semantics performs a runtime check to ensure that the authority of all new facts created by a rule are covered by the authority that has been gained by matching against existing ones.
 
 
