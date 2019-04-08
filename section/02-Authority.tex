@@ -10,11 +10,11 @@ fact  Offer  [id: Symbol, giver: Party, receiver: Party]
 fact  Accept [id: Symbol, accepter: Party]
 
 rule  transfer
-await Accept [id = ?i, accepter = ?a]
+await Accept [id = ?i, accepter = ?a]  gain a
   and Offer  [id = i,  giver = ?g, receiver = ?r] gain r
-  and Coin   [issuer = %Ivan, holder = g] gain s
+  and Coin   [issuer = ?s, holder = g] gain s
 to
-  say Coin   [issuer = %Ivan, holder = r]
+  say Coin   [issuer = s, holder = r]
    by \{s, r\} use \{transfer\}
 \end{alltt}
 \end{small}
@@ -25,7 +25,7 @@ to
 
 % -------------------------------------------------------------------------------------------------
 \section{Facts, Weights, Rules and Authority}
-Rainfall consists of two main components, a ledger of facts and a set of rules. Parties using the system add facts to the ledger, cryptographically signing them using public key encryption, and thus embodying them with their authority. Rules attempt to match on collections of facts, and when successful consume some of the facts, and create new facts. The new facts are embodied with a subset of the authority of the matched facts.
+Rainfall has two main components, a ledger of facts and a set of rules. Parties using the system add facts to the ledger, cryptographically signing them using public key encryption, and thus embodying them with their authority. Rules match on collections of facts, and when successful, consume some of the facts, and create new facts. The new facts are embodied with a subset of the authority of the matched facts. Not all facts are visible to all parties, rather, the visibility of facts is managed using the authority metadata of each fact. We describe facts, rules and fact meta data in turn, finishing with the formal definition of the ledger data model.
 
 
 % -----------------------------------------------------------------------------
@@ -36,28 +36,26 @@ Figure~\ref{f:CoinTransfer} contains the fact and rule definitions for a simple 
 As an example use, suppose we have facts of the above types currently on the ledger:
 \begin{small}
 \begin{code}
- Coin   [issuer = %Ivan, holder = %Alice]
- Offer  [id = '1234, giver = %Alice, receiver = %Bob]
+ Coin   [issuer = !Isabelle, holder = !Alice]
+ Offer  [id = '1234, giver = !Alice, receiver = !Bob]
 \end{code}
 \end{small}
 
-Names prefixed by @\%@ are identifiers of parties (principles) using the system, and their values have type @Party@. Names prefixed by @'@ are symbols (strings), and their values have type @Symbol@. The facts reveal that @Alice@ wishes to transfer the coin she currently holds to @Bob@. If @Bob@ wishes to accept the transfer he can then add the following fact to the ledger:
+Names prefixed by @!@ are identifiers of parties (principles) using the system, and their values have type @Party@. Names prefixed by @'@ are symbols (strings), and their values have type @Symbol@. The facts reveal that @Alice@ wishes to transfer the coin she currently holds to @Bob@. If @Bob@ wishes to accept the transfer he can then add the following fact to the ledger:
 \begin{small}
 \begin{code}
- Accept [id = '1234, accepter = %Bob]
+ Accept [id = '1234, accepter = !Bob]
 \end{code}
 \end{small}
 
 Given the @Coin@, @Offer@, and @Accept@ facts, the @transfer@ rule from Figure~\ref{f:CoinTransfer} can fire, which \emph{consumes} the three above facts and produces a new one:
 \begin{small}
 \begin{code}
- Coin [issuer = %Ivan, holder = %Bob]
+ Coin [issuer = !Isabelle, holder = !Bob]
 \end{code}
 \end{small}
 
 This new fact shows that the coin now belongs to Bob, or alternatively, the old coin has been destroyed and a new one created that is owned by Bob. In financial terms this workflow is known as a \emph{bilateral transfer} because the receiver must explicitly accept the offered coin, rather than being an \emph{unilateral transfer}, where the receiver has no say in whether the transfer takes place.
-
-Besides the fact tag and the payload record, each fact contains a few pieces of meta-data, which we introduce in the next few sections.
 
 
 % -----------------------------------------------------------------------------
@@ -78,41 +76,90 @@ Suppose @Bob@ already had a coin, and then receives another one. We manage this 
 For example, if the ledger already contained a weighted fact:
 \begin{small}
 \begin{code}
- Coin [issuer = %Ivan, holder = %Bob] num 5
+ Coin [issuer = !Isabelle, holder = !Bob] num 5
 \end{code}
 \end{small}
 %
 And then Alice transfers Bob a new coin, then the new entry on the ledger would become:
 \begin{small}
 \begin{code}
- Coin [issuer = %Ivan, holder = %Bob] num 6
+ Coin [issuer = !Isabelle, holder = !Bob] num 6
 \end{code}
 \end{small}
 %
 
+
 % -----------------------------------------------------------------------------
 \subsection{Authority}
 \label{s:Authority}
-In any coin transfer example, a natural question is what is stopping people from creating coins out of thin air? The coins we are talking about are not ``real'', they are just facts on the ledger. Any given currency can only retain value when it is \emph{scarce}. Commodity currencies such as gold and silver are scarce due to the physical difficulty of digging them up. Fiat currencies such as the Icelandic Kr\'ona (ISK) are scarce because a central authority, the Icelandic Government, only issues a limited amount per year. Bitcoins are scarce because they represent the solution of a particular cryptographic problem, which at a particular time, required significant energy to solve. Whether a currency \emph{has} ``value'' is an entirely different, deeply philosophical question, but whatever the value might be, the currency needs to be scarce to retain it.
+A given currency can only retain value when it is \emph{scarce}. Commodity currencies like gold and silver are scarce due to the physical difficulty of digging them up. Fiat currencies like Icelandic Kr\'ona (ISK) are scarce because a central authority, the Icelandic Government, only issues a limited amount per year. Crypto currencies like Bitcoin are scarce because they represent the solution of a particular cryptographic problem, which at a particular time, required significant energy to solve. Whether a currency \emph{has} ``value'' is a different question, but a currency needs to be scarce to retain it.
 
-In our coin example, scarcity of coin facts arises from the fact that they were are all issued by a single party @\%Ivan@. We assume that everyone using the system agrees that @\%Ivan@ is a trustworthy individual, and will not add new, signed @Coin@ facts to the ledger in an inappropriate way\footnote{meaning they will not print money, or at least, not too much}.
+In our coin example, scarcity of coin facts is enforced by requiring that they are all issued by a single party @!Isabelle@. We assume that everyone using the system agrees that @!Isabelle@ is a trustworthy individual, and will not add new, signed @Coin@ facts to the ledger in an inappropriate way\footnote{meaning they will not print money, or at least, not too much}.
 
-To conserve the overall number of coin facts is preserved we must also ensure that rules that add coin facts to the ledger also consume an identical number of coin facts. As we allow the body of a rule to contain arbitrary code, deciding whether or not an arbitrary rule preserves the quantify of some fact would be undecidable. We dodge this issue by requiring that parties that use a particular rule inspect it themselves to determine if it satisfies their requirements. Each fact on the ledger is then annotated with the cryptographic hash of the rules that are able to consume it.
+When new coin facts \emph{are} added, they are given the authority of both the issuer and the initial holder of the coin. In the example of \S\ref{s:Facts} the original coin was issued by @!Isabelle@ and held by @!Alice@, so the fact carries the authority of both. The set of parties of which a fact was authorized by is called the \emph{by-authority set}. During the operation of the ledger we allow any party to add any fact with its own authority at any time. Likewise, any party may remove a fact from the ledger at any time, provided the fact is authorized only with that parties authority. Ensuring that Coin facts are always authorized by two parties, the issuer and current holder, ensures that neither can unilaterally remove the coin fact from the system. Coins can only be consumed by the action of pre-agreed rules that first collect the authority of all relevant parties.
+
 
 \eject
-Including the weight information from~\S\ref{s:Weights} the full definition of facts with their meta-data, and the semantics of the overall ledger state is as follows:
+% -----------------------------------------------------------------------------
+\subsection{Privacy}
+When a fact carries the authority of a particular party then it is natural that the party should be aware of the fact. In Rainfall, all facts with the authority of a particular party are visible to that party. For example, the original @Coin@ fact from \S\ref{s:Facts} carries the authority of both @!Isabelle@ and @!Alice@, so those parties will be informed of the creation and subsequent consumption of that fact.
+
+In practical commercial workflows, it is often the case that extra parties must be informed of events such as coin transfers and contract completion, even though they do not have direct authority over the facts themselves. For example, in Australia, the Australian Securities and Investments Commission (ASIC) monitors the activity of the Australian Securities eXchange (ASX), even though they are not themselves a giver or receiver on any of the currency transfers or securities transactions. In Rainfall, we use an additional meta-data field associated with each fact, called the \emph{obs-authority} set to collect the set of parties that can observe a fact but do not have authority over it. The obs-authority set of a fact may contain the name of a party that is also in the by-authority set for the same fact, though it provides no additional benefit. Privacy will be discussed in more detail in \S\ref{s:Privacy}
+
+
+% -----------------------------------------------------------------------------
+\subsection{Valid Rules}
+\TODO{valid rules are more about upgrade and auth, not conservation of number. }
+To conserve the overall number of coin facts is preserved we must also ensure that rules that add coin facts to the ledger also consume an identical number of coin facts. As we allow the body of a rule to contain arbitrary code, deciding whether or not an arbitrary rule preserves the quantify of some fact is undecidable. We manage this issue by requiring that parties that use a particular rule inspect it themselves to determine if it satisfies their requirements. Each fact on the ledger is then annotated with the cryptographic hash of the rules that are permitted to consume, and gain authority from it. This final meta-data field is called the \emph{valid rules set}.
+
+
+% -----------------------------------------------------------------------------
+\subsection{Now with Metadata}
+
+Returning to our coin transfer example from \S\ref{s:Facts}, we restate the facts that will be consumed, along with all their meta data.
+
+\begin{small}
+\begin{code}
+ Accept [id = '1234, accepter = !Bob]
+    by  {!Bob}                obs {!Mona}
+    use {'transfer}           num 1
+
+ Offer  [id = '1234, giver = !Alice, receiver = !Bob]
+    by  {!Alice}              obs {}
+    use {'transfer}           num 1
+
+ Coin   [issuer = !Isabelle, holder  = !Alice]
+    by  {!Isabelle, !Alice}   obs {}
+    use {'transfer}           num 1
+\end{code}
+\end{small}
+
+In summary, the @Accept@ in the first fact is the \emph{tag} of the fact, and the following record the \emph{payload}. The @by@ field specifies the \emph{by-authority set}, which contains the parties that the fact has been authorized by. The @obs@ field specifies the \emph{obs-authority set}, which contains the extra parties that can observe the fact but do not necessarily authorize it. The @use@ field gives the \emph{rules set}, which are the names of the rules that consume a fact and gain authority from it. Finally, the @num@ field gives the \emph{weight} of the fact, which can be interpreted as the number of usable ``copies'' of the fact.
+
+When the rule from Figure~\ref{f:CoinTransfer} matches on each of these facts in turn, it gains the authority specified by the @gain@ clause in the pattern match. For the above facts, the first pattern gains authority of @!Bob@, the second the authority of @!Alice@, and the third the authority of @!Isabelle@ and @!Alice@ (the latter of which it already had). When all three patterns have matched the rule \emph{fires} and executes the body with all the matched variables from @?i@, @?a@, @?r@ and so on in scope. In this case the body uses the @say@ clause to produce a new fact, giving it the authority of the issuer (@s@) and new holder (@r@).
+
+We are now in a position to describe the full data model of the ledger, which appears below. The current ledger state is a map from $Fact$ to its current $Weight$, where the $Fact$ includes the \emph{by-authority}, \emph{obs-authority} and \emph{rules-set} along with the tag and payload. If two facts have different authority meta-data then they are taken to be different facts.
 $$
 \begin{array}{ll}
-   Record  & = List~ (Name, Value)
-\\ Auth    & = Set~ Party
+\\ State   & = Map~ Fact~ Weight
+\\ Fact    & = (Tag, Record, By, Obs, Rules)
+\\ Tag     & = Name
+\\ Record  & = List~ (Name, Value)
+\\ By      & = Set~ Party
+\\ Obs     & = Set~ Party
 \\ Rules   & = Set~ Name
-\\ Fact    & = (Name, Record, Auth, Rules)
-\\ State   & = Set~ (Fact, Weight)
+\\[1ex]
+
 \end{array}
 $$
 
-The current ledger \emph{state} is a set of facts paired with their weight. If a given fact does not appear in the set then we assume that the weight is zero. The ledger itself is modeled as list of transactions, discussed in \REF, and represents the complete history, whereas a $State$ refers to the active facts at a particular point in time.
+If a given fact does not appear in the set then we assume that the weight is zero. The $State$ here is the current state of the ledger. As we discussed in \REF the \emph{ledger} itself is modeled as a list of transactions, that includes the full history of all changes, whereas a $State$ refers to the facts that are active after the most recent transaction.
 
-In the semantic model we specify the parties that authorize a given fact just by including an $Auth$ set in the fact tuple, similarly for the set of rules. We discuss the concrete implementation details of cryptographic signing and hashing in \REF.
+In this semantic model we specify the parties that authorize a given fact just by including their names in the appropriate set of the fact tuple. We discuss the concrete implementation details of cryptographic signing and hashing in \REF.
 
-Returning to our coin transfer example, we restate the facts from \S\ref{s:Facts} with all metadata.
+
+% -----------------------------------------------------------------------------
+\subsection{Ledger Integrity}
+
+
+
