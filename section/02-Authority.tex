@@ -109,8 +109,9 @@ In practical commercial workflows, it is often the case that extra parties must 
 
 % -----------------------------------------------------------------------------
 \subsection{Valid Rules}
-\TODO{valid rules are more about upgrade and auth, not conservation of number. }
-To conserve the overall number of coin facts is preserved we must also ensure that rules that add coin facts to the ledger also consume an identical number of coin facts. As we allow the body of a rule to contain arbitrary code, deciding whether or not an arbitrary rule preserves the quantify of some fact is undecidable. We manage this issue by requiring that parties that use a particular rule inspect it themselves to determine if it satisfies their requirements. Each fact on the ledger is then annotated with the cryptographic hash of the rules that are permitted to consume, and gain authority from it. This final meta-data field is called the \emph{valid rules set}.
+To conserve the overall number of coin facts we must each rule that adds a coin fact also consumes an identical number of coin facts. As we allow the body of a rule to contain arbitrary code, deciding whether or not an arbitrary rule preserves the quantify of some fact is undecidable in general. Instead of trying to specify an (inevitably incomplete) automated analysis we instead require the parties using the system to ensure the rules use had the desired properties themselves. Each fact is then annotated with the cryptographic hash of the rules that are permitted to consume, and gain authority from it. This final piece of meta-data called the \emph{valid rules set}.
+
+The valid rules set for a fact determines the business-level meaning of the fact. In our current example, the coin facts have the name of the single @transfer@ rule in their valid rules set, meaning that coins are things that can be transferred, but nothing else. As we mentioned in \S\ref{s:Authority} we also arrange coin facts to always be authorized by two separate parties, the issuer and the holder. This means that no single party can unilaterally create or remove coin facts, but they can come to an agreement that through the use of the system, the total number of coin facts that have this special form will be conserved.
 
 
 % -----------------------------------------------------------------------------
