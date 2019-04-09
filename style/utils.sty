@@ -36,6 +36,22 @@
 \newcommand{\kauth}     {\texttt{auth}}
 \newcommand{\ktrue}     {\texttt{true}}
 
+\newcommand{\kdone}     {\texttt{done}}
+\newcommand{\ksay}      {\texttt{say}}
+\newcommand{\kby}       {\texttt{by}}
+\newcommand{\kobs}      {\texttt{obs}}
+\newcommand{\kuse}      {\texttt{use}}
+\newcommand{\knum}      {\texttt{num}}
+
+\newcommand{\kUnit}     {\texttt{Unit}}
+\newcommand{\kBool}     {\texttt{Bool}}
+\newcommand{\kNat}      {\texttt{Nat}}
+\newcommand{\kAuth}     {\texttt{Auth}}
+\newcommand{\kText}     {\texttt{Text}}
+\newcommand{\kFact}     {\texttt{Fact}}
+\newcommand{\kSet}      {\texttt{Set}}
+\newcommand{\kParty}    {\texttt{Party}}
+\newcommand{\kSymbol}   {\texttt{Symbol}}
 
 % -- Math ops
 \newcommand{\iby}       {\mathit{by}}
@@ -44,7 +60,28 @@
 \newcommand{\iuse}      {\mathit{use}}
 
 
-% -- Judgment forms
+% -- Statics
+\newcommand{\jOk}[2] {
+    #1 ~\vdash~ #2~~ \textbf{ok}
+}
+
+\newcommand{\jType}[3] {
+    #1 ~\vdash #2 :: #3
+}
+
+\newcommand{\jTypeAction}[4] {
+    #1 ~|~ #2 ~\vdash~ #3~ :: #4
+}
+
+\newcommand{\jTypeGather}[5] {
+    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5
+}
+
+\newcommand{\jTypeMatch}[4] {
+    #1~|~#2~\vdash~#3~\Rightarrow~#4
+}
+
+% -- Dynamics
 \newcommand{\jFire}[6] {
     #1~|~#2~\vdash~#3~\Rightarrow~#4~|~#5~|~#6~\textbf{fire}
 }

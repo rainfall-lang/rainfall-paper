@@ -1,7 +1,9 @@
 
-% -------------------------------------------------------------------------------------------------
-\begin{figure*}
+% -----------------------------------------------------------------------------
+% Dynamic Semantics
+% -----------------------------------------------------------------------------
 
+\begin{figure*}
 $$
 \begin{array}{cl}
 
@@ -11,12 +13,12 @@ $$
 \ruleI
 { \begin{array}{ll}
   &  \bigwedge \{ A_{has} \supseteq \trm{auth-by}~D~|~D \in D_{new}^m \}
-  \\[1ex] \jMatches{N}{A_{sub}}{S}{\cdot}{G^n}{A_{has}}{D_{spent}^n}{E'}
+  \\[1ex] \jMatches{N}{A_{sub}}{S}{\cdot}{H^n}{A_{has}}{D_{spent}^n}{E'}
   &  ~~~ \jExec{E'}{M}{\kunit}{D_{new}^m}
   \end{array}
 }
 {\jFire {A_{sub}}{S}
-        {\krule~N~\kawait~G^n~\kto~M}
+        {\krule~N~\kawait~H^n~\kto~M}
         {D_{spent}^n}{D_{new}^m}{(S \setminus D^n_{spent}) \uplus D_{new}^m}
 }
 & (\trm{EvFire})
@@ -147,4 +149,5 @@ $$
 $$
 
 \caption{Dynamic Semantics}
+\label{f:Dynamics}
 \end{figure*}
