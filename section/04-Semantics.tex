@@ -45,15 +45,39 @@ $$
 \ruleI
 { \begin{array}{ll}
   &  \bigwedge \{ A_{has} \supseteq \trm{auth-by}~D~|~D \in D_{new}^m \}
-  \\[1ex] \jMatches{N}{A_{sub}}{\cdot}{S}{G^n}{A_{has}}{D_{spent}^n}{S'}{E'}
+  \\[1ex] \jMatches{N}{A_{sub}}{S}{\cdot}{G^n}{A_{has}}{D_{spent}^n}{E'}
   &  ~~~ \jExec{E'}{M}{\kunit}{D_{new}^m}
   \end{array}
 }
 {\jFire {A_{sub}}{S}
         {\krule~N~\kawait~G^n~\kto~M}
-        {D_{spent}^n}{D_{new}^m}{S' \uplus D_{new}^m}
+        {D_{spent}^n}{D_{new}^m}{(S \setminus D^n_{spent}) \uplus D_{new}^m}
 }
 & (\trm{EvFire})
+\\[4ex]
+
+
+% -- matches --------------------------
+\fbox{$\jMatches{Name}{Auth}{Store}{Env}{Matches}{Auth}{Factoids}{Env}$}
+\\[2ex]
+
+\jMatches{N}{A}{S}{E}{\cdot}{\emptyset}{\emptyset}{E}
+& (\trm{EvMatchNil})
+\\[2ex]
+
+\ruleI
+{ \begin{array}{ll}
+       \jMatch{N_{rule}}{A_{sub}}{S~}{E~}{H~~}{A_{gain}}{D_{spent}}{S'}{E'}
+  \\[0.5ex]
+       \jMatches{N_{rule}}{A_{sub}}{S'}{E'}{H^n}{A_{gain}'}{D_{spent}'}{E''~~~~~  }
+  \end{array}
+}
+{ \jMatches{N_{rule}}{A_{sub}}{S}{E}{H ~ H^n}
+           {A_{gain}  \cup A_{gain}'}
+           {D_{spent} \cup D_{spent}'}
+           {E''}
+}
+& (\trm{EvMatchCons})
 \\[4ex]
 
 
