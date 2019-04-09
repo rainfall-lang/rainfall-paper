@@ -145,6 +145,15 @@ $$
 }
 & (\trm{EvSame/Gain})
 
+\\[2ex]
+\fbox{$\jExec{Env}{Term}{Value}{Factoids}$}
+
+\\[2ex]
+\ruleI  {   D = ((N, V_{payload}), A_{by}, A_{obs}, V_{rules}, V_{num})
+        \qq \jEval{E}{M_{payload}}{V_{payload}}
+        \qq \dots }
+        {\jExec{E}{\ksay~ N~ M_{payload}~ M_{by}~ M_{obs}~ M_{use}~ M_{num}}{\kunit}{D}}
+& (\trm{EvSay})
 \end{array}
 $$
 
