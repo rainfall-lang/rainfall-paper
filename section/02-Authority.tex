@@ -101,7 +101,7 @@ When new coin facts \emph{are} added, they are given the authority of both the i
 
 \eject
 % -----------------------------------------------------------------------------
-\subsection{Privacy}
+\subsection{Observation}
 When a fact carries the authority of a particular party then it is natural that the party should be aware of the fact. In Rainfall, all facts with the authority of a particular party are visible to that party. For example, the original @Coin@ fact from \S\ref{s:Facts} carries the authority of both @!Isabelle@ and @!Alice@, so those parties will be informed of the creation and subsequent consumption of that fact.
 
 In practical commercial workflows, it is often the case that extra parties must be informed of events such as coin transfers and contract completion, even though they do not have direct authority over the facts themselves. For example, in Australia, the Australian Securities and Investments Commission (ASIC) monitors the activity of the Australian Securities eXchange (ASX), even though they are not themselves a giver or receiver on any of the currency transfers or securities transactions. In Rainfall, we use an additional meta-data field associated with each fact, called the \emph{obs-authority} set to collect the set of parties that can observe a fact but do not have authority over it. The obs-authority set of a fact may contain the name of a party that is also in the by-authority set for the same fact, though it provides no additional benefit. Privacy will be discussed in more detail in \S\ref{s:Privacy}

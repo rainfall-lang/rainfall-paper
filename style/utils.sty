@@ -23,8 +23,12 @@
 \newcommand{\kany}      {\texttt{any}}
 \newcommand{\kfirst}    {\texttt{first}}
 \newcommand{\klast}     {\texttt{last}}
+
 \newcommand{\kretain}   {\texttt{retain}}
 \newcommand{\kconsume}  {\texttt{consume}}
+
+\newcommand{\ksame}     {\texttt{same}}
+\newcommand{\kgain}     {\texttt{gain}}
 
 \newcommand{\krecord}   {\texttt{record}}
 
@@ -63,6 +67,10 @@
 
 \newcommand{\jConsume}[6] {
     #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~|~#6~~\textbf{consume}
+}
+
+\newcommand{\jGain}[4] {
+    #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{gain}
 }
 
 \newcommand{\jExec}[4] {

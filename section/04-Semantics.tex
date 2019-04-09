@@ -65,6 +65,7 @@ $$
 \ruleI
 { \begin{array}{ll}
      \jGather{A_{sub}}{S}{E}{X}{G}{F^n}
+  &  ~~ \jGain{F}{E'}{I}{A_{gain}}
   \\ ~~~~~~~~~\jSelect{F^n}{E}{X}{T}{F~~}
   &  ~~ E' = E, X \mapsto F
   \\ ~~~~ \jConsume{F}{S}{E'}{C}{W}{S'}
@@ -135,7 +136,22 @@ $$
         {\kconsume~ M}
         {W_{need}}{S[F \mapsto W_{avail} - W_{need}]}
 }
+& (\trm{EvConsume})
+\\[4ex]
 
+
+%% -- gain ----------------------------
+\fbox{$\jGain{Fact}{Env}{Gain}{Auth}$}
+\\[2ex]
+\jGain{F}{E}{\ksame}{\emptyset}
+\qq
+\ruleI
+{     \jEval{E}{M}{A}
+  \qq A \subseteq \trm{auth-by}~ F
+}
+{ \jGain{F}{E}{\kgain~ M}{A}
+}
+& (\trm{EvSame/Gain})
 
 % -- Matches ---------------------------
 % \fbox{$\jMatches{Auth}{Env}{Store}{Guard}{Auth}{Env}{Store}$}
