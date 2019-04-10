@@ -25,6 +25,7 @@ to
 
 % -------------------------------------------------------------------------------------------------
 \section{Facts, Weights, Rules and Authority}
+\label{s:FactsWeights}
 Rainfall has two main components, a ledger of facts and a set of rules. Parties using the system add facts to the ledger, cryptographically signing them using public key encryption, and thus embodying them with their authority. Rules match on collections of facts, and when successful, consume some of the facts, and create new facts. The new facts are embodied with a subset of the authority of the matched facts. Not all facts are visible to all parties, rather, the visibility of facts is managed using the authority metadata of each fact. We describe facts, rules and fact meta data in turn, finishing with the formal definition of the ledger data model.
 
 
@@ -102,6 +103,7 @@ When new coin facts \emph{are} added, they are given the authority of both the i
 \eject
 % -----------------------------------------------------------------------------
 \subsection{Observation}
+\label{s:Observation}
 When a fact carries the authority of a particular party then it is natural that the party should be aware of the fact. In Rainfall, all facts with the authority of a particular party are visible to that party. For example, the original @Coin@ fact from \S\ref{s:Facts} carries the authority of both @!Isabelle@ and @!Alice@, so those parties will be informed of the creation and subsequent consumption of that fact.
 
 In practical commercial workflows, it is often the case that extra parties must be informed of events such as coin transfers and contract completion, even though they do not have direct authority over the facts themselves. For example, in Australia, the Australian Securities and Investments Commission (ASIC) monitors the activity of the Australian Securities eXchange (ASX), even though they are not themselves a giver or receiver on any of the currency transfers or securities transactions. In Rainfall, we use an additional meta-data field associated with each fact, called the \emph{obs-authority} set to collect the set of parties that can observe a fact but do not have authority over it. The obs-authority set of a fact may contain the name of a party that is also in the by-authority set for the same fact, though it provides no additional benefit. Privacy will be discussed in more detail in \S\ref{s:Privacy}
@@ -116,22 +118,23 @@ The valid rules set for a fact determines the business-level meaning of the fact
 
 % -----------------------------------------------------------------------------
 \subsection{Now with Metadata}
+\label{s:NowWithMetadata}
 
 Returning to our coin transfer example from \S\ref{s:Facts}, we restate the facts that will be consumed, along with all their meta data.
 
 \begin{small}
 \begin{code}
  Accept [id = '1234, accepter = !Bob]
-    by  {!Bob}                obs {!Mona}
+    by  {!Bob}                obs {!Mona, !Alice}
     use {'transfer}           num 1
 
  Offer  [id = '1234, giver = !Alice, receiver = !Bob]
-    by  {!Alice}              obs {}
+    by  {!Alice}              obs {!Mona, !Bob}
     use {'transfer}           num 1
 
  Coin   [issuer = !Isabelle, holder  = !Alice]
-    by  {!Isabelle, !Alice}   obs {}
-    use {'transfer}           num 1
+    by  {!Isabelle, !Alice}   obs {!Mona}
+    use {'transfer}           num 100
 \end{code}
 \end{small}
 
@@ -171,5 +174,4 @@ As mentioned in the previous section, the new facts created by a rule can be aut
 \end{small}
 
 An arbitrary party can add a @Mint@ fact to the system to trigger this rule, and state that they should be the holder of the new coin. However, there is no way for the rule to gain the authority of @Isabelle@, the usual coin issuer. As we will see in \REF our operational semantics performs a runtime check to ensure that the authority of all new facts created by a rule are covered by the authority that has been gained by matching against existing ones.
-
 
