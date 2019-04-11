@@ -20,6 +20,7 @@ $$
 Applying this predicate to the initial facts from \S\ref{s:NowWithMetadata} we see that we already have the desired situation. The coin fact and its weight is visible to Alice (the giver), and Mona (the monitor), while the Offer and Accept facts are visible to all three of Alice, Bob and Mona. Figure~\ref{f:CoinTransferVisibility} shows this in diagrammatic form.
 
 
+% -----------------------------------------------------------------------------
 \subsection{Transactions and Validation}
 Maintaining fact privacy has implications for the underlying implementation. Assume that Alice, Bob and Mona all have their own computers in their own offices that each initially contain the subset of facts that each can see as per Figure~\ref{f:CoinTransferVisibility}. Assume that each party also has a copy of the transfer rule shown in Figure~\ref{f:CoinTransfer}. Now, suppose Alice decides that it is time to perform the transfer. On her own computer she executes the rule while recording the facts that have been consumed and the new facts that have been produced. She then builds a transaction data structure that records this information along with the cryptographic hash of the rule code, which we describe as so:
 
@@ -49,6 +50,8 @@ Transaction
 
 This is the complete transaction that describes all inputs and outputs. For now, we will broadcast the entire transaction as to all parties in the network. In the next section we will discuss how to ensure that parties are only able to see the input and output facts that they are observers for.
 
+
+% -----------------------------------------------------------------------------
 \subsection{Blinded Transactions}
 Alice can send the complete transaction to Mona, which is also entitled to see all the input and output facts, however we cannot also sent it to Isabelle and Bob because they are not entitled to see some of the components.
 
@@ -60,7 +63,10 @@ Instead, we can compute a \emph{restricted view} of the transaction for both Isa
 For upgrade, the data model itself does not depend on hashing. In DAML contract ids are hashes that include the code of the template. In Rainfall hashing is used as part of the transaction structure but the fact that fact identity includes the hash of the rule that uses it does not leak into the programming model.
 
 
-
+% -----------------------------------------------------------------------------
+\subsection{Consistency}
+\TODO{back ref to this from the related work section}
+In Rainfall there is nothing stopping a party from adding a fact to the system which says ``I have a million dollars", just with their own authority. The key property we need to manage is whether anyone else should rightly believe them. Recall that in the coin transfer example from \S\ref{s:Facts}, the coin facts always carry the authority of multiple parties, which is justified by the sequence of transactions that result in their production. The coin issuer (@Isabelle@ in the example) initially creates, specifies the rules for using them, and signs the facts with their own authority. When the coins are transferred onwards the recorded transactions are also signed by the parties that propose them. Assuming most parties in the system are honest, invalid transactions will simply not be confirmed. Dishonest parties are free to corrupt their own databases by adding invalid transactions, but no one else using the system will accept them.
 
 
 
