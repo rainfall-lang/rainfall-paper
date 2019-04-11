@@ -22,7 +22,6 @@ In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cit
 \subsection{Petri-net Systems}
 
 
-
 % ---------------------------------------------------------
 \subsection{Linda-style Tuple Spaces}
 Linda~\cite{Gelernter1985:Linda} is a CSP-like process language where the individual processes communicate by adding, removing and non-destructively reading tuples from a globally shared tuple space. Tuples have named fields, and retrieved using simple, typed patterns. For example, we could retrieve (input) a tuple that specifies the price of apples with the following pattern:
@@ -37,19 +36,18 @@ The basic Linda communication model is open, meaning that any party connected to
 \end{code}
 There is no guarantee that Alice was the one that added this tuple to the system, and there is nothing preventing a third party from removing before the workflow completes and Bob gets his money.
 
+Extended tuple space models such as SecSpaces~\cite{Busi2003:SecSpaces} add authority metadata to the tuples, signing them with the private keys of the parties that create them, and specifying the identities of those that can see and/or consume them. This information is equivalent to the auth-by and auth-obs meta-data described in~\S\ref{s:Authority}. However, SecSpaces defines the data model only. There is no mechanism for parties to combine authorized facts to produce new facts that are transitively authorized by any other party accept themselves. The ability to do this is the main contribution of our own system.
+
+
+\TODO{cite scopes}
+
+% ---------------------------------------------------------
 \subsection{Law Governed Linda}
 Law Governed Linda~(LGL)~\cite{Minsky1994:LawGovernedLinda, Minsky2001:SafeTupleSpace} takes the basic Linda model and inserts a \emph{controller} between the tuple space and each communicating process. Each controller has a copy of a communication law, written in a fragment of Prolog, that specifies the allowable interactions with the tuple space. For example, the law may specify that a process can only add a tuple such as the above to the space, when the @giver@ field is set to the identify of the process that adds it. In this way, the codified law specifies the allowable \emph{interaction} with the communication medium. The controllers themselves are assumed to run on a trusted computing platform, either as part of the server that provides the tuple space, or on a secure co-processor~\cite{Minsky2001:SafeTupleSpace}.
 
 In contrast, the rules in our Rainfall model do not seek to limit the form of data added to the system. Instead, they specify how authorized facts that are already in the system may be combined to generate new authorized facts. In Rainfall there is nothing stopping a party from adding a fact to the system which says ``I have a million dollars", just with their own authority. Additionally, the rules in our model are executed as part of transaction validation, on the computers of the individual parties. A nefarious party could form an invalid transaction that transfers themselves a million dollars, but honest parties will not confirm the transaction views they are sent that disagree with their own understanding of the facts.
 
 \TODO{Move this to earlier section}. The key property we need to manage is whether anyone else should rightly believe them. Recall that in the coin transfer example from \S\ref{s:Facts}, the coin facts always carry the authority of multiple parties, which is justified by the sequence of transactions that result in their production. The coin issuer (@Isabelle@ in the example) initially creates, specifies the rules for using them, and signs the facts with their own authority. When the coins are transferred onwards the recorded transactions are also signed by the parties that propose them. Assuming most parties in the system are honest, invalid transactions will simply not be confirmed. Dishonest parties are free to corrupt their own databases by adding invalid transactions, but no one else using the system will accept them.
-
-\subsection{SecSpaces and Scopes}
-SecSpaces~\cite{Busi2003:SecSpaces} and Scopes.
-
-
-
-
 
 
 % ---------------------------------------------------------
