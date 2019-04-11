@@ -5,24 +5,6 @@
 \section{Related Work}
 
 % ---------------------------------------------------------
-\subsection{Inference Engines}
-Production rule engine OPS~\cite{Forgy1981:OPS5} latter versions CLIPS~\cite{Riley2017:CLIPS} and Drools~\cite{Proctor2008:Drools}. Implementations based on the RETE~\cite{Forgy1981:RETE} algorithm and enhancements \cite{Doorenbos1995:ProductionMatching} of it. Our system is similar to a production rule engine, but with the facts annotated by sets of parties and other authority metadata. In systems like OPS the facts are part of a global set. In our system we annotate facts with sets of parties that control visiblity.
-
-
-% ---------------------------------------------------------
-\subsection{Account Based Ledgers}
-In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cite{Lee2018:EOSIO} all data on the ledger is visible to all parties. In these systems each account is associated with a contract that has its own mutable state. The contract code can export methods which are callable by other parties in the system. Authority is managed programatically, where method code must check at runtime that the party that calls a particular method is permitted to do so. Contracts that require authority from multiple parties to perform some action can use local mutable state to build a set of parties that have provided their consent so far. In our system the authority to create and consume facts is managed at the meta level as this also affects the whether each party can see the data. Rules are free to perform their own ``business level'' checks, such as ensuring that only a given set of parties can activate the rule.
-
-
-% ---------------------------------------------------------
-\subsection{UTXO Based Ledgers}
-
-
-% ---------------------------------------------------------
-\subsection{Petri-net Systems}
-
-
-% ---------------------------------------------------------
 \subsection{Linda-style Tuple Spaces}
 Linda~\cite{Gelernter1985:Linda} is a CSP-like process language where the individual processes communicate by adding, removing and non-destructively reading tuples from a globally shared tuple space. Tuples have named fields, and retrieved using simple, typed patterns. For example, we could retrieve (input) a tuple that specifies the price of apples with the following pattern:
 \begin{code}
@@ -36,10 +18,10 @@ The basic Linda communication model is open, meaning that any party connected to
 \end{code}
 There is no guarantee that Alice was the one that added this tuple to the system, and there is nothing preventing a third party from removing before the workflow completes and Bob gets his money.
 
-Extended tuple space models such as SecSpaces~\cite{Busi2003:SecSpaces} add authority metadata to the tuples, signing them with the private keys of the parties that create them, and specifying the identities of those that can see and/or consume them. This information is equivalent to the auth-by and auth-obs meta-data described in~\S\ref{s:Authority}. However, SecSpaces defines the data model only. There is no mechanism for parties to combine authorized facts to produce new facts that are transitively authorized by any other party accept themselves. The ability to do this is the main contribution of our own system.
+Extended tuple space models such as SecSpaces~\cite{Busi2003:SecSpaces} add authority metadata to the tuples, signing them with the private keys of the parties that create them, and specifying the identities of those that can see and/or consume them. This information is equivalent to the auth-by and auth-obs meta-data described in~\S\ref{s:Authority}. Merrick~\cite{Merrick2000:Scopes} describes a scoping system for tuple spaces where new scopes can be created at will and combined using a set of scope combinators. Each tuple is tagged with a single scope expression, but the scopes themselves can be overlapping. Both of these systems refine the data only. There is no mechanism for parties to combine authorized facts to produce new facts that are transitively authorized by any other party accept themselves. The ability to do this is the main contribution of our own system.
 
 
-\TODO{cite scopes}
+\TODO{Describe Scopes and multi-space systems, which provide visibility levels} \cite{Merrick2000:Scopes}
 
 % ---------------------------------------------------------
 \subsection{Law Governed Linda}
@@ -48,6 +30,28 @@ Law Governed Linda~(LGL)~\cite{Minsky1994:LawGovernedLinda, Minsky2001:SafeTuple
 In contrast, the rules in our Rainfall model do not seek to limit the form of data added to the system. Instead, they specify how authorized facts that are already in the system may be combined to generate new authorized facts. In Rainfall there is nothing stopping a party from adding a fact to the system which says ``I have a million dollars", just with their own authority. Additionally, the rules in our model are executed as part of transaction validation, on the computers of the individual parties. A nefarious party could form an invalid transaction that transfers themselves a million dollars, but honest parties will not confirm the transaction views they are sent that disagree with their own understanding of the facts.
 
 \TODO{Move this to earlier section}. The key property we need to manage is whether anyone else should rightly believe them. Recall that in the coin transfer example from \S\ref{s:Facts}, the coin facts always carry the authority of multiple parties, which is justified by the sequence of transactions that result in their production. The coin issuer (@Isabelle@ in the example) initially creates, specifies the rules for using them, and signs the facts with their own authority. When the coins are transferred onwards the recorded transactions are also signed by the parties that propose them. Assuming most parties in the system are honest, invalid transactions will simply not be confirmed. Dishonest parties are free to corrupt their own databases by adding invalid transactions, but no one else using the system will accept them.
+
+
+% ---------------------------------------------------------
+\subsection{Actors and Production Engines}
+Our rules have a passing similarity to Actors\TODO{cite main actors paper}, but the computation framework is quite different. The rules do not have their own private state, or process identity in the sense that they are addressable by mailbox or channel names. It would be straightforward to embed an Actor model \emph{into} Rainfall, by building facts that represent the local state of each actor, but it would be a full compilation process much like compiling a functional language onto a procedural one. The Rainfall system is also not reactive, in the sense that there are concurrent processes waiting to receive messages and provide responses. As described in \REF, in normal use a submitting party decides when to perform a transaction according to one of the rules, and is free to disambiguate any non-determinism in pattern matching as they see fit. Actor languages such as Erlang have extensions~\cite{Sulzmann2008:MultiHeaded} that support the sort of multi-headed pattern matching provided by Rainfall rules, but perform deterministic matching on streams of incoming messages, rather than selecting candidates from an unordered soup of tuples. \TODO{compare with constraint handling rules:likewise CHR specifies a particular matching order for constraints, (is that right?)}
+
+Our rules are closer to those used by production rule engines OPS~\cite{Forgy1981:OPS5} latter versions CLIPS~\cite{Riley2017:CLIPS} and Drools~\cite{Proctor2008:Drools} do perform non-deterministic matching. Implementations based on the RETE~\cite{Forgy1981:RETE} algorithm and enhancements \cite{Doorenbos1995:ProductionMatching} of it. Our system is similar to a production rule engine, but with the facts annotated by sets of parties and other authority metadata. In systems like OPS the facts are part of a global set. In our system we annotate facts with sets of parties that control visiblity.
+
+
+% ---------------------------------------------------------
+\subsection{UTXO Based Ledgers}
+
+
+% ---------------------------------------------------------
+\subsection{Account Based Ledgers}
+In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cite{Lee2018:EOSIO} all data on the ledger is visible to all parties. In these systems each account is associated with a contract that has its own mutable state. The contract code can export methods which are callable by other parties in the system. Authority is managed programatically, where method code must check at runtime that the party that calls a particular method is permitted to do so. Contracts that require authority from multiple parties to perform some action can use local mutable state to build a set of parties that have provided their consent so far. In our system the authority to create and consume facts is managed at the meta level as this also affects the whether each party can see the data. Rules are free to perform their own ``business level'' checks, such as ensuring that only a given set of parties can activate the rule.
+
+
+
+% ---------------------------------------------------------
+\subsection{Petri-net Systems}
+
 
 
 % ---------------------------------------------------------
@@ -62,6 +66,9 @@ The Join Calculus~\cite{Cedric1996:Reflexive} and Chemical Abstract Machine~\cit
 
 % ---------------------------------------------------------
 \subsection{Authorization Logics}
+\TODO{Describe how Rainfall rules have no breach state. Does not fit well into framework of Deontic or Defeasible logic, even though these are commonly used to describe contracts.}
+\TODO{Cut back descriptions of auth logic, don't use so much space as Rainfall is more operational, and not a logic.}
+
 The Dependency Core Calculus (DCC)~\cite{Abadi1999:DCC} extends Moggi's computational lambda calculus with an extra judgment to say that a value produced from a computation is protected at a given security level. The computation types are written (T l a) where T is the computation type former, l an element from a lattice describing authority levels, and a the return type. The calculus has rules for monadic 'lift' and 'bind' operators to ensure results computed by bind are annotated with the required authority. The terms are given a denotational semantics, but not an operational one that dynamically checks the running term has the required authority.
 
 Abadi 2006~\cite{Abadi2007:AccessControl} studies the use of DCC for access control and tracking in a distributed system. It uses a proposition (A says s) where 'A' is some principle/party that affirms statement 's'. The 'says' former abstracts away from the precise details of what is being authenticated or authorized. The statement (A says s) can be interpreted variously as "A has caused s to be said", "s has been said on A's behalf" or "A supports s". This work uses polymorphism to introduce delegation, providn terms of type (forall X. (A says X) implies (B says X)). As per the previous work \cite{Abadi1999:DCC} the system is presented as a logic rather than a programming language with operational meaning.
