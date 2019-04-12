@@ -39,7 +39,7 @@ As an example use, suppose we have facts of the above types currently on the led
 \begin{small}
 \begin{code}
  Coin   [issuer = !Isabelle, holder = !Alice]
- Offer  [id = '1234, terms = "To purchase one Guitar"
+ Offer  [id = '1234, terms = "To purchase a Guitar"
          giver = !Alice, receiver = !Bob]
 \end{code}
 \end{small}
@@ -102,7 +102,6 @@ In our coin example, scarcity of coin facts is enforced by requiring that they a
 When new coin facts \emph{are} added, they are given the authority of both the issuer and the initial holder of the coin. In the example of \S\ref{s:Facts} the original coin was issued by @!Isabelle@ and held by @!Alice@, so the fact carries the authority of both. The set of parties of which a fact was authorized by is called the \emph{by-authority set}. During the operation of the ledger we allow any party to add any fact with its own authority at any time. Likewise, any party may remove a fact from the ledger at any time, provided the fact is authorized only with that parties authority. Ensuring that Coin facts are always authorized by two parties, the issuer and current holder, ensures that neither can unilaterally remove the coin fact from the system. Coins can only be consumed by the action of pre-agreed rules that first collect the authority of all relevant parties.
 
 
-\eject
 % -----------------------------------------------------------------------------
 \subsection{Observation}
 \label{s:Observation}

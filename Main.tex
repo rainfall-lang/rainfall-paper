@@ -1,57 +1,38 @@
-\documentclass{sigplanconf}
-% \usepackage{pdf14}
+\documentclass[format=sigconf, review=true, screen=true]{acmart}
 \usepackage{graphicx}
 \usepackage{alltt}
-% \usepackage{flushend}
 \usepackage{style/code}
 \usepackage{style/utils}
 \usepackage{style/proof}
 
+
 % -----------------------------------------------------------------------------
 \begin{document}
-\toappear{}
+\acmConference[PPDP]{Principles and Practice of Declarative Programming}{2019}{Porto, Portugal}
+
 \title
 {       Smart Contracts as Authorized Production Rules}
 
-\authorinfo
-{       Ben Lippmeier$^\alpha$ \and
-        Amos Robinson$^\alpha$ \and
-        Andrae Muys$^\beta$
-}
-{
-  \vspace{5pt}
-  \shortstack{
-    ~~~$^{\alpha}$UNSW (Australia) \\
-    \\[2pt]
-    \textsf{benl@ouroborus.net}
-    \quad
-    \textsf{amosr@gmail.com}
-  }
-  \shortstack{
-    $^{\beta}$Digital Asset \\
-    \\[2pt]
-    ~~~~~~ \textsf{andrae.muys@digitalasset.com}
-  }
-}
 
+
+\author{Ben Lippmeier}
+\affiliation{UNSW (Australia)}
+\email{benl@ouroborus.net}
+
+\author{Amos Robinson}
+\affiliation{UNSW (Australia)}
+\email{amosr@gmail.com}
+
+\author{Andrae Muys}
+\affiliation{Digital Asset}
+\email{andrae.muys@digitalasset.com}
+
+\begin{abstract}
+We present an approach to managing assets in distributed ledger systems, where the asset is represented as a fact in a database. System allows workflows to be define to allow mutually distrusting parties to manage those assets. Our intended application is asset management on distributed ledger systems such as Bitcoin and Ethereum. Ambient system manages authority to ensure that no workflow can be defined that permits assets to be claimed from, or assigned to parties without their explicit approval.
+\end{abstract}
 
 \maketitle
 \makeatactive
-
-% -----------------------------------------------------------------------------
-\begin{abstract}
-We present an approach to managing assets in distributed ledger systems, where the asset is represented as a fact in a database. System allows workflows to be define to allow mutually distrusting parties to manage those assets. Our intended application is asset management on distributed ledger systems such as Bitcoin and Ethereum. Ambient system manages authority to ensure that no workflow can be defined that permits assets to be claimed from, or assigned to parties without their explicit approval.
-
-
-\end{abstract}
-
-\category
-        {D.3.4}
-        {Programming Languages}
-        {Processors---Compilers; Optimization}
-
-\keywords
-        Contracts; Authority
 
 
 % -----------------------------------------------------------------------------
@@ -70,6 +51,4 @@ Thanks to Raphael Speyer for the connection with Join Caclulus and The Chemical 
 \clearpage{}
 \bibliographystyle{plain}
 \bibliography{Main}
-
-
 \end{document}

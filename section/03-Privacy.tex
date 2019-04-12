@@ -1,5 +1,4 @@
 
-\clearpage{}
 % -----------------------------------------------------------------------------
 \section{Privacy}
 \label{s:Privacy}
@@ -28,26 +27,24 @@ Maintaining fact privacy has implications for the underlying implementation. Ass
 \begin{small}
 \begin{code}
 Transaction
-{ seq  = ... sequence number ...
-, rule = ... hash of code for transfer rule ...
-, spent
-   = [ Offer  [id    = '1234,
-               terms = "To purchase one Guitar"
-               giver = !Alice, receiver = !Bob]
-        by  {!Bob}              obs {!Mona, !Alice}
-        use {'transfer}         num 1
+ seq   = ... sequence number ...
+ rule  = ... hash of code for transfer rule ...
+ spent = [ Offer [id = '1234, terms = "To purchase a Guitar"
+                  giver = !Alice, receiver = !Bob]
+           by  {!Bob}              obs {!Mona, !Alice}
+           use {'transfer}         num   1
 
-     , Accept [id = '1234, accepter = !Bob]
-        by  {!Alice}            obs {!Mona, !Bob}
-        use {'transfer}         num 1
+         , Accept [id = '1234, accepter = !Bob]
+           by  {!Alice}            obs {!Mona, !Bob}
+           use {'transfer}         num 1
 
-     , Coin   [issuer = !Isabelle, holder = !Alice]
-        by  {!Isabelle, !Alice} obs {!Mona}
-        use {'transfer}         num 1 ]
-, new
-   = [ Coin   [issuer = !Isabelle, holder = !Bob]
-        by  {!Isabelle, !Bob}   obs {!Mona}
-        use {'transfer}         num 1 ]
+         , Coin   [issuer = !Isabelle, holder = !Alice]
+           by  {!Isabelle, !Alice} obs {!Mona}
+           use {'transfer}         num 1 ]
+
+ new   = [ Coin   [issuer = !Isabelle, holder = !Bob]
+           by  {!Isabelle, !Bob}   obs {!Mona}
+           use {'transfer}         num 1 ]
 \end{code}
 \end{small}
 
