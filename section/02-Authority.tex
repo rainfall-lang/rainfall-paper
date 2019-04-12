@@ -15,8 +15,8 @@ await Accept [id = ?i, accepter = ?a]  gain a
   and Offer  [id = i,  giver = ?g, receiver = ?a] gain g
   and Coin   [issuer = ?s, holder = g] gain s
 to
-  say Coin   [issuer = s, holder = r]
-   by \{s, r\} use \{transfer\}
+  say Coin   [issuer = s, holder = a]
+   by \{s, a\} use \{transfer\}
 \end{alltt}
 \end{small}
 \caption{Coin Transfer Workflow}
