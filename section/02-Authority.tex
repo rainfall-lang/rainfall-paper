@@ -6,12 +6,13 @@
 \begin{small}
 \begin{alltt}
 fact  Coin   [issuer: Party, holder: Party]
-fact  Offer  [id: Symbol, giver: Party, receiver: Party]
-fact  Accept [id: Symbol, accepter: Party]
+fact  Offer  [id: Symbol,   terms: Text,
+              giver: Party, receiver: Party ]
+fact  Accept [id: Symbol,   accepter: Party]
 
 rule  transfer
 await Accept [id = ?i, accepter = ?a]  gain a
-  and Offer  [id = i,  giver = ?g, receiver = ?a]
+  and Offer  [id = i,  giver = ?g, receiver = ?a] gain g
   and Coin   [issuer = ?s, holder = g] gain s
 to
   say Coin   [issuer = s, holder = r]
@@ -38,7 +39,8 @@ As an example use, suppose we have facts of the above types currently on the led
 \begin{small}
 \begin{code}
  Coin   [issuer = !Isabelle, holder = !Alice]
- Offer  [id = '1234, giver = !Alice, receiver = !Bob]
+ Offer  [id = '1234, terms = "To purchase one Guitar"
+         giver = !Alice, receiver = !Bob]
 \end{code}
 \end{small}
 
@@ -64,7 +66,7 @@ This new fact shows that the coin now belongs to Bob, or alternatively, the old 
 The @transfer@ rule of Figure~\ref{f:CoinTransfer} how the facts of the above types can be combined. The rule is written in a syntax similar to existing production rule systems based on OPS5. The rule definition has the form (@rule@ \emph{name} @await@ \emph{pattern} @to@ \emph{body}) where \emph{name} of the rule, \emph{pattern} specifies which facts must be matched for the rule to fire, and \emph{body} is a term that optionally adds new facts to the ledger.
 
 
-Names prefixed by @?@ are binding occurrences of variables, so the rule waits for an @Accept@ fact with its @id@ field set to some value, binds it to @i@, and then waits for an @Offer@ fact whose @id@ field is set to the same value. The runtime intuition is that matching of facts proceeds in sequence, so the rule will wait for an @Accept@ fact, then an @Offer@ fact, then a @Coin@ fact. Variables bound in earlier facts are in scope when matching latter facts, and also in the body. Implementations of traditional production rule engines use the RETE~\cite{Forgy1981:RETE} algorithm, or some extension of it, to implement rule matching in an efficient way. We consider implementation in \REF.
+Names prefixed by @?@ are binding occurrences of variables, so the rule waits for an @Accept@ fact with its @id@ field set to some value, binds it to @i@, and then waits for an @Offer@ fact whose @id@ field is set to the same value. The runtime intuition is that matching of facts proceeds in sequence, so the rule will wait for an @Accept@ fact, then an @Offer@ fact, then a @Coin@ fact. Variables bound in earlier facts are in scope when matching latter facts, and also in the body. Implementations of traditional production rule engines use the RETE~\cite{Forgy1981:RETE} algorithm, or some extension of it, to implement rule matching in an efficient way.
 
 By default, when a rule matches on a given fact, that fact is \emph{spent}, meaning that it is removed from the active ledger state. As we will see in \REF the knowledge that that fact once existed is not lost, as the implementation retains the full history of transactions, but after a fact is spent it can no longer be matched in a subsequent rule.
 
@@ -128,7 +130,8 @@ Returning to our coin transfer example from \S\ref{s:Facts}, we restate the fact
     by  {!Bob}                obs {!Mona, !Alice}
     use {'transfer}           num 1
 
- Offer  [id = '1234, giver = !Alice, receiver = !Bob]
+ Offer  [id = '1234, terms = "To purchase one Guitar"
+         giver = !Alice, receiver = !Bob]
     by  {!Alice}              obs {!Mona, !Bob}
     use {'transfer}           num 1
 
