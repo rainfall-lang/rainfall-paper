@@ -4,6 +4,10 @@
 \label{s:Related}
 \section{Related Work}
 
+\TODO{Distinguish between authorized fact production and contract pricing systems. Rainfall isn't about pricing}.
+
+\TODO{Describe how Rainfall rules have no breach state. Does not fit well into framework of Deontic or Defeasible logic, even though these are commonly used to describe contracts.}
+
 % ---------------------------------------------------------
 \subsection{Linda-style Tuple Spaces}
 Linda~\cite{Gelernter1985:Linda} is a CSP-like process language where the individual processes communicate by adding, removing and non-destructively reading tuples from a globally shared tuple space. Tuples have named fields, and retrieved using simple, typed patterns. For example, we could retrieve (input) a tuple that specifies the price of apples with the following pattern:
@@ -59,7 +63,6 @@ Our rules are closer to those used by production rule engines OPS~\cite{Forgy198
 In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cite{Lee2018:EOSIO} all data on the ledger is visible to all parties. In these systems each account is associated with a contract that has its own mutable state. The contract code can export methods which are callable by other parties in the system. Authority is managed programatically, where method code must check at runtime that the party that calls a particular method is permitted to do so. Contracts that require authority from multiple parties to perform some action can use local mutable state to build a set of parties that have provided their consent so far. In our system the authority to create and consume facts is managed at the meta level as this also affects the whether each party can see the data. Rules are free to perform their own ``business level'' checks, such as ensuring that only a given set of parties can activate the rule.
 
 
-
 % ---------------------------------------------------------
 \subsection{Petri-net Systems}
 \TODO{Describe AdjointIO FCL model. Has baked in currency}
@@ -75,7 +78,6 @@ The Join Calculus~\cite{Cedric1996:Reflexive} and Chemical Abstract Machine~\cit
 
 % ---------------------------------------------------------
 \subsection{Authorization Logics}
-\TODO{Describe how Rainfall rules have no breach state. Does not fit well into framework of Deontic or Defeasible logic, even though these are commonly used to describe contracts.}
 \TODO{Cut back descriptions of auth logic, don't use so much space as Rainfall is more operational, and not a logic.}
 
 The Dependency Core Calculus (DCC)~\cite{Abadi1999:DCC} extends Moggi's computational lambda calculus with an extra judgment to say that a value produced from a computation is protected at a given security level. The computation types are written (T l a) where T is the computation type former, l an element from a lattice describing authority levels, and a the return type. The calculus has rules for monadic 'lift' and 'bind' operators to ensure results computed by bind are annotated with the required authority. The terms are given a denotational semantics, but not an operational one that dynamically checks the running term has the required authority.
@@ -87,7 +89,3 @@ Garg 2006~\cite{Garg2006:Constructive} presents a system in sequent style with t
 Bowers 2007~\cite{Bowers2007:Consumable} contains a Gentzen style presentation of Garg 2006 that adds a linear environment to enforce that particular statements (K says A) are only used once in a given authority proof. It also has a (A signed F) form to model a message being cryptograpically signed. Includes an informal discussion of how linear uses of predicates can be enforced in a distributed environment by reling on a central ratifier to check the proofs.
 
 Aura~\cite{Jia2008:Aura} is a dependently typed language that includes the (A says P) form of DCC~\cite{Abadi1999:DCC} and provides a proof term assignment for the earlier pure authorization logics. The proof language is restricted to only contain proofs with no redexes, which simplifies type checking and ensures proof construction code does not perform effects. Proofs of authority are passed as pure proof terms so that fact that a given function may capture authority in its closure is not visible in its type.
-
-
-% ---------------------------------------------------------
-\subsection{Contract Pricing Systems}
