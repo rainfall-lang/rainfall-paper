@@ -1,15 +1,16 @@
 
 % -----------------------------------------------------------------------------
-% Dynamic Semantics
+% Static Semantics
 % -----------------------------------------------------------------------------
 
 
 \begin{figure}
 $$
 \begin{array}{cl}
+
+% -- Rule -------------------------------------------------
 \fbox{$\jOk{Env}{Rule}$}
 \\[2ex]
-
 
 \ruleI  {    \jTypeMatch{\cdot}{\Sigma}{H^n}{\Gamma}
          \qq \jType{\Gamma}{M}{\kUnit} }
@@ -17,8 +18,12 @@ $$
 \end{array}
 $$
 
+
+% -- Matches ----------------------------------------------
 $$
 \begin{array}{cl}
+\fbox{$\jTypeMatch{Env}{Decls}{Matches}{Env}$}
+\\[2ex]
 \jTypeMatch{\Gamma}{\Sigma}{\cdot}{\Gamma}
 \\[1ex]
 \ruleI  {   \jTypeMatch{\Gamma}{\Sigma}{H}{\Gamma'}
@@ -27,8 +32,12 @@ $$
 \end{array}
 $$
 
+
+% -- Match ------------------------------------------------
 $$
 \begin{array}{cl}
+\fbox{$\jTypeMatch{Env}{Decls}{Match}{Env}$}
+\\[2ex]
 \ruleI  {\begin{array}{ll}
             \jTypeGather{\Gamma}{\Sigma}{X}{G}{\Gamma'}
         \\  \jOk{\Gamma'}{T} \quad \jOk{\Gamma'}{C} \quad \jOk{\Gamma'}{I}
@@ -38,8 +47,12 @@ $$
 \end{array}
 $$
 
+
+% -- Gather -----------------------------------------------
 $$
 \begin{array}{cl}
+\fbox{$\jTypeGather{Env}{Decls}{Var}{Gather}{Env}$}
+\\[2ex]
 \ruleI  {    (N : \tau) \in \Sigma
          \quad \Gamma' = \Gamma,~ X : \kFact~ \tau
          \quad \{ \jType{\Gamma'}{M_i}{\kBool} \}^{i \gets 1 .. n}
@@ -48,7 +61,12 @@ $$
 \end{array}
 $$
 
+
+% -- Select/Consume/Gain ---------------------------------
 $$
+\begin{array}{cl}
+\fbox{$\jOk{Env}{Select/Consume/Gain}$}
+\\[2ex]
 \begin{array}{ccc}
 % -- Select
         \jOk    {\Gamma}{\kany}
@@ -62,11 +80,14 @@ $$
 &       \ruleI  {\jType{\Gamma}{M}{\trm{\kAuth}}}
                 {\jOk{\Gamma}{\kgain~ M}}
 \end{array}
+\end{array}
 $$
 
+
+% -- Action -----------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jTypeAction{Env}{Env}{Term}{Type}$}
+\fbox{$\jTypeAction{Env}{Env}{Action}{Type}$}
 \\[2ex]
 
 \jTypeAction{\Gamma}{\Sigma}{\kdone}{\kUnit}
@@ -95,6 +116,8 @@ $$
 \end{array}
 $$
 
+
+% -- Term -------------------------------------------------
 $$
 \begin{array}{cl}
 \fbox{$\jType{Env}{Term}{Type}$}
@@ -105,7 +128,23 @@ $$
 \ruleI  {   \jType{\Gamma}{M}{\tau \to \tau'}
         \qq \jType{\Gamma}{M'}{\tau} }
         { \jType{\Gamma}{M~ M'}{\tau'} }
-\qq \dots
+\\[2ex]
+\ruleI  { \jType{\Gamma,~ X:\tau_1}{M_2}{\tau_2}}
+        { \jType{\Gamma}
+                {\lambda X:\tau_1.~ M_2}
+                {\tau_1 \to \tau_2}
+        }
+\\[2ex]
+\ruleI  { \{ \jType{\Gamma}{M_i}{\tau_i} \}^{i \gets 1..n} }
+        { \jType{\Gamma}
+                {[ l_1:M_1    \ldots l_n:M_n  ]}
+                {[ l_1:\tau_1 \ldots l_n:\tau_n \}]}
+        }
+\\[2ex]
+\ruleI  { \jType{\Gamma}{M}{[ l_1:M_1 .. l_n:M_n]}
+          \qq l:\tau \in \{l_1:\tau_1 .. l_n:\tau_n \}
+        }
+        { \jType{\Gamma}{ M ~.~ l }{\tau} }
 \end{array}
 $$
 
