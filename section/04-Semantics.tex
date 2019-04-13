@@ -3,6 +3,15 @@
 \section{Semantics}
 The key aspects of our system are captured in the rule structure and authority mechanism. For expositional purposes the term language has been specified as a version of simply typed lambda calculus. For a concrete implementation it may be preferrable to define rule bodies in terms of a well defined bytecode such as Web Assembly. \TODO{Cite Corda uses a determinised JVM to specify its contracts}
 
+\AMOS{
+In the execution stage, why is @say@ a side-effect that updates the facts list (EvSay), rather than just having the rule term evaluate to a list of factoids?
+I think in a coloured petri net the transition function is a pure function from input values to output values, so I'd expect here a pure function from matched input factoids to output factoids.
+}
+\AMOS{
+For the ``buy guitar'' example, where Alice is selling and Bob and Charlie are both buying, Alice is allowed to choose which offer to accept.
+So in this example, would the Rule declaration specify @any@, and the non-deterministic choice in (EvAny) rule would be made by Alice?
+}
+
 
 % ---------------------------------------------------------
 \begin{figure}

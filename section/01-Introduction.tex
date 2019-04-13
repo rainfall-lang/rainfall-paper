@@ -6,7 +6,7 @@ Latter \emph{smart contract} systems such as Ethereum, EOS.IO and Plutus include
 
 Besides ``user experience'' issues such as support for wallet interfaces, there is an expressivity gap between code that manages native Ethereum asset and internal tokens. When the set of token balances for all users is maintained as an array owned by a single Ethereum account, it is easy for for the contract code associated with that account to perform \emph{global queries} over the data. For example, to compute the total number of tokens that currently exist, or to find the account with the largest balance. On the other hand, similar queries concerning the native Ethereum currency cannot be expressed as contracts --- the EVM virtual machine does not include opcodes to allow scan through balances of all accounts. Such functionality is currently delegated to the meta-level, where tools that support browsing of all accounts on the ledger operate by querying the native database of the protocol implementation, rather than being expressed as contracts themselves. Proponents of distributed ledger technology often refer to DLT as a special kind of distributed database, but current systems are databases without natural query languages.
 
-With these problems in mind we present new programming model for distributed ledgers which we call \emph{Authorized Production Rules}. Our model combines a production rule framework in the style of OPS5 and CLIPS, with an authority system that allows the asset properties of scarcity and ownership to be enforced by the ambient system. We make the following contributions:
+With these problems in mind we present a new programming model for distributed ledgers which we call \emph{Authorized Production Rules}. Our model combines a production rule framework in the style of OPS5 and CLIPS, with an authority system that allows the asset properties of scarcity and ownership to be enforced by the ambient system. We make the following contributions:
 
 \begin{itemize}
 \item We present a system based on authorized inference rules which allows mutually distrusting parties to define upgradable workflows that manage ownership of facts on a distributed ledger.
@@ -18,5 +18,5 @@ With these problems in mind we present new programming model for distributed led
 \item We present several key examples using our system, including bilateral asset transfer, collection of multiple signatures, loans and equity brokerage.
 \end{itemize}
 
-The focus of our work is on the language semantics and authority mechanism. We do not specify or require a particular concrete ledger model or consensus mechanism. Our system focuses on public ledgers, the relationship with private ledgers left to future work.
+The focus of our work is on the language semantics and authority mechanism. We do not specify or require a particular concrete ledger model or consensus mechanism. Our system focuses on public ledgers; the relationship with private ledgers is left to future work.
 

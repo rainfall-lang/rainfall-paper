@@ -100,13 +100,15 @@ $$
 { \jSelect{F^n}{E}{X}{\kany}{F} }
 \qq
 \ruleI
-{ \begin{array}{ll}
-      (V', F')  \in D^m
-  \qq V' = \trm{minimum}~ \{ V ~|~ (V, \_) \in D^m \}
-  \\  ~~~~~~~ D^m \in \{ (V, F) ~|~ F \in F^n, (\jEval{E, X \mapsto F}{M}{V} ) \}
+%% Amos: reordered because data flow seemed backwards, fixed what I think were type/binding errors
+{ \begin{array}{c}
+  D^m = \{ (V, F) ~|~ F \in F^n, (\jEval{E, X \mapsto F}{M}{V} ) \}
+  \\
+  V' = \trm{minimum}~ \{ V ~|~ (V, \_) \in D^m \}
+  \qq (V', F')  \in D^m
   \end{array}
 }
-{ \jSelect{F^n}{E}{X}{\kfirst~ M}{F} }
+{ \jSelect{F^n}{E}{X}{\kfirst~ M}{F'} }
 & (\trm{EvAny/First})
 \\[4ex]
 
