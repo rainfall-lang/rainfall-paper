@@ -7,11 +7,6 @@ The key aspects of our system are captured in the rule structure and authority m
 In the execution stage, why is @say@ a side-effect that updates the facts list (EvSay), rather than just having the rule term evaluate to a list of factoids?
 I think in a coloured petri net the transition function is a pure function from input values to output values, so I'd expect here a pure function from matched input factoids to output factoids.
 }
-\AMOS{
-For the ``buy guitar'' example, where Alice is selling and Bob and Charlie are both buying, Alice is allowed to choose which offer to accept.
-So in this example, would the Rule declaration specify @any@, and the non-deterministic choice in (EvAny) rule would be made by Alice?
-}
-
 
 % ---------------------------------------------------------
 \begin{figure}
@@ -88,3 +83,40 @@ to do say Coin   [ stamp = 'Coin1001, holder = Alice]
 \caption{Coin Transfer Workflow}
 \label{f:CoinTransferDesugared}
 \end{figure}
+
+\subsection{Lemmas}
+
+\begin{lemma}
+New facts are included in the new store (trivial):
+$$
+\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\implies
+D_{new}^m \subseteq S'
+$$
+\end{lemma}
+(Using the $\subseteq$ notation to refer to the multiset subset operation here -- would it be better to unroll it as something like $\forall (x,w) \in D_{new}^m.\ (x,w') \in S' \wedge w \le w'$ ?)
+
+\begin{lemma}
+Rules only spend what is in the store (pretty trivial):
+$$
+\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\implies
+D_{spent}^n \subseteq S
+$$
+\end{lemma}
+
+\begin{theorem}
+Frame constriction: if a rule succeeds, the rule would succeed, resulting in the same value, in a store containing only what it spent:
+$$
+\begin{array}{c}
+\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\implies \\
+\jFire{A_{sub}}{D_{spent}^n}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\end{array}
+$$
+\end{theorem}
+This theorem statement isn't quite correct at the moment, because it's ignoring retained/non-consumed values. I will update this rule to find the non-consumed values in the spent facts and copy them from the original store after I have updated the formalisation. I think updating the formalisation will expose some other lemmas.
+
+\AMOS{will fill in other lemmas soon}
+
+
