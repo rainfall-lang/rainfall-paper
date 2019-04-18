@@ -20,6 +20,13 @@ Applying this predicate to the initial facts from \S\ref{s:NowWithMetadata} we s
 
 
 % -----------------------------------------------------------------------------
+% TODO: How does a confirming party know which other parties to ask for confirmations?
+% It may see some in the facts revealed to it, but if a fact has been blinded it may not
+% know it can ask the parties listed in that fact. We may want to add an extra field
+% to the transaction listing the parties involved, which is separate from the facts
+% themselves. This seems like a design variable where we might want the extra list,
+% or not, and both answers are valid.
+
 \subsection{Transactions and Validation}
 \label{s:Transactions}
 Maintaining fact privacy has implications for the underlying implementation. Assume that Alice, Bob, Mona and Isabelle all have their own computers in their own offices that each initially contain the subset of facts that each can see as per Figure~\ref{f:CoinTransferVisibility}. Assume that each party also has a copy of the transfer rule shown in Figure~\ref{f:CoinTransfer}. Now, suppose Alice decides that it is time to perform the transfer. On her own computer she executes the rule while recording the facts that have been consumed and the new facts that have been produced. She then builds a transaction data structure that records this information along with the cryptographic hash of the rule code, which we describe as so:

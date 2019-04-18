@@ -33,6 +33,7 @@ Rainfall has two main components: a ledger of facts and a set of rules. Parties 
 % -----------------------------------------------------------------------------
 \subsection{Facts}
 \label{s:Facts}
+% TOOD: we don't have a way to generate fresh names. Hand-wave away where the identifier came from.
 Figure~\ref{f:CoinTransfer} contains the fact and rule definitions for a simple coin transfer workflow. A @fact@ declaration gives the \emph{tag} and \emph{payload} types of a particular sort of fact. In this example, a @Coin@ fact describes a single coin that has been created by an @issuer@ party and is currently held by a @holder@. An @Offer@ fact represents an offer by a coin holder, the @giver@, which offers to give their coin to a second party, the @receiver@. The offer also carries a value of abstract @Symbol@, type that is used to uniquely identify the offer. An @Accept@ fact represents that fact that the receiver of the offer does indeed wish to accept a coin offer with the given identifier.
 
 As an example use, suppose we have facts of the above types currently on the ledger:
@@ -66,14 +67,20 @@ This new fact shows that the coin now belongs to Bob, or alternatively, the old 
 The @transfer@ rule of Figure~\ref{f:CoinTransfer} how the facts of the above types can be combined. The rule is written in a syntax similar to existing production rule systems based on OPS5. The rule definition has the form (@rule@ \emph{name} @await@ \emph{pattern} @to@ \emph{body}) where \emph{name} of the rule, \emph{pattern} specifies which facts must be matched for the rule to fire, and \emph{body} is a term that optionally adds new facts to the ledger.
 
 
+% TODO: Explain RETE in implementation sketch. RETE does not require nested scoping, can match facts in any order, not ness. in sequence.
 Names prefixed by @?@ are binding occurrences of variables, so the rule waits for an @Accept@ fact with its @id@ field set to some value, binds it to @i@, and then waits for an @Offer@ fact whose @id@ field is set to the same value. The runtime intuition is that matching of facts proceeds in sequence, so the rule will wait for an @Accept@ fact, then an @Offer@ fact, then a @Coin@ fact. Variables bound in earlier facts are in scope when matching latter facts, and also in the body. Implementations of traditional production rule engines use the RETE~\cite{Forgy1981:RETE} algorithm, or some extension of it, to implement rule matching in an efficient way.
 
+% TODO: System is transactional, spends all facts or none. Does not spend facts in sequence, but does build spend list in sequence.
 By default, when a rule matches on a given fact, that fact is \emph{spent}, meaning that it is removed from the active ledger state. As we will see in \REF the knowledge that that fact once existed is not lost, as the implementation retains the full history of transactions, but after a fact is spent it can no longer be matched in a subsequent rule.
 
 
 % -----------------------------------------------------------------------------
 \subsection{Weights}
 \label{s:Weights}
+% TODO: the by/obs/use/num fields are not "metadata", it is real live data that is used by the rule.
+% TODO: in this section say that we can also consume a fact using weights, but syntax is given later.
+% TODO: discuss extension of using general monoids for weights, not just natural number and addition,
+%       if we have this then we'd also need to put constraints on the weights, like >= 0.
 Suppose @Bob@ already had a coin, and then receives another one. We manage this situation by giving each fact its first piece of meta-data, a \emph{weight}, which a non-negative integer. We treat the weight as indicating the number of ``copies'' of the same fact on the ledger. When writing fact values we indicate the weight using @num@ keyword next to it, typically eliding it when it has value one.
 
 For example, if the ledger already contained a weighted fact:
@@ -95,6 +102,7 @@ And then Alice transfers Bob a new coin, then the new entry on the ledger would 
 % -----------------------------------------------------------------------------
 \subsection{Authority}
 \label{s:Authority}
+% TODO: The 'gain' keyword is not explained yet.
 A given currency can only retain value when it is \emph{scarce}. Commodity currencies like gold and silver are scarce due to the physical difficulty of digging them up. Fiat currencies like Icelandic Kr\'ona (ISK) are scarce because a central authority, the Icelandic Government, only issues a limited amount per year. Crypto currencies like Bitcoin are scarce because they represent the solution of a particular cryptographic problem, which at a particular time, required significant energy to solve. Whether a currency \emph{has} ``value'' is a different question, but a currency needs to be scarce to retain it.
 
 In our coin example, scarcity of coin facts is enforced by requiring that they are all issued by a single party @!Isabelle@. We assume that everyone using the system agrees that @!Isabelle@ is a trustworthy individual, and will not add new, signed @Coin@ facts to the ledger in an inappropriate way\footnote{meaning they will not print money, or at least, not too much}.
@@ -105,8 +113,11 @@ When new coin facts \emph{are} added, they are given the authority of both the i
 % -----------------------------------------------------------------------------
 \subsection{Observation}
 \label{s:Observation}
+% TODO: as an extension could make it so rule can only see the other parties that can observe a fact if it also has authority to spend a fact.
+% This would need to be handled by the submitter of the transaction.
 When a fact carries the authority of a particular party then it is natural that the party should be aware of the fact. In Rainfall, all facts with the authority of a particular party are visible to that party. For example, the original @Coin@ fact from \S\ref{s:Facts} carries the authority of both @!Isabelle@ and @!Alice@, so those parties will be informed of the creation and subsequent consumption of that fact.
 
+% TODO: The obs authority is not "metadata", it is part of the fact, so is real live data.
 In practical commercial workflows, it is often the case that extra parties must be informed of events such as coin transfers and contract completion, even though they do not have direct authority over the facts themselves. For example, in Australia, the Australian Securities and Investments Commission (ASIC) monitors the activity of the Australian Securities eXchange (ASX), even though they are not themselves a giver or receiver on any of the currency transfers or securities transactions. In Rainfall, we use an additional meta-data field associated with each fact, called the \emph{obs-authority} set to collect the set of parties that can observe a fact but do not have authority over it. The obs-authority set of a fact may contain the name of a party that is also in the by-authority set for the same fact, though it provides no additional benefit. Privacy will be discussed in more detail in \S\ref{s:Privacy}
 
 
