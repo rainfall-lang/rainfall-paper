@@ -42,7 +42,10 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
  \> $Literal$           \> ::= \> $\kunit$ ~|~ $Bool$ ~|~ $Nat$ ~|~ $Text$ ~|~ $Symbol$ ~|~ $Party$
 \end{tabbing}
 
-\smallskip
+\medskip
+\begin{flushleft}
+(primitive operators)
+\end{flushleft}
 \begin{tabbing}
 MMMMMMMM \= Mx \= MMMMM \kill
    @fact'payload@$_\tau$ \> $:: @Fact@~ \tau \to \tau$
@@ -51,6 +54,29 @@ MMMMMMMM \= Mx \= MMMMM \kill
 \\ @fact'use@$_\tau$    \> $:: @Fact@~ \tau \to \kSet~ \kSymbol$
 \\ @fact'num@$_\tau$    \> $:: @Fact@~ \tau \to \kNat$
 \end{tabbing}
+
+\medskip
+\begin{flushleft}
+(syntactic sugar)
+\end{flushleft}
+$$
+\begin{array}{cc}
+   \kretain \stackrel{\triangle}{=} \kconsume~ 0
+\quad & \quad
+   \ksame   \stackrel{\triangle}{=} \kgain~ \emptyset
+\end{array}
+$$
+
+\medskip
+\begin{flushleft}
+(environments)
+\begin{tabbing}
+Mx              \= MMMMMx       \= Mx \= MMMMMMM \kill
+   $\Gamma,$       \> $TypeEnv$    \> ::= \> $\cdot ~|~ TypeEnv,~ Var : Type$
+\\ $\Sigma,$       \> $Decls$      \> ::= \> $\cdot ~|~ Decls,~ Var : [(Label : Type)*]$
+\end{tabbing}
+\end{flushleft}
+
 
 \caption{Core Language Grammar}
 \end{figure}
