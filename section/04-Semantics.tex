@@ -10,30 +10,47 @@ I think in a coloured petri net the transition function is a pure function from 
 
 % ---------------------------------------------------------
 \begin{figure}
-\begin{small}
-\begin{alltt}
-Name   ::= ...
-Ctor   ::= ...
-Label  ::= ...
+\begin{tabbing}
+Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
+\\ $N,$ \> $Name$       \> ::= \> ...
+\\ $L,$ \> $Label$      \> ::= \> ...
+\\ $X,$ \> $Var$        \> ::= \> ...
 
-Decl   ::= rule Name Rule
-Rule   ::= await Guard+ to Action
-Guard  ::= Ctor as Var where Term
+\\[1ex]
+        \> $Rule$       \> ::= \> $\krule~ Name~ \kawait~ Match+~ \kto~ Term$
+\\ $H,$ \> $Match$      \> ::= \> $Var~ \kfrom~ Gather~ Select~ Consume~ Gain$
+\\ $G,$ \> $Gather$     \> ::= \> $\kwhen~ Name~ Term+$
+\\ $T,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
+\\ $C,$ \> $Consume$    \> ::= \> $\kconsume~ Term$
+\\ $I,$ \> $Gain$       \> ::= \> $\kgain~ Term$
 
-Type   ::= unit | text | symbol | nat | party
-        |  set Type | Type \(\to\) Type
+\\[1ex]
+   $\tau,$ \> $Type$    \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
+\\ \>                   \> ~|  \> $\kSet~ Type~ |~ Type \to Type$
 
-Term   ::= Var | Term Term | \(\lambda\) Var : Type \(\to\) Term
-        |  [ (Label = Term)* ] | Term . Label
+\\[1ex]
+  $M,$   \> $Term$      \> ::= \> $Literal~ |~ Var~ |~ Term~ Term~ |~ \lambda Var : Type.~ Term$
+\\ \>                   \> ~|  \> $[ (Label = Term)* ]~ |~ Term~ .~ Label$
+\\[0.5ex] \>            \> ~|  \> $\ksay~ Name~ [~ (Label~ =~ Term)*~ ]~$
+\\        \>            \>     \> \hspace{0.5em} $\kby~ Term~ \kobs~ Term~ \kuse~ Term~ \knum~ Term$
 
-Value  ::= Lit | \(\lambda\) Var : Type \(\to\) Term
-        |  [ (Label = Value)* ]
+\\[1ex]
+  $V,$   \> $Value$     \> ::= \> $Literal~ |~ \lambda Var : Type.~ Term$
+\\        \>            \> ~|  \> $[ (Label = Value)* ]$
 
-Action ::= done | Action ; Action
-        |  say Ctor [ (Label = Exp)* ]
-           by  Term  use Term  for Term  obs Term
-\end{alltt}
-\end{small}
+\\[1ex]
+ \> $Literal$           \> ::= \> $\kunit$ ~|~ $Bool$ ~|~ $Nat$ ~|~ $Text$ ~|~ $Symbol$ ~|~ $Party$
+\end{tabbing}
+
+\smallskip
+\begin{tabbing}
+MMMMMMMM \= Mx \= MMMMM \kill
+   @fact'payload@$_\tau$ \> $:: @Fact@~ \tau \to \tau$
+\\ @fact'by@$_\tau$     \> $:: @Fact@~ \tau \to \kSet~ \kParty$
+\\ @fact'obs@$_\tau$    \> $:: @Fact@~ \tau \to \kSet~ \kParty$
+\\ @fact'use@$_\tau$    \> $:: @Fact@~ \tau \to \kSet~ \kSymbol$
+\\ @fact'num@$_\tau$    \> $:: @Fact@~ \tau \to \kNat$
+\end{tabbing}
 
 \caption{Core Language Grammar}
 \end{figure}
