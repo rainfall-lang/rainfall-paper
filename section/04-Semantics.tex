@@ -134,6 +134,8 @@ to
 % -----------------------------------------------------------------------------
 \subsection{Properties}
 
+\AMOS{The following lemmas have been proved for a subset of the semantics without `retain' semantics}
+
 \begin{lemma}
 New facts are included in the new store (trivial):
 $$
@@ -165,6 +167,67 @@ $$
 \end{theorem}
 This theorem statement isn't quite correct at the moment, because it's ignoring retained/non-consumed values. I will update this rule to find the non-consumed values in the spent facts and copy them from the original store after I have updated the formalisation. I think updating the formalisation will expose some other lemmas.
 
-\AMOS{will fill in other lemmas soon}
+\begin{theorem}
+Spend only visible: execution can only spend facts visible to the submitter:
+$$
+\begin{array}{c}
+\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\implies \\
+\forall f \in D_{spent}^n.\ \trm{sees}~ A_{sub}~ f
+\end{array}
+$$
+\end{theorem}
 
+\begin{theorem}
+Store weakening with invisible facts: adding facts that are not visible to the submitter does not affect execution:
+$$
+\begin{array}{c}
+\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\implies \\
+\forall f \in S_{others}.\ \neg (\trm{sees}~ A_{sub}~ f)
+\implies \\
+\jFire{A_{sub}}{S \uplus S_{others}}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\end{array}
+$$
+\end{theorem}
+
+\begin{theorem}
+All authority in new facts is gained from spent facts:
+$$
+\begin{array}{c}
+\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\implies \\
+\forall f \in D_{new}^m.\ \forall a \in \trm{auth-by}~f.\ \exists d \in D_{spent}^n.\ a \in \trm{auth-by}~d
+\end{array}
+$$
+\end{theorem}
+
+\AMOS{I haven't proved the following yet.}
+The following theorems do not hold for all programs, but do hold for subsets.
+
+\begin{theorem}
+Store weakening for `any' selectors: if the rule doesn't contain any `first' selectors, we can add new facts without changing the execution:
+$$
+\begin{array}{c}
+\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\implies \\
+\trm{rule-contains-only-any}~R \implies \\
+\jFire{A_{sub}}{S \uplus S_{others}}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\end{array}
+$$
+\end{theorem}
+
+This theorem doesn't hold for `first' selectors because adding new values to the store might change the minimum, and so change which value the first selector chooses.
+
+\begin{theorem}
+More permissions do not change behaviour of `any' selectors: if the rule doesn't contain any `first' selectors, we can add new authority without changing the execution:
+$$
+\begin{array}{c}
+\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\implies \\
+\trm{rule-contains-only-any}~R \implies \\
+\jFire{A_{sub} \cup A_{others}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\end{array}
+$$
+\end{theorem}
 
