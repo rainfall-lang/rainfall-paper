@@ -34,24 +34,27 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
   $H,$ \> $Match$      \> ::= \> $Var~ \kfrom~ Name~ \kwhere~ Term$
 \\      \>              \>     \> \hspace{1.6em} $\kselect~ Select~ \kconsume~ Term~ \kgain~ Term$
 \\[0.5ex]
-  $S,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
+  $C,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
 
 \\[1ex]
-   $T,$ \> $Type$    \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
-\\ \>                   \> ~|  \> $Type \to Type~ |~ \kSet~ Type~ |~ \kFact~ Type~ |~ \kFACT$
+   $T,$ \> $Type$       \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
+\\ \>                   \> ~|  \> $\kSet~ Type~ |~ \kFact~ Type~ |~ \kFactoid$
+\\ \>                   \> ~|  \> $[ (Label : Type)* ] ~|~ Type \to Type~$
 
 \\[1ex]
   $M,$   \> $Term$      \> ::= \> $Literal~ |~ Var~ |~ Term~ Term~ |~ \lambda Var : Type.~ Term$
-\\ \>                   \> ~|  \> $[ (Label = Term)* ]~ |~ Term~ .~ Label$
+\\ \>                   \> ~|  \> $[ (Label = Term)* ]~ |~ Term~ .~ Label ~|~ \{ Term* \}$
+
 \\[0.5ex] \>            \> ~|  \> $\ksay~ Name~ Term~$
 \\        \>            \>     \> \hspace{0.5em} $\kby~ Term~ \kobs~ Term~ \kuse~ Term~ \knum~ Term$
 
 \\[1ex]
   $V,$   \> $Value$     \> ::= \> $Literal~ |~ \lambda Var : Type.~ Term$
-\\        \>            \> ~|  \> $[ (Label = Value)* ]$
+\\       \>             \> ~|  \> $[ (Label = Value)* ] ~|~ \{ Value* \}$
+\\       \>             \> ~|  \> $Fact ~|~ (Fact, Weight)$
 
 \\[1ex]
- \> $Literal$           \> ::= \> $\kunit$ ~|~ $Bool$ ~|~ $Nat$ ~|~ $Text$ ~|~ $Symbol$ ~|~ $Party$
+  $L,$   \> $Literal$   \> ::= \> $\kunit$ ~|~ $Bool$ ~|~ $Nat$ ~|~ $Text$ ~|~ $Symbol$ ~|~ $Party$
 \end{tabbing}
 
 \medskip
@@ -67,17 +70,17 @@ MMMMMMMM \= Mx \= MMMMM \kill
 \\ @fact'num@$_T$     \> $:: @Fact@~ T \to \kNat$
 \end{tabbing}
 
-\medskip
-\begin{flushleft}
-(syntactic sugar)
-\end{flushleft}
-$$
-\begin{array}{cc}
-   \kretain \stackrel{\triangle}{=} \kconsume~ 0
-\quad & \quad
-   \ksame   \stackrel{\triangle}{=} \kgain~ \emptyset
-\end{array}
-$$
+% \medskip
+% \begin{flushleft}
+% (syntactic sugar)
+% \end{flushleft}
+% $$
+% \begin{array}{cc}
+%    \kretain \stackrel{\triangle}{=} \kconsume~ 0
+% \quad & \quad
+%    \ksame   \stackrel{\triangle}{=} \kgain~ \emptyset
+% \end{array}
+% $$
 
 \medskip
 \begin{flushleft}
@@ -139,6 +142,7 @@ The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the prem
 The operational semantics essentially expresses relational joins using naive cartesian product and filtering, and has no indexing mechanism. A production implementation would implement the same semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, a parallel extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra.
 
 \input{figure/Dynamic.tex}
+
 
 % -----------------------------------------------------------------------------
 \subsection{Properties}

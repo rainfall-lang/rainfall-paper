@@ -41,7 +41,7 @@ $$
 \\[2ex]
 \ruleI  {\begin{array}{ll}
             \jTypeGather{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}
-        \\  \jOk{\Gamma'}{S} \quad
+        \\  \jOk{\Gamma'}{C} \quad
             \jType{\cdot}{\Gamma'}{M'}{\kNat} \quad
             \jType{\cdot}{\Gamma'}{M''}{\kSet~ \kParty}
          \end{array}
@@ -49,7 +49,7 @@ $$
         {\jTypeMatch
                 {\Sigma}{\Gamma}
                 {\hspace{-1ex}
-                 X~ \kfrom~ N~ \kwhere~ M~ \kselect~ S~ \kconsume~ M'~ \kgain~ M''}
+                 X~ \kfrom~ N~ \kwhere~ M~ \kselect~ C~ \kconsume~ M'~ \kgain~ M''}
                 {\Gamma'}}
 \end{array}
 $$
@@ -143,7 +143,7 @@ $$
          \Gamma ~|~ \Sigma ~\vdash
                    & \hspace{-1ex} \ksay~  N_{tag}~ M_{payload}
                 \\ & \hspace{-1ex} \kby~~~ M_{by}  ~~\kobs~ M_{obs} ~~\kuse~ M_{use} ~~\knum~ M_{num}
-                :: \kFACT
+                :: \kFactoid
          \end{array}
         }
 

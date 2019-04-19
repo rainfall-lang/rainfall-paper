@@ -14,7 +14,7 @@ $$
 { \begin{array}{ll}
   &  \bigwedge \{ A_{has} \supseteq \trm{auth-by}~D~|~D \in D_{new}^m \}
   \\[1ex] \jMatches{N}{A_{sub}}{S}{\cdot}{H^n}{A_{has}}{D_{spent}^n}{E'}
-  &  ~~~ \jExec{E'}{M}{\kunit}{D_{new}^m}
+  &  ~~~ \jEval{E'}{M}{D_{new}^m}
   \end{array}
 }
 {\jFire {A_{sub}}{S}
@@ -22,7 +22,7 @@ $$
         {D_{spent}^n}{D_{new}^m}{(S \setminus D^n_{spent}) \uplus D_{new}^m}
 }
 & (\trm{EvFire})
-\\[4ex]
+\\[2ex]
 
 
 % -- matches --------------------------
@@ -46,7 +46,7 @@ $$
            {E''}
 }
 & (\trm{EvMatchCons})
-\\[4ex]
+\\[3ex]
 
 
 % -- match ----------------------------
@@ -56,22 +56,32 @@ $$
 % -- MatchGuard
 \ruleI
 { \begin{array}{ll}
-     \jGather{A_{sub}}{S}{E}{X}{G}{F^n}
-  &  ~~ \jGain{F}{E'}{I}{A_{gain}}
-  \\ ~~~~~~~~~\jSelect{F^n}{E}{X}{T}{F~~}
-  &  ~~ E' = E, X \mapsto F
-  \\ ~~~~ \jConsume{F}{S}{E'}{C}{W}{S'}
-  &  ~~ N_{rule} \in \trm{rules}~ F
+     \jGather{A_{sub}}{S}{E}{X ~;~ N_{fact} ~;~ M_{pred}}{F^n}
+  &
+  \\ \hspace{8.2em}     \jSelect{F^n}{E}{X ~;~ C}{F~~}
+  &  E' = E, X \mapsto F
+  \\ \hspace{4.8em}     \jConsume{F}{S}{E'}{M_{num}}{W}{S'}
+  &  N_{rule} \in \trm{rules}~ F
+  \\ \hspace{6.2em}       \jGain{F}{E'}{M_{gain}}{A_{gain}}
+  &
   \end{array}
 }
-{   \jMatch{N_{rule}}{A_{sub}}{S}{E}{X~\kfrom~G~T~C~I}{A_{gain}}{(F,W)}{S'}{E'}
+{   \jMatch
+        {N_{rule}}{A_{sub}}{S}{E}
+        {\begin{array}{ll}
+          X~\kfrom~ N_{fact}~ ~\kwhere~ M_{pred}~
+            \\ \hspace{1em} \kselect~ C~ \kconsume~ M_{num}~
+            \\ \hspace{1em} \kgain~ M_{gain}
+         \end{array}
+        }
+        {A_{gain}}{(F,W)}{S'}{E'}
 }
 & (\trm{EvMatch})
-\\[4ex]
+\\[5ex]
 
 
 % -- gather ----------------------------
-\fbox{$\jGather{Auth}{Store}{Env}{Var}{Gather}{Facts}$}
+\fbox{$\jGather{Auth}{Store}{Env}{Var ~;~ Name ~;~ Term}{Facts}$}
 \\[2ex]
 
 \ruleI
@@ -81,44 +91,39 @@ $$
      \\    & ,~~ \trm{name}~ F = N_{fact}
              ,~~ \trm{sees}~ A_{sub}~ F
              ,~~  W \geq 1
-     \\    & ,~~ (\jEval{E,~X \mapsto F}{M^m}{\ktrue})
+     \\    & ,~~ (\jEval{E,~X \mapsto F}{M}{\ktrue})
      \end{array}
   \right \}
 }
-{   \jGather{A_{sub}}{S}{E}{X}{\kwhen~N_{fact}~M^m}{F^n}
+{   \jGather{A_{sub}}{S}{E}{X ~;~ N_{fact} ~;~ M}{F^n}
 }
-& (\trm{EvWhen})
-\\[4ex]
+& (\trm{EvGather})
+\\[3ex]
 
 
 %% -- select ---------------------------
-\fbox{$\jSelect{Facts}{Env}{Var}{Select}{Fact}$}
+\fbox{$\jSelect{Facts}{Env}{Var ~;~ Select}{Fact}$}
 \\[2ex]
 
 \ruleI
 { F \in F^n }
-{ \jSelect{F^n}{E}{X}{\kany}{F} }
+{ \jSelect{F^n}{E}{X ~;~ \kany}{F} }
 \qq
 \ruleI
-%% Amos: reordered because data flow seemed backwards, fixed what I think were type/binding errors
 { \begin{array}{c}
   D^m = \{ (V, F) ~|~ F \in F^n, (\jEval{E, X \mapsto F}{M}{V} ) \}
   \\
   V' = \trm{minimum}~ \{ V ~|~ (V, \_) \in D^m \}
-  \qq (V', F')  \in D^m
+  \qq (F', V')  \in D^m
   \end{array}
 }
-{ \jSelect{F^n}{E}{X}{\kfirst~ M}{F'} }
+{ \jSelect{F^n}{E}{X ~;~ \kfirst~ M}{F'} }
 & (\trm{EvAny/First})
-\\[4ex]
+\\[3ex]
 
 
 %% -- consume --------------------------
 \fbox{$\jConsume{Fact}{Store}{Env}{Consume}{Weight}{Store}$}
-\\[2ex]
-
- \jConsume{F}{S}{E}{\kretain}{0}{S}
- & (\trm{EvRetain})
 \\[2ex]
 
 \ruleI
@@ -131,30 +136,29 @@ $$
         {W_{need}}{S[F \mapsto W_{avail} - W_{need}]}
 }
 & (\trm{EvConsume})
-\\[4ex]
+\\[3ex]
 
 
 %% -- gain ----------------------------
-\fbox{$\jGain{Fact}{Env}{Gain}{Auth}$}
+\fbox{$\jGain{Fact}{Env}{Term}{Auth}$}
 \\[2ex]
-\jGain{F}{E}{\ksame}{\emptyset}
-\qq
-\ruleI
-{     \jEval{E}{M}{A}
-  \qq A \subseteq \trm{auth-by}~ F
-}
-{ \jGain{F}{E}{\kgain~ M}{A}
-}
-& (\trm{EvSame/Gain})
+\ruleI  {       \jEval{E}{M}{A}
+         \qq    A \subseteq \trm{auth-by}~ F }
+        {\jGain{F}{E}{M}{A}}
+& (\trm{EvGain})
+\\[3ex]
+
+
+%% -- eval ----------------------------
+\fbox{$\jEval{Env}{Term}{Value}$}
 
 \\[2ex]
-\fbox{$\jExec{Env}{Term}{Value}{Factoids}$}
-
-\\[2ex]
-\ruleI  {   D = ((N, V_{payload}), A_{by}, A_{obs}, V_{rules}, V_{num})
-        \qq \jEval{E}{M_{payload}}{V_{payload}}
-        \qq \dots }
-        {\jExec{E}{\ksay~ N~ M_{payload}~ M_{by}~ M_{obs}~ M_{use}~ M_{num}}{\kunit}{D}}
+\ruleI  {   F = (N_{fact}, V_{payload}, A_{by}, A_{obs}, V_{use})
+        \quad \jEval{E}{M_{payload}}{V_{payload}}
+        \quad \dots }
+        {\jEval {E}
+                {\ksay~ N_{fact}~ M_{payload}~ M_{by}~ M_{obs}~ M_{use}~ M_{num}}
+                {(F,~ V_{num})}}
 & (\trm{EvSay})
 \end{array}
 $$
