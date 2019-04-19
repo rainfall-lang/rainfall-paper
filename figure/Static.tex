@@ -9,142 +9,144 @@ $$
 \begin{array}{cl}
 
 % -- Rule -------------------------------------------------
-\fbox{$\jOk{Env}{Rule}$}
+\fbox{$\jOk{Decls}{Rule}$}
 \\[2ex]
 
-\ruleI  {    \jTypeMatch{\cdot}{\Sigma}{H^n}{\Gamma}
-         \qq \jType{\Gamma}{M}{\kUnit} }
+\ruleI  {    \jTypeMatch{\Sigma}{\cdot}{H^n}{\Gamma}
+         \qq \jType{\Sigma}{\Gamma}{M}{\kSet~ \kFACT} }
         {\jOk{\Sigma}{\krule~ N~ \kawait~ H^n~ \kto~ M}}
 \end{array}
 $$
-
+\vspace{1ex}
 
 % -- Matches ----------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jTypeMatch{Env}{Decls}{Matches}{Env}$}
+\fbox{$\jTypeMatch{Decls}{Env}{Matches}{Env}$}
 \\[2ex]
-\jTypeMatch{\Gamma}{\Sigma}{\cdot}{\Gamma}
-\\[1ex]
-\ruleI  {   \jTypeMatch{\Gamma}{\Sigma}{H}{\Gamma'}
-        \qq \jTypeMatch{\Gamma'}{\Sigma}{H^n}{\Gamma''} }
-        {\jTypeMatch{\Gamma}{\Sigma}{H~H^n}{\Gamma''}}
+\jTypeMatch{\Sigma}{\Gamma}{\cdot}{\Gamma}
+\\[2ex]
+\ruleI  {   \jTypeMatch{\Sigma}{\Gamma}{H}{\Gamma'}
+        \qq \jTypeMatch{\Sigma}{\Gamma'}{H^n}{\Gamma''} }
+        {\jTypeMatch{\Sigma}{\Gamma}{H~H^n}{\Gamma''}}
 \end{array}
 $$
+\vspace{1ex}
 
 
 % -- Match ------------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jTypeMatch{Env}{Decls}{Match}{Env}$}
+\fbox{$\jTypeMatch{Decls}{Env}{Match}{Env}$}
 \\[2ex]
 \ruleI  {\begin{array}{ll}
-            \jTypeGather{\Gamma}{\Sigma}{X}{G}{\Gamma'}
-        \\  \jOk{\Gamma'}{T} \quad \jOk{\Gamma'}{C} \quad \jOk{\Gamma'}{I}
+            \jTypeGather{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}
+        \\  \jOk{\Gamma'}{S} \quad
+            \jType{\cdot}{\Gamma'}{M'}{\kNat} \quad
+            \jType{\cdot}{\Gamma'}{M''}{\kSet~ \kParty}
          \end{array}
         }
-        {\jTypeMatch{\Gamma}{\Sigma}{X~ \kfrom~ G~ T~ C~ I}{\Gamma'}}
+        {\jTypeMatch
+                {\Sigma}{\Gamma}
+                {\hspace{-1ex}
+                 X~ \kfrom~ N~ \kwhere~ M~ \kselect~ S~ \kconsume~ M'~ \kgain~ M''}
+                {\Gamma'}}
 \end{array}
 $$
+\vspace{1ex}
 
 
 % -- Gather -----------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jTypeGather{Env}{Decls}{Var}{Gather}{Env}$}
+\fbox{$\jTypeGather{Decls}{Env}{Var ~;~ Name ~;~ Term}{Env}$}
 \\[2ex]
-\ruleI  {    (N : \tau) \in \Sigma
-         \quad \Gamma' = \Gamma,~ X : \kFact~ \tau
-         \quad \{ \jType{\Gamma'}{M_i}{\kBool} \}^{i \gets 1 .. n}
+\ruleI  {    (N : T) \in \Sigma
+         \quad \Gamma' = \Gamma,~ X : \kFact~ T
+         \quad \jType{\cdot}{\Gamma'}{M}{\kBool}
         }
-        {\jTypeGather{\Gamma}{\Sigma}{X}{\kwhen~N~M^n}{\Gamma'}}
+        {\jTypeGather{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}}
 \end{array}
 $$
+\vspace{1ex}
 
 
-% -- Select/Consume/Gain ---------------------------------
+% -- Select ---------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jOk{Env}{Select/Consume/Gain}$}
+\fbox{$\jOk{Env}{Select}$}
 \\[2ex]
-\begin{array}{ccc}
-% -- Select
-        \jOk    {\Gamma}{\kany}
-&       \jOk    {\Gamma}{\kretain}
-&       \jOk    {\Gamma}{\ksame}
-\\[2ex]
-        \ruleI  {\jType{\Gamma}{M}{\kNat}}
-                {\jOk  {\Gamma}{\kfirst~ M}}
-&       \ruleI  {\jType{\Gamma}{M}{\kNat}}
-                {\jOk{\Gamma}{\kconsume~ M}}
-&       \ruleI  {\jType{\Gamma}{M}{\trm{\kAuth}}}
-                {\jOk{\Gamma}{\kgain~ M}}
-\end{array}
+\jOk    {\Gamma}{\kany}
+\qq
+\ruleI  {\jType{\cdot}{\Gamma}{M}{\kNat}}
+        {\jOk  {\Gamma}{\kfirst~ M}}
+\qq
+\ruleI  {\jType{\cdot}{\Gamma}{M}{\kNat}}
+        {\jOk  {\Gamma}{\klast~ M}}
 \end{array}
 $$
+\vspace{1ex}
 
 
-% -- Action -----------------------------------------------
+% -- Term -------------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jTypeAction{Env}{Env}{Action}{Type}$}
+\fbox{$\jType{Decls}{Env}{Term}{Type}$}
 \\[2ex]
+\ruleI  { (X : T) \in \Gamma }
+        {\jType{\Sigma}{\Gamma}{X}{T}}
 
-\jTypeAction{\Gamma}{\Sigma}{\kdone}{\kUnit}
+\qq
+\ruleI  {       \jType  {\Sigma}{\Gamma,~ X:T}
+                        {M}{T'}}
+        {       \jType  {\Sigma}{\Gamma}
+                        {\lambda X:T.~ M}{T \to T'}
+        }
 
 \\[2ex]
-\ruleI  {   \jTypeAction{\Gamma}{\Sigma}{M}{\kUnit}
-        \qq \jTypeAction{\Gamma}{\Sigma}{M'}{\tau} }
-        { \jTypeAction{\Gamma}{\Sigma}{M ~;~ M'}{\tau} }
-
+\ruleI  {       \jType  {\Sigma}{\Gamma}{M}{T \to T'}
+        \qq     \jType  {\Sigma}{\Gamma}{M'}{T}
+        }
+        {       \jType  {\Sigma}{\Gamma}{M~ M'}{T'}
+        }
+\\[2ex]
+\ruleI  { \{    \jType  {\Sigma}{\Gamma}
+                        {M_i}{T_i} \}^{i \gets 1..n} }
+        {       \jType  {\Sigma}{\Gamma}
+                        {[ l_1:M_1 \ldots l_n:M_n  ]}
+                        {[ l_1:T_1 \ldots l_n:T_n ]}
+        }
+\\[2ex]
+\ruleI  {       \jType  {\Sigma}{\Gamma}
+                        {M}{[ l_1:M_1 \ldots l_n:M_n]}
+          \qq   l:T \in \{l_1:T_1 \ldots l_n:T_n \}
+        }
+        {       \jType  {\Sigma}{\Gamma}
+                        { M ~.~ l }{T} }
 \\[2ex]
 \ruleI  { \begin{array}{ll}
-           (N : \tau) \in \Sigma
-           \\ \jType{\Gamma}{M_{by}} {\kSet~ \kParty}
-            & \jType{\Gamma}{M_{obs}}{\kSet~ \kParty}
-           \\ \jType{\Gamma}{M_{use}}{\kSet~ \kSymbol}
-            & \jType{\Gamma}{M_{num}}{\kNat~}
+           (N : T) \in \Sigma
+           \\   \jType  {\Sigma}{\Gamma}
+                        {M_{payload}} {T}
+            &   T = [ l_1 : T_1 \ldots l_n : T_n ]
+           \\   \jType  {\Sigma}{\Gamma}
+                        {M_{by}} {\kSet~ \kParty}
+            &   \jType  {\Sigma}{\Gamma}
+                        {M_{obs}}{\kSet~ \kParty}
+           \\   \jType  {\Sigma}{\Gamma}
+                        {M_{use}}{\kSet~ \kSymbol}
+            &   \jType  {\Sigma}{\Gamma}
+                        {M_{num}}{\kNat~}
           \end{array}
         }
         {\begin{array}{ll}
          \Gamma ~|~ \Sigma ~\vdash
                    & \hspace{-1ex} \ksay~  N_{tag}~ M_{payload}
                 \\ & \hspace{-1ex} \kby~~~ M_{by}  ~~\kobs~ M_{obs} ~~\kuse~ M_{use} ~~\knum~ M_{num}
-                :: \kUnit
+                :: \kFACT
          \end{array}
         }
-\end{array}
-$$
 
-
-% -- Term -------------------------------------------------
-$$
-\begin{array}{cl}
-\fbox{$\jType{Env}{Term}{Type}$}
-\\[2ex]
-\ruleI  { (X : \tau) \in \Gamma }
-        {\jType{\Gamma}{X}{\tau}}
-\qq
-\ruleI  {   \jType{\Gamma}{M}{\tau \to \tau'}
-        \qq \jType{\Gamma}{M'}{\tau} }
-        { \jType{\Gamma}{M~ M'}{\tau'} }
-\\[2ex]
-\ruleI  { \jType{\Gamma,~ X:\tau_1}{M_2}{\tau_2}}
-        { \jType{\Gamma}
-                {\lambda X:\tau_1.~ M_2}
-                {\tau_1 \to \tau_2}
-        }
-\\[2ex]
-\ruleI  { \{ \jType{\Gamma}{M_i}{\tau_i} \}^{i \gets 1..n} }
-        { \jType{\Gamma}
-                {[ l_1:M_1    \ldots l_n:M_n  ]}
-                {[ l_1:\tau_1 \ldots l_n:\tau_n \}]}
-        }
-\\[2ex]
-\ruleI  { \jType{\Gamma}{M}{[ l_1:M_1 .. l_n:M_n]}
-          \qq l:\tau \in \{l_1:\tau_1 .. l_n:\tau_n \}
-        }
-        { \jType{\Gamma}{ M ~.~ l }{\tau} }
 \end{array}
 $$
 

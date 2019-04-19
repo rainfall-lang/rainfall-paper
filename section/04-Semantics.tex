@@ -1,11 +1,12 @@
 
 \clearpage{}
 \section{Semantics}
-The Rainfall semantics is specified in terms of a core language, where the pattern matching of rules has been desugared into set comprehension like generators. This form is convenient to discuss the semantics of the language, but is not appropriate for direct implementation. The operational semantics essentially expresses relational joins using naive cartesian product and filtering, and has no indexing mechanism. A production implementation would implement the same semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, some extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra. Also, the key ideas of our system are embodied in the overall rule structure and authority mechanism. For expositional purposes we have used a version of Simply Typef Lambda Calculus (STLC) for the rule bodies, but for a concrete implementation it may be preferrable to define the rule bodies in a more expressive core language, or well defined bytecode.
+The Rainfall semantics is specified in terms of a core language, where the pattern matching of rules has been desugared into set comprehension like generators. This form is convenient to discuss the semantics of the language, but is not appropriate for direct implementation. The operational semantics essentially expresses relational joins using naive cartesian product and filtering, and has no indexing mechanism. A production implementation would implement the same semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, a parallel extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra. Also, the key ideas of our system are embodied in the overall rule structure and authority mechanism. For expositional purposes we have used a version of Simply Typef Lambda Calculus (STLC) for the rule bodies, but for a concrete implementation it may be preferrable to define the rule bodies in a more expressive core language, or well defined bytecode.
 
 
 \subsection{Grammar}
-The grammar for the core language is in Figure~\ref{f:Grammar}, with a matching version of the coin transfer rule from Figure~\ref{f:CoinTransfer} given in Figure~\ref{f:CoinTransferDesugared}. A $Rule$ has a name, list of matching clauses and a term for the body that produces a set of new factoids. The head of the rule is desugared into a sequence of matching clauses of the form:
+The grammar for the core language is in Figure~\ref{f:Grammar}, with a matching version of the coin transfer rule from Figure~\ref{f:CoinTransfer} given in Figure~\ref{f:CoinTransferDesugared}.
+$Rule$ has a name, list of matching clauses and a term for the body that produces a set of new factoids. We use EBNF, so $Match+$ in the production for $Rule$ means there must be at least one match clause. Fact matching is desugared into a sequence of clauses of the form:
 $$
 X~ @from@~ N~ @where@~ M~ @select@~ Select~ @consume@~ M'~ @gain@~ M''
 $$
@@ -15,6 +16,7 @@ The gather/select/consume/gain process is a regularized database query, reminisc
 
 The basis for the $Type$ and $Term$ grammars is STLC with records. Our only non-standard extension is the @say@ form which constructs a new fact value, much like a data constructor. We also include a few primitive operators to split out the components of a fact value, taking the @fact'payload@ and so on. In Figure~\ref{f:CoinTransferDesugared} we have also used some additional primitive operators for equality, boolean logic, and retained the sugared set literals. We also leave applications of the @fact'payload@ primitive implicit when retrieving fields from fact values. If @f@ is a fact whose payload has type $\tau$, and $\tau$ is a record type that includes a field with label @x@, then we just write @f.x@ instead of @(fact'payload@$_\tau$ @f).x@
 
+\TODO{describe Fact and FACT types}
 
 
 % -----------------------------------------------------------------------------
@@ -31,11 +33,11 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
   $H,$ \> $Match$      \> ::= \> $Var~ \kfrom~ Name~ \kwhere~ Term$
 \\      \>              \>     \> \hspace{1.6em} $\kselect~ Select~ \kconsume~ Term~ \kgain~ Term$
 \\[0.5ex]
-  $T,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
+  $S,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
 
 \\[1ex]
-   $\tau,$ \> $Type$    \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
-\\ \>                   \> ~|  \> $\kSet~ Type~ |~ Type \to Type$
+   $T,$ \> $Type$    \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
+\\ \>                   \> ~|  \> $Type \to Type~ |~ \kSet~ Type~ |~ \kFact~ Type~ |~ \kFACT$
 
 \\[1ex]
   $M,$   \> $Term$      \> ::= \> $Literal~ |~ Var~ |~ Term~ Term~ |~ \lambda Var : Type.~ Term$
@@ -57,11 +59,11 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 \end{flushleft}
 \begin{tabbing}
 MMMMMMMM \= Mx \= MMMMM \kill
-   @fact'payload@$_\tau$ \> $:: @Fact@~ \tau \to \tau$
-\\ @fact'by@$_\tau$      \> $:: @Fact@~ \tau \to \kSet~ \kParty$
-\\ @fact'obs@$_\tau$     \> $:: @Fact@~ \tau \to \kSet~ \kParty$
-\\ @fact'use@$_\tau$     \> $:: @Fact@~ \tau \to \kSet~ \kSymbol$
-\\ @fact'num@$_\tau$     \> $:: @Fact@~ \tau \to \kNat$
+   @fact'payload@$_T$ \> $:: @Fact@~ T \to T$
+\\ @fact'by@$_T$      \> $:: @Fact@~ T \to \kSet~ \kParty$
+\\ @fact'obs@$_T$     \> $:: @Fact@~ T \to \kSet~ \kParty$
+\\ @fact'use@$_T$     \> $:: @Fact@~ T \to \kSet~ \kSymbol$
+\\ @fact'num@$_T$     \> $:: @Fact@~ T \to \kNat$
 \end{tabbing}
 
 \medskip
@@ -81,8 +83,8 @@ $$
 (environments)
 \begin{tabbing}
 Mx              \= MMMMMx       \= Mx \= MMMMMMM \kill
-   $\Gamma,$       \> $TypeEnv$    \> ::= \> $\cdot ~|~ TypeEnv,~ Var : Type$
-\\ $\Sigma,$       \> $Decls$      \> ::= \> $\cdot ~|~ Decls,~ Name : [(Label : Type)*]$
+   $\Gamma,$       \> $Env$     \> ::= \> $\cdot ~|~ Env,~ Var : Type$
+\\ $\Sigma,$       \> $Decls$   \> ::= \> $\cdot ~|~ Decls,~ Name : [(Label : Type)*]$
 \end{tabbing}
 \end{flushleft}
 
@@ -124,7 +126,9 @@ to
 % -----------------------------------------------------------------------------
 \clearpage{}
 \input{figure/Static.tex}
+
 \subsection{Static Semantics}
+The static semantics are given in Figure~\ref{f:Statics}.
 
 
 

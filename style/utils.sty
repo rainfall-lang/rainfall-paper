@@ -55,6 +55,7 @@
 \newcommand{\kAuth}     {\texttt{Auth}}
 \newcommand{\kText}     {\texttt{Text}}
 \newcommand{\kFact}     {\texttt{Fact}}
+\newcommand{\kFACT}     {\texttt{FACT}}
 \newcommand{\kSet}      {\texttt{Set}}
 \newcommand{\kParty}    {\texttt{Party}}
 \newcommand{\kSymbol}   {\texttt{Symbol}}
@@ -71,16 +72,16 @@
     #1 ~\vdash~ #2~~ \textbf{ok}
 }
 
-\newcommand{\jType}[3] {
-    #1 ~\vdash #2 :: #3
+\newcommand{\jType}[4] {
+    #1 ~|~ #2 ~\vdash #3 :: #4
 }
 
 \newcommand{\jTypeAction}[4] {
     #1 ~|~ #2 ~\vdash~ #3~ :: #4
 }
 
-\newcommand{\jTypeGather}[5] {
-    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5
+\newcommand{\jTypeGather}[4] {
+    #1~|~#2~\vdash~#3~\Rightarrow~#4
 }
 
 \newcommand{\jTypeMatch}[4] {
