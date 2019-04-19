@@ -1,9 +1,10 @@
 
 \clearpage{}
+% -----------------------------------------------------------------------------
 \section{Semantics}
-The Rainfall semantics is specified in terms of a core language, where the pattern matching of rules has been desugared into set comprehension like generators. This form is convenient to discuss the semantics of the language, but is not appropriate for direct implementation. The operational semantics essentially expresses relational joins using naive cartesian product and filtering, and has no indexing mechanism. A production implementation would implement the same semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, a parallel extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra. Also, the key ideas of our system are embodied in the overall rule structure and authority mechanism. For expositional purposes we have used a version of Simply Typef Lambda Calculus (STLC) for the rule bodies, but for a concrete implementation it may be preferrable to define the rule bodies in a more expressive core language, or well defined bytecode.
+The Rainfall semantics is specified in terms of a core language where pattern matching is desugared into set comprehension like generators, and we use a version of Simply Typed Lambda Calculus (STLC) for the rule bodies. We STLC for expositional purposes, though in a production implementation it may be preferable to define rule bodies using a more expressive term language such as a version System-F, or as a well defined bytecode. The key ideas of our system are embodied in the overall rule structure and authority mechanism, and are not specific to the language used for rule bodies.
 
-
+% -----------------------------------------------------------------------------
 \subsection{Grammar}
 The grammar for the core language is in Figure~\ref{f:Grammar}, with a matching version of the coin transfer rule from Figure~\ref{f:CoinTransfer} given in Figure~\ref{f:CoinTransferDesugared}.
 $Rule$ has a name, list of matching clauses and a term for the body that produces a set of new factoids. We use EBNF, so $Match+$ in the production for $Rule$ means there must be at least one match clause. Fact matching is desugared into a sequence of clauses of the form:
@@ -28,7 +29,7 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 \\ $X,$ \> $Var$        \> ::= \> ...
 
 \\[1ex]
-        \> $Rule$       \> ::= \> $\krule~ Name~ \kawait~ Match+~ \kto~ Term$
+  $R,$ \> $Rule$       \> ::= \> $\krule~ Name~ \kawait~ Match+~ \kto~ Term$
 \\[0.5ex]
   $H,$ \> $Match$      \> ::= \> $Var~ \kfrom~ Name~ \kwhere~ Term$
 \\      \>              \>     \> \hspace{1.6em} $\kselect~ Select~ \kconsume~ Term~ \kgain~ Term$
@@ -128,10 +129,14 @@ to
 \input{figure/Static.tex}
 
 \subsection{Static Semantics}
-The static semantics are given in Figure~\ref{f:Statics}.
+The static semantics is shown in Figure~\ref{f:Statics}. Most judgment forms used two environments: $Decls$ ($\Sigma$) which maps fact names to their payload types, and $Env$ ($\Gamma$) which maps variable names to their types. The grammar for the environments is given back in Figure~\ref{f:Grammar}. In the source language example in Figure~\ref{f:CoinTransfer} we specified the payload type of each fact using the @fact@ keyword, though in the static semantics here we assume all such types are added to the @Decls@ environment before checking each rule.
+
+The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the premises we check the sequence of pattern matches, producing a type environment $\Gamma$, that specifies the types of variables that are in scope in the body of the rule. The body $M$ produces a set of weighted facts that are to be added to the store. The judgment $(\jTypeMatch{\Sigma}{\Gamma}{H^n}{\Gamma'})$ checks the sequence of pattern matches $H^n$, the following judgment form a single pattern match. The judgment ($\jTypeMatch{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}$) is used to check the \emph{gather} part of the pattern match, where $X$ is bound to to each fact of name $N$ in turn, and we keep the facts that match the boolean predicate $M$. The premise $(N:T) \in \Sigma$ retrieves the payload type $T$ of the fact, which is used to construct the type of $X$ which is in scope in the rule body $M$. Checking of $Select$ constructs and body terms is straightforward. The @say@ construct produces a value of the opaque @FACT@ type so that facts with different payload types can be collected into the same set.
 
 
-
+% -----------------------------------------------------------------------------
+\subsection{Dynamic Semantics}
+The operational semantics essentially expresses relational joins using naive cartesian product and filtering, and has no indexing mechanism. A production implementation would implement the same semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, a parallel extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra.
 
 \input{figure/Dynamic.tex}
 
