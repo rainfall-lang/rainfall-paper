@@ -1,14 +1,23 @@
 
 \clearpage{}
 \section{Semantics}
-The key aspects of our system are captured in the rule structure and authority mechanism. For expositional purposes the term language has been specified as a version of simply typed lambda calculus. For a concrete implementation it may be preferrable to define rule bodies in terms of a well defined bytecode such as Web Assembly. \TODO{Cite Corda uses a determinised JVM to specify its contracts}
+The Rainfall semantics is specified in terms of a core language, where the pattern matching of rules has been desugared into set comprehension like generators. This form is convenient to discuss the semantics of the language, but is not appropriate for direct implementation. The operational semantics essentially expresses relational joins using naive cartesian product and filtering, and has no indexing mechanism. A production implementation would implement the same semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, some extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra. Also, the key ideas of our system are embodied in the overall rule structure and authority mechanism. For expositional purposes we have used a version of Simply Typef Lambda Calculus (STLC) for the rule bodies, but for a concrete implementation it may be preferrable to define the rule bodies in a more expressive core language, or well defined bytecode.
 
-\AMOS{
-In the execution stage, why is @say@ a side-effect that updates the facts list (EvSay), rather than just having the rule term evaluate to a list of factoids?
-I think in a coloured petri net the transition function is a pure function from input values to output values, so I'd expect here a pure function from matched input factoids to output factoids.
-}
 
-% ---------------------------------------------------------
+\subsection{Grammar}
+The grammar for the core language is in Figure~\ref{f:Grammar}, with a matching version of the coin transfer rule from Figure~\ref{f:CoinTransfer} given in Figure~\ref{f:CoinTransferDesugared}. A $Rule$ has a name, list of matching clauses and a term for the body that produces a set of new factoids. The head of the rule is desugared into a sequence of matching clauses of the form:
+$$
+X~ @from@~ N~ @where@~ M~ @select@~ Select~ @consume@~ M'~ @gain@~ M''
+$$
+This clauses states that we should scan through all facts in the store with name $N$, binding each in turn to the variable $X$ which is in scope for the sub-terms in the clause. We then \emph{gather} all such facts that satisfy predicate $M$ into a set, \emph{select} a single fact according to the $Select$ specifier, \emph{consume} the weight specified by $M'$ from the store, and \emph{gain} the authority specified by $M''$. In the $Select$ clause, @any@ indicates that any gathered that satisfies the @where@ predicate in the matching clause can be selected. For $@first@~ M$ and $@last@~ M$ we sort the facts by the key value $M$ and take the first or last one.
+
+The gather/select/consume/gain process is a regularized database query, reminiscent to the FLWOR blocks of XQuery~\cite{Boag2002:XQuery}. The pattern binders like @?i@ and @?a@ that were used in the source code of Figure~\ref{f:CoinTransfer} have been expressed with simple predicates in the desugared version in Figure~\ref{f:CoinTransferDesugared}. We default the preciously elided @select@ and @consume@ clauses to @select any@ and @consume 1@ respectively.
+
+The basis for the $Type$ and $Term$ grammars is STLC with records. Our only non-standard extension is the @say@ form which constructs a new fact value, much like a data constructor. We also include a few primitive operators to split out the components of a fact value, taking the @fact'payload@ and so on. In Figure~\ref{f:CoinTransferDesugared} we have also used some additional primitive operators for equality, boolean logic, and retained the sugared set literals. We also leave applications of the @fact'payload@ primitive implicit when retrieving fields from fact values. If @f@ is a fact whose payload has type $\tau$, and $\tau$ is a record type that includes a field with label @x@, then we just write @f.x@ instead of @(fact'payload@$_\tau$ @f).x@
+
+
+
+% -----------------------------------------------------------------------------
 \begin{figure}
 \begin{tabbing}
 Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
@@ -18,11 +27,11 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 
 \\[1ex]
         \> $Rule$       \> ::= \> $\krule~ Name~ \kawait~ Match+~ \kto~ Term$
-\\ $H,$ \> $Match$      \> ::= \> $Var~ \kfrom~ Gather~ Select~ Consume~ Gain$
-\\ $G,$ \> $Gather$     \> ::= \> $\kwhen~ Name~ Term+$
-\\ $T,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
-\\ $C,$ \> $Consume$    \> ::= \> $\kconsume~ Term$
-\\ $I,$ \> $Gain$       \> ::= \> $\kgain~ Term$
+\\[0.5ex]
+  $H,$ \> $Match$      \> ::= \> $Var~ \kfrom~ Name~ \kwhere~ Term$
+\\      \>              \>     \> \hspace{1.6em} $\kselect~ Select~ \kconsume~ Term~ \kgain~ Term$
+\\[0.5ex]
+  $T,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
 
 \\[1ex]
    $\tau,$ \> $Type$    \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
@@ -31,7 +40,7 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 \\[1ex]
   $M,$   \> $Term$      \> ::= \> $Literal~ |~ Var~ |~ Term~ Term~ |~ \lambda Var : Type.~ Term$
 \\ \>                   \> ~|  \> $[ (Label = Term)* ]~ |~ Term~ .~ Label$
-\\[0.5ex] \>            \> ~|  \> $\ksay~ Name~ [~ (Label~ =~ Term)*~ ]~$
+\\[0.5ex] \>            \> ~|  \> $\ksay~ Name~ Term~$
 \\        \>            \>     \> \hspace{0.5em} $\kby~ Term~ \kobs~ Term~ \kuse~ Term~ \knum~ Term$
 
 \\[1ex]
@@ -49,10 +58,10 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 \begin{tabbing}
 MMMMMMMM \= Mx \= MMMMM \kill
    @fact'payload@$_\tau$ \> $:: @Fact@~ \tau \to \tau$
-\\ @fact'by@$_\tau$     \> $:: @Fact@~ \tau \to \kSet~ \kParty$
-\\ @fact'obs@$_\tau$    \> $:: @Fact@~ \tau \to \kSet~ \kParty$
-\\ @fact'use@$_\tau$    \> $:: @Fact@~ \tau \to \kSet~ \kSymbol$
-\\ @fact'num@$_\tau$    \> $:: @Fact@~ \tau \to \kNat$
+\\ @fact'by@$_\tau$      \> $:: @Fact@~ \tau \to \kSet~ \kParty$
+\\ @fact'obs@$_\tau$     \> $:: @Fact@~ \tau \to \kSet~ \kParty$
+\\ @fact'use@$_\tau$     \> $:: @Fact@~ \tau \to \kSet~ \kSymbol$
+\\ @fact'num@$_\tau$     \> $:: @Fact@~ \tau \to \kNat$
 \end{tabbing}
 
 \medskip
@@ -73,61 +82,57 @@ $$
 \begin{tabbing}
 Mx              \= MMMMMx       \= Mx \= MMMMMMM \kill
    $\Gamma,$       \> $TypeEnv$    \> ::= \> $\cdot ~|~ TypeEnv,~ Var : Type$
-\\ $\Sigma,$       \> $Decls$      \> ::= \> $\cdot ~|~ Decls,~ Var : [(Label : Type)*]$
+\\ $\Sigma,$       \> $Decls$      \> ::= \> $\cdot ~|~ Decls,~ Name : [(Label : Type)*]$
 \end{tabbing}
 \end{flushleft}
 
-
 \caption{Core Language Grammar}
+\label{f:Grammar}
 \end{figure}
 
-\input{figure/Static.tex}
-
-\input{figure/Dynamic.tex}
 
 
-
+% -----------------------------------------------------------------------------
 \begin{figure}
 \begin{small}
 \begin{alltt}
-fact  Coin   [stamp: Symbol, holder: Party]
-fact  Offer  [id: Symbol, giver: Party, receiver: Party]
-fact  Accept [id: Symbol, accepter: Party]
-
-node  Bank
-
-rule  transfer
-await Accept  as accept
- and  Offer   as offer
-      where   accept.id       == offer.id,
-              accept.accepter == offer.receiver
- and  Coin    as coin
-      where   coin.holder     == offer.giver
+rule  Transfer
+await accept from Accept
+       where true
+       select any  consume 1  gain accept.accepter
+ and  offer  from Offer
+       where accept.id       == offer.id  &&
+             accept.accepter == offer.receiver
+       select any  consume 1  gain offer.giver
+ and  coin   from Coin
+       where coin.holder == offer.giver
+       select any  consume 1  gain coin.issuer
 to
-      say Coin [ stamp  = coin.stamp
+    \{ say Coin [ stamp  = coin.stamp
                , holder = offer.receiver]
-      by  [auth| Bank, offer.receiver]
-      use (elem offer.receiver)
-
-scenario Bank, Alice, Bob
-to do say Coin   [ stamp = 'Coin1001, holder = Alice]
-      by  [auth| Bank, Alice]
-      use (elem Alice)
-
-      say Offer  [ id    = '1234
-                 , giver = Alice, receiver = Bob]
-      by  Alice use (elem Bob)
-
-      say Accept [ id = '1234,    accepter = Bob]
-      by  Bob   use (const true)
+       by  \{ !Bank, offer.receiver \}  obs \{ \}
+       use \{ 'Transfer \}              num 1) \}
 \end{alltt}
 \end{small}
 
-\caption{Coin Transfer Workflow}
+\caption{Desugared Coin Transfer Rule}
 \label{f:CoinTransferDesugared}
 \end{figure}
 
-\subsection{Lemmas}
+
+
+% -----------------------------------------------------------------------------
+\clearpage{}
+\input{figure/Static.tex}
+\subsection{Static Semantics}
+
+
+
+
+\input{figure/Dynamic.tex}
+
+% -----------------------------------------------------------------------------
+\subsection{Properties}
 
 \begin{lemma}
 New facts are included in the new store (trivial):
