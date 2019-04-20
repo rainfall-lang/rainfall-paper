@@ -134,7 +134,7 @@ to
 \subsection{Static Semantics}
 The static semantics is shown in Figure~\ref{f:Statics}. Most judgment forms used two environments: $Decls$ ($\Sigma$) which maps fact names to their payload types, and $Env$ ($\Gamma$) which maps variable names to their types. The grammar for the environments is given back in Figure~\ref{f:Grammar}. In the source language example in Figure~\ref{f:CoinTransfer} we specified the payload type of each fact using the @fact@ keyword, though in the static semantics here we assume all such types are added to the @Decls@ environment before checking each rule.
 
-The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the premises we check the sequence of pattern matches, producing a type environment $\Gamma$, that specifies the types of variables that are in scope in the body of the rule. The body $M$ produces a set of weighted facts that are to be added to the store. The judgment $(\jTypeMatch{\Sigma}{\Gamma}{H^n}{\Gamma'})$ checks the sequence of pattern matches $H^n$, the following judgment form a single pattern match. The judgment ($\jTypeMatch{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}$) is used to check the \emph{gather} part of the pattern match, where $X$ is bound to to each fact of name $N$ in turn, and we keep the facts that match the boolean predicate $M$. The premise $(N:T) \in \Sigma$ retrieves the payload type $T$ of the fact, which is used to construct the type of $X$ which is in scope in the rule body $M$. Checking of $Select$ constructs and body terms is straightforward. The @say@ construct produces a value of the opaque @FACT@ type so that facts with different payload types can be collected into the same set.
+The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the premises we check the sequence of pattern matches, producing a type environment $\Gamma$, that specifies the types of variables that are in scope in the body of the rule. The body $M$ produces a set of weighted facts that are to be added to the store. The judgment $(\jTypeMatch{\Sigma}{\Gamma}{H^n}{\Gamma'})$ checks the sequence of pattern matches $H^n$, the following judgment form a single pattern match. The judgment ($\jTypeMatch{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}$) is used to check the \emph{gather} part of the pattern match, where $X$ is bound to to each fact of name $N$ in turn, and we keep the facts that match the boolean predicate $M$. The premise $(N:T) \in \Sigma$ retrieves the payload type $T$ of the fact, which is used to construct the type of $X$ which is in scope in the rule body $M$. Checking of $Select$ constructs and body terms is straightforward. The @say@ construct produces a value of the opaque @Factoid@ type so that weighted facts with different payload types can be collected into the same set.
 
 
 % -----------------------------------------------------------------------------
@@ -142,7 +142,6 @@ The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the prem
 The operational semantics essentially expresses relational joins using naive cartesian product and filtering, and has no indexing mechanism. A production implementation would implement the same semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, a parallel extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra.
 
 \input{figure/Dynamic.tex}
-
 
 % -----------------------------------------------------------------------------
 \subsection{Properties}
@@ -152,7 +151,7 @@ The operational semantics essentially expresses relational joins using naive car
 \begin{lemma}
 New facts are included in the new store (trivial):
 $$
-\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies
 D_{new}^m \subseteq S'
 $$
@@ -162,7 +161,7 @@ $$
 \begin{lemma}
 Rules only spend what is in the store (pretty trivial):
 $$
-\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies
 D_{spent}^n \subseteq S
 $$
@@ -172,9 +171,9 @@ $$
 Frame constriction: if a rule succeeds, the rule would succeed, resulting in the same value, in a store containing only what it spent:
 $$
 \begin{array}{c}
-\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
-\jFire{A_{sub}}{D_{spent}^n}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{D_{spent}^n}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \end{array}
 $$
 \end{theorem}
@@ -184,7 +183,7 @@ This theorem statement isn't quite correct at the moment, because it's ignoring 
 Spend only visible: execution can only spend facts visible to the submitter:
 $$
 \begin{array}{c}
-\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
 \forall f \in D_{spent}^n.\ \trm{sees}~ A_{sub}~ f
 \end{array}
@@ -195,11 +194,11 @@ $$
 Store weakening with invisible facts: adding facts that are not visible to the submitter does not affect execution:
 $$
 \begin{array}{c}
-\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
 \forall f \in S_{others}.\ \neg (\trm{sees}~ A_{sub}~ f)
 \implies \\
-\jFire{A_{sub}}{S \uplus S_{others}}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S \uplus S_{others}}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \end{array}
 $$
 \end{theorem}
@@ -208,7 +207,7 @@ $$
 All authority in new facts is gained from spent facts:
 $$
 \begin{array}{c}
-\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
 \forall f \in D_{new}^m.\ \forall a \in \trm{auth-by}~f.\ \exists d \in D_{spent}^n.\ a \in \trm{auth-by}~d
 \end{array}
@@ -222,10 +221,10 @@ The following theorems do not hold for all programs, but do hold for subsets.
 Store weakening for `any' selectors: if the rule doesn't contain any `first' selectors, we can add new facts without changing the execution:
 $$
 \begin{array}{c}
-\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
 \trm{rule-contains-only-any}~R \implies \\
-\jFire{A_{sub}}{S \uplus S_{others}}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S \uplus S_{others}}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \end{array}
 $$
 \end{theorem}
@@ -236,10 +235,10 @@ This theorem doesn't hold for `first' selectors because adding new values to the
 More permissions do not change behaviour of `any' selectors: if the rule doesn't contain any `first' selectors, we can add new authority without changing the execution:
 $$
 \begin{array}{c}
-\jFire{A_{sub}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
 \trm{rule-contains-only-any}~R \implies \\
-\jFire{A_{sub} \cup A_{others}}{S}{R}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A_{sub} \cup A_{others}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \end{array}
 $$
 \end{theorem}

@@ -8,73 +8,93 @@ $$
 \begin{array}{cl}
 
 % -- Fire -----------------------------
-\fbox{$\jFire{Auth}{Store}{Rule}{Factoids}{Factoids}{Store}$}
+\fbox{$\jFire{Auth}{Store}{Rule}{Facts}{Factoids}{Factoids}{Store}$}
 \\[2ex]
 \ruleI
 { \begin{array}{ll}
-  &  \bigwedge \{ A_{has} \supseteq \trm{auth-by}~D~|~D \in D_{new}^m \}
-  \\[1ex] \jMatches{N}{A_{sub}}{S}{\cdot}{H^n}{A_{has}}{D_{spent}^n}{E'}
-  &  ~~~ \jEval{E'}{M}{D_{new}^m}
+        \jMatches{N}{A_{sub}}{S}{\cdot}
+                 {H^m}
+                 {F_{read}^r}{D_{spend}^s}{A_{has}}{E}
+  \quad  \jStoreDown{S}{D_{spend}^s}{S'}
+  \\[1ex]
+        \jEval{E}{M}{D_{new}^n}
+  \quad \bigwedge \{ A_{has} \supseteq \trm{auth-by}~D~|~D \in D_{new}^n \}
+  \hspace{1.8em} \jStoreUp{S'}{D_{new}^n}{S''}
   \end{array}
 }
 {\jFire {A_{sub}}{S}
-        {\krule~N~\kawait~H^n~\kto~M}
-        {D_{spent}^n}{D_{new}^m}{(S \setminus D^n_{spent}) \uplus D_{new}^m}
+        {\krule~N~\kawait~H^m~\kto~M}
+        {F_{read}^r}{D_{spend}^s}{D_{new}^n}{S''}
 }
 & (\trm{EvFire})
-\\[2ex]
+\\[4ex]
 
 
 % -- matches --------------------------
-\fbox{$\jMatches{Name}{Auth}{Store}{Env}{Matches}{Auth}{Factoids}{Env}$}
+\fbox{$\jMatches{Name}{Auth}{Store}{Env}{Matches}{Facts}{Factoids}{Auth}{Env}$}
 \\[2ex]
 
-\jMatches{N}{A}{S}{E}{\cdot}{\emptyset}{\emptyset}{E}
+\jMatches{N}{A}{S}{E}{\cdot}{\emptyset}{\emptyset}{\emptyset}{E}
 & (\trm{EvMatchNil})
 \\[2ex]
 
 \ruleI
 { \begin{array}{ll}
-       \jMatch{N_{rule}}{A_{sub}}{S~}{E~}{H~~}{A_{gain}}{D_{spent}}{S'}{E'}
+       \jMatch  {N_{rule}}{A_{sub}}{S~}{E~}
+                {H~~}
+                {F}{D}{A_{gain}}{E'}
   \\[0.5ex]
-       \jMatches{N_{rule}}{A_{sub}}{S'}{E'}{H^n}{A_{gain}'}{D_{spent}'}{E''~~~~~  }
+       \jMatches{N_{rule}}{A_{sub}}{S}{E'}
+                {H^n}
+                {F^e}{D^s}{A_{gain}'}{E''}
   \end{array}
 }
-{ \jMatches{N_{rule}}{A_{sub}}{S}{E}{H ~ H^n}
-           {A_{gain}  \cup A_{gain}'}
-           {D_{spent} \cup D_{spent}'}
-           {E''}
+{       \jMatches{N_{rule}}{A_{sub}}{S}{E}
+                {H ~ H^n}
+                {\{F\} \cup F^e}
+                {\{D\} \uplus D^s}
+                {A_{gain} \cup A_{gain}'}
+                {E''}
 }
 & (\trm{EvMatchCons})
-\\[3ex]
+\\[4ex]
 
 
 % -- match ----------------------------
-\fbox{$\jMatch{Name}{Auth}{Store}{Env}{Match}{Auth}{Factoid}{Store}{Env}$}
+\fbox{$\jMatch{Name}{Auth}{Store}{Env}{Match}{Fact}{Factoid}{Auth}{Env}$}
 \\[2ex]
 
 % -- MatchGuard
 \ruleI
-{ \begin{array}{ll}
-     \jGather{A_{sub}}{S}{E}{X ~;~ N_{fact} ~;~ M_{pred}}{F^n}
-  &
-  \\ \hspace{8.2em}     \jSelect{F^n}{E}{X ~;~ C}{F~~}
-  &  E' = E, X \mapsto F
-  \\ \hspace{4.8em}     \jConsume{F}{S}{E'}{M_{num}}{W}{S'}
-  &  N_{rule} \in \trm{rules}~ F
-  \\ \hspace{6.2em}       \jGain{F}{E'}{M_{gain}}{A_{gain}}
-  &
+{ \begin{array}{rl}
+        E' = E, X \mapsto F
+  &     N_{rule} \in \trm{rules}~ F
+  \\    \jSelect{F^n}{E}{X ~;~ C}{F~~}
+  &     \jConsume{F}{E'}{M_{num}}{W_{spend}}
+  \\    \jGather{A_{sub}}{S}{E}{X ~;~ N_{fact} ~;~ M_{pred}}{F^n}
+  &     \jGain{F}{E'}{M_{gain}}{A_{gain}}
   \end{array}
 }
-{   \jMatch
-        {N_{rule}}{A_{sub}}{S}{E}
-        {\begin{array}{ll}
-          X~\kfrom~ N_{fact}~ ~\kwhere~ M_{pred}~
-            \\ \hspace{1em} \kselect~ C~ \kconsume~ M_{num}~
-            \\ \hspace{1em} \kgain~ M_{gain}
-         \end{array}
-        }
-        {A_{gain}}{(F,W)}{S'}{E'}
+{ \begin{array}{rl}
+          N_{rule} ~|~ A_{sub} ~|~ S ~|~ E \hspace{-1ex}
+        & \vdash \hspace{1ex} X~
+                \kfrom~ N_{fact}~
+                \kwhere~ M_{pred}~
+                \kselect~ C~
+                \kconsume~ M_{num}~
+                \kgain~ M_{gain}
+        \\ & \Rightarrow F ~|~ (F,~ W_{spend}) ~|~ A_{gain} ~|~ E'
+  \end{array}
+%         \jMatch
+%        {N_{rule}}{A_{sub}}{S}{E}
+%        {\hspace{-1ex}
+%         \begin{array}{ll}
+%          X~\kfrom~ N_{fact}~ ~\kwhere~ M_{pred}~
+%            \\ \hspace{1em} \kselect~ C~ \kconsume~ M_{num}~
+%            \\ \hspace{1em} \kgain~ M_{gain}
+%         \end{array}
+%        }
+%        {F}{(F, W_{spend})}{A_{gain}}{E'}
 }
 & (\trm{EvMatch})
 \\[5ex]
@@ -87,10 +107,9 @@ $$
 \ruleI
 { F^n = \left \{
   \begin{array}{rll}
-        F & |~~ (F \mapsto W) \in S
+        F & |~~ F \in \trm{dom}~ S
      \\    & ,~~ \trm{name}~ F = N_{fact}
              ,~~ \trm{sees}~ A_{sub}~ F
-             ,~~  W \geq 1
      \\    & ,~~ (\jEval{E,~X \mapsto F}{M}{\ktrue})
      \end{array}
   \right \}
@@ -98,7 +117,7 @@ $$
 {   \jGather{A_{sub}}{S}{E}{X ~;~ N_{fact} ~;~ M}{F^n}
 }
 & (\trm{EvGather})
-\\[3ex]
+\\[4ex]
 
 
 %% -- select ---------------------------
@@ -119,34 +138,30 @@ $$
 }
 { \jSelect{F^n}{E}{X ~;~ \kfirst~ M}{F'} }
 & (\trm{EvAny/First})
-\\[3ex]
+\\[4ex]
 
 
 %% -- consume --------------------------
-\fbox{$\jConsume{Fact}{Store}{Env}{Consume}{Weight}{Store}$}
+\begin{array}{cc}
+        \fbox{$\jConsume{Fact}{Env}{Term}{Weight}$}
+\quad & \quad
+        \fbox{$\jGain{Fact}{Env}{Term}{Auth}$}
 \\[2ex]
 
 \ruleI
-{     \jEval{E}{M}{W_{need}}
-  \qq W_{avail} \geq W_{need}
+{       \jEval{E}{M}{W}
 }
-{ \jConsume
-        {F}{S[F \mapsto W_{avail}]}{E}
-        {\kconsume~ M}
-        {W_{need}}{S[F \mapsto W_{avail} - W_{need}]}
+{       \jConsume{F}{E}{M}{W}
 }
-& (\trm{EvConsume})
-\\[3ex]
 
-
+&
 %% -- gain ----------------------------
-\fbox{$\jGain{Fact}{Env}{Term}{Auth}$}
-\\[2ex]
 \ruleI  {       \jEval{E}{M}{A}
          \qq    A \subseteq \trm{auth-by}~ F }
         {\jGain{F}{E}{M}{A}}
-& (\trm{EvGain})
-\\[3ex]
+\end{array}
+&  (\trm{EvConsume/Gain})
+\\[6ex]
 
 
 %% -- eval ----------------------------
@@ -160,6 +175,25 @@ $$
                 {\ksay~ N_{fact}~ M_{payload}~ M_{by}~ M_{obs}~ M_{use}~ M_{num}}
                 {(F,~ V_{num})}}
 & (\trm{EvSay})
+\\[2ex]
+
+%% -- store
+\begin{array}{cc}
+        \fbox{$\jStoreDown{Store}{Factoids}{Store}$}
+\qq & \qq
+        \fbox{$\jStoreUp  {Store}{Factoids}{Store}$}
+\\[2ex]
+
+\ruleI  {       D^n \subseteq S
+        \quad   S' = S - D^n}
+        {\jStoreDown{S}{D^n}{S'}}
+&
+\ruleI  {       S' = S \cup D^n}
+        {\jStoreUp{S}{D^n}{S'}}
+\end{array}
+&  (\trm{EvStoreUp/Down})
+
+
 \end{array}
 $$
 

@@ -68,6 +68,16 @@
 \newcommand{\iuse}      {\mathit{use}}
 
 
+% -- Multisets
+\newcommand{\jStoreUp}[3] {
+    #1 \uparrow #2 \Rightarrow #3
+}
+
+\newcommand{\jStoreDown}[3] {
+    #1 \downarrow #2 \Rightarrow #3
+}
+
+
 % -- Statics
 \newcommand{\jOk}[2] {
     #1 ~\vdash~ #2~~ \textbf{ok}
@@ -90,32 +100,32 @@
 }
 
 % -- Dynamics
-\newcommand{\jFire}[6] {
-    #1~|~#2~\vdash~#3~\Rightarrow~#4~|~#5~|~#6~\textbf{fire}
+\newcommand{\jFire}[7] {
+    #1~|~#2~\vdash #3 \Rightarrow #4~|~#5~|~#6~|~#7~~\textbf{fire}
 }
 
-\newcommand{\jMatches}[8] {
-    #1~|~#2~|~#3~|~#4~\vdash~#5~\Rightarrow~#6~|~#7~|~#8~~\textbf{matches}
+\newcommand{\jMatches}[9] {
+    #1~|~#2~|~#3~|~#4 \vdash #5 \Rightarrow #6~|~#7~|~#8~|~#9~~~\textbf{matches}
 }
 
 \newcommand{\jMatch}[9] {
-    #1~|~#2~|~#3~|~#4~\vdash#5\Rightarrow~#6~|~#7~|~#8~|~#9~~\textbf{match}
+    #1~|~#2~|~#3~|~#4 \vdash #5 \Rightarrow #6~|~#7~|~#8~|~#9~~\textbf{match}
 }
 
 \newcommand{\jGather}[5] {
-    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~~\textbf{gather}
+    #1~|~#2~|~#3 \vdash #4 \Rightarrow #5~~\textbf{gather}
 }
 
 \newcommand{\jSelect}[4] {
     #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{select}
 }
 
-\newcommand{\jConsume}[6] {
-    #1~|~#2~|~#3~\vdash~#4~\Rightarrow~#5~|~#6~~\textbf{consume}
+\newcommand{\jConsume}[4] {
+    #1~|~#2 \vdash #3 \Rightarrow #4~~\textbf{consume}
 }
 
 \newcommand{\jGain}[4] {
-    #1~|~#2~\vdash~#3~\Rightarrow~#4~~\textbf{gain}
+    #1~|~#2 \vdash #3 \Rightarrow #4~~\textbf{gain}
 }
 
 \newcommand{\jExec}[4] {
