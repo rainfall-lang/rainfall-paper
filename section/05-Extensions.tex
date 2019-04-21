@@ -1,0 +1,38 @@
+
+\section{Extensions}
+
+\begin{figure}
+$$
+\begin{array}{cl}
+%% -- store
+\fbox{$\jStoreDown{Store}{Factoids}{Store}$}
+\\[3ex]
+\ruleI  {       D^n \subseteq S
+        \quad   S' = S - D^n}
+        {\jStoreDown{S}{D^n}{S'}}
+
+\\[2ex]
+\fbox{$\jStoreUp  {Store}{Factoids}{Store}$}
+\\[3ex]
+\ruleI  {       S' = S \uplus D^n}
+        {\jStoreUp{S}{D^n}{S'}}
+\end{array}
+$$
+\caption{Store Modification}
+\end{figure}
+
+
+% -----------------------------------------------------------------------------
+\subsection{Extended Weight Types}
+There is no particular reason why the weight of each fact must be restricted to being a natural number as per \REF. Our dynamic semantics only depend on the exact representation of weights in three places: to combine the weights of factoids in EvMatchCons and EvStoreUp, and in the subset test and set difference operators in EvStoreDown.
+
+In general it is sufficient to use an Abelian group which also has a partial order. The Abelian group provides a weight combining operator that is associative, commutative and invertible. Requiring weight combining operator to be associative and commutative allows the facts needed by a rule to be matched in arbitrary order, which supports efficient implementations based on the RETE algorithm mentioned in \REF. We need the partial order to determine if a weight of the required value is present in the store, and the weight combining operator needs to be invertable so we can reduce the weight of facts in the store when they are spent.
+
+An example non-numeric weight type is a simple @Present@ / @Absent@ indicator. If multiple facts are added with a weight of @Present@ then the resulting fact is still @Present@. If this @Present@ fact is then spent then it becomes @Absent@. Using such a weight is useful for situation where a fact represents a statement like ``someone needs to water the plants''. As the plants should only be watered once it does not make sense to allow a weight greater than one, and once a real-world party actually gets around to watering the plants, then the whole fact can be removed from the store.
+
+
+% -----------------------------------------------------------------------------
+\subsection{Minimum Weight Thresholds}
+\TODO{talk about @require@ keyword. Require weight to be over a given threshold without needing to consume it. Add to the semantics by exending the set of read facts to be a map from facts to needed weights.}
+
+\eject{}

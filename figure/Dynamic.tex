@@ -165,24 +165,7 @@ $$
                 {\ksay~ N_{fact}~ M_{payload}~ M_{by}~ M_{obs}~ M_{use}~ M_{num}}
                 {(F,~ V_{num})}}
 & (\trm{EvSay})
-\\[2ex]
-
-%% -- store
-\begin{array}{cc}
-        \fbox{$\jStoreDown{Store}{Factoids}{Store}$}
-\qq & \qq
-        \fbox{$\jStoreUp  {Store}{Factoids}{Store}$}
-\\[2ex]
-
-\ruleI  {       D^n \subseteq S
-        \quad   S' = S - D^n}
-        {\jStoreDown{S}{D^n}{S'}}
-&
-\ruleI  {       S' = S \cup D^n}
-        {\jStoreUp{S}{D^n}{S'}}
-\end{array}
-&  (\trm{EvStoreUp/Down})
-
+\\[10ex]
 
 \end{array}
 $$
@@ -190,3 +173,6 @@ $$
 \caption{Dynamic Semantics}
 \label{f:Dynamics}
 \end{figure*}
+
+
+
