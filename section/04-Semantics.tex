@@ -24,17 +24,20 @@ The basis for the $Type$ and $Term$ grammars is STLC with records. Our only non-
 \begin{figure}
 \begin{tabbing}
 Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
-\\ $N,$ \> $Name$       \> ::= \> ...
-\\ $L,$ \> $Label$      \> ::= \> ...
-\\ $X,$ \> $Var$        \> ::= \> ...
+\\  $N,$ \> $Name$       \> ::= \> ...
+\\  $L,$ \> $Label$      \> ::= \> ...
+\\  $X,$ \> $Var$        \> ::= \> ...
 
 \\[1ex]
-  $R,$ \> $Rule$       \> ::= \> $\krule~ Name~ \kawait~ Match+~ \kto~ Term$
+    $R,$ \> $Rule$      \> ::= \> $\krule~ Name~ \kawait~ Match+~ \kto~ Term$
 \\[0.5ex]
-  $H,$ \> $Match$      \> ::= \> $Var~ \kfrom~ Name~ \kwhere~ Term$
-\\      \>              \>     \> \hspace{1.6em} $\kselect~ Select~ \kconsume~ Term~ \kgain~ Term$
+    $H,$ \> $Match$     \> ::= \> $Var~ \kfrom~ Name~ \kwhere~ Term$
+\\      \>              \>     \> \hspace{1.6em}
+                                  $\kselect~ Select~ \kconsume~ Consume~ \kgain~ Gain$
 \\[0.5ex]
-  $C,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
+   $C,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
+\\ $U,$ \> $Consume$    \> ::= \> $\knone~ |~ Term$
+\\ $I,$ \> $Gain$       \> ::= \> $\knone~ |~ Term$
 
 \\[1ex]
    $T,$ \> $Type$       \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
@@ -105,14 +108,14 @@ Mx              \= MMMMMx       \= Mx \= MMMMMMM \kill
 rule  Transfer
 await accept from Accept
        where true
-       select any  consume 1  gain accept.accepter
+       select any  consume 1 gain accept.accepter
  and  offer  from Offer
        where accept.id       == offer.id  &&
              accept.accepter == offer.receiver
-       select any  consume 1  gain offer.giver
+       select any  consume 1 gain offer.giver
  and  coin   from Coin
        where coin.holder == offer.giver
-       select any  consume 1  gain coin.issuer
+       select any  consume 1 gain coin.issuer
 to
     \{ say Coin [ stamp  = coin.stamp
                , holder = offer.receiver]

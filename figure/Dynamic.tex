@@ -27,7 +27,7 @@ $$
         {F_{read}^r}{D_{spend}^s}{D_{new}^n}{S''}
 }
 & (\trm{EvFire})
-\\[4ex]
+\\[3ex]
 
 
 % -- matches --------------------------
@@ -57,37 +57,35 @@ $$
                 {E''}
 }
 & (\trm{EvMatchCons})
-\\[4ex]
+\\[3ex]
 
 
 % -- match ----------------------------
 \fbox{$\jMatch{Name}{Auth}{Store}{Env}{Match}{Fact}{Factoid}{Auth}{Env}$}
 \\[2ex]
 
-% -- MatchGuard
 \ruleI
 { \begin{array}{rl}
-        E' = E, X \mapsto F
-  &     N_{rule} \in \trm{rules}~ F
-  \\    \jSelect{F^n}{E}{X ~;~ C}{F~~}
-  &     \jConsume{F}{E'}{M_{num}}{W_{spend}}
-  \\    \jGather{A_{sub}}{S}{E}{X ~;~ N_{fact} ~;~ M_{pred}}{F^n}
-  &     \jGain{F}{E'}{M_{gain}}{A_{gain}}
+  &     E' = E, X \mapsto F
+  \\    \jSelect  {F^n}{E}{X ~;~ C}{F~~}
+  &     \jConsume {N_{rule}}{F}{E'}{U}{W_{spend}}
+  \\    \jGather  {A_{sub}} {S}{E} {X ~;~ N_{fact} ~;~ M}{F^n}
+  &     \jGain    {N_{rule}}{F}{E'}{I}{A_{gain}}
   \end{array}
 }
 { \begin{array}{rl}
           N_{rule} ~|~ A_{sub} ~|~ S ~|~ E \hspace{-1ex}
         & \vdash \hspace{1ex} X~
-                \kfrom~ N_{fact}~
-                \kwhere~ M_{pred}~
-                \kselect~ C~
-                \kconsume~ M_{num}~
-                \kgain~ M_{gain}
+                \kfrom~    N_{fact}~
+                \kwhere~   M~
+                \kselect~  C~
+                \kconsume~ U~
+                \kgain~    I
         \\ & \Rightarrow F ~|~ (F,~ W_{spend}) ~|~ A_{gain} ~|~ E'
   \end{array}
 }
 & (\trm{EvMatchOne})
-\\[5ex]
+\\[4ex]
 
 
 % -- gather ----------------------------
@@ -107,7 +105,7 @@ $$
 {   \jGather{A_{sub}}{S}{E}{X ~;~ N_{fact} ~;~ M}{F^n}
 }
 & (\trm{EvGather})
-\\[4ex]
+\\[3ex]
 
 
 %% -- select ---------------------------
@@ -128,48 +126,57 @@ $$
 }
 { \jSelect{F^n}{E}{X ~;~ \kfirst~ M}{F'} }
 & (\trm{EvAny/First})
-\\[4ex]
+\\[3ex]
 
 
 %% -- consume --------------------------
-\begin{array}{cc}
-        \fbox{$\jConsume{Fact}{Env}{Term}{Weight}$}
-\quad & \quad
-        \fbox{$\jGain{Fact}{Env}{Term}{Auth}$}
+\fbox{$\jConsume{Name}{Fact}{Env}{Consume}{Weight}$}
 \\[2ex]
-
+        \jConsume{N_{rule}}{F}{E}{\knone}{0}
+\qq
 \ruleI
-{       \jEval{E}{M}{W}
+{       N_{rule} \in \trm{rules}~ F
+ \qq    \jEval{E}{M}{W}
 }
-{       \jConsume{F}{E}{M}{W}
+{       \jConsume{N_{rule}}{F}{E}{M}{W}
 }
+& (\trm{EvConsumeNone/Some})
+\\[3ex]
 
-&
+
 %% -- gain ----------------------------
-\ruleI  {       \jEval{E}{M}{A}
-         \qq    A \subseteq \trm{auth-by}~ F }
-        {\jGain{F}{E}{M}{A}}
-\end{array}
-&  (\trm{EvConsume/Gain})
-\\[6ex]
+\fbox{$\jGain{Name}{Fact}{Env}{Gain}{Auth}$}
+\\[2ex]
+        \jGain{N_{rule}}{F}{E}{\knone}{\emptyset}
+\qq
+\ruleI
+{       N_{rule} \in \trm{rules}~ F
+ \quad  \jEval{E}{M}{A}
+ \quad  A \subseteq \trm{auth-by}~ F
+}
+{       \jGain{N_{rule}}{F}{E}{M}{A}
+}
+& (\trm{EvGainNone/Some})
+\\[3ex]
 
 
 %% -- eval ----------------------------
 \fbox{$\jEval{Env}{Term}{Value}$}
 
 \\[2ex]
-\ruleI  {   F = (N_{fact}, V_{payload}, A_{by}, A_{obs}, V_{use})
-        \quad \jEval{E}{M_{payload}}{V_{payload}}
-        \quad \dots }
-        {\jEval {E}
+\ruleI
+{       F = (N_{fact}, V_{payload}, A_{by}, A_{obs}, V_{use})
+  \quad \jEval{E}{M_{payload}}{V_{payload}}
+  \quad \dots
+}
+{       \jEval {E}
                 {\ksay~ N_{fact}~ M_{payload}~ M_{by}~ M_{obs}~ M_{use}~ M_{num}}
-                {(F,~ V_{num})}}
+                {(F,~ V_{num})}
+}
 & (\trm{EvSay})
-\\[10ex]
 
 \end{array}
 $$
-
 \caption{Dynamic Semantics}
 \label{f:Dynamics}
 \end{figure*}
