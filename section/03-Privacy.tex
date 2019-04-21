@@ -63,8 +63,7 @@ Note that Alice herself is not listed in the meta-data of the produced coin fact
 
 
 % -----------------------------------------------------------------------------
-\subsection{Transaction Views and Blinded Hashing}
-
+\subsection{Transaction Views}
 Alice cannot sent the complete transaction from the previous section to Isabelle, as Isabelle is not entitled to see the contents of the Offer fact. However, Alice does wish Isabelle to know that transfer has taken place, and that Bob has agreed to it, because Isabelle is an authorizer of the Coin facts being moved. To achieve this Alice computes a \emph{restricted view} of the transaction for Isabelle, which consists of a blinded hash of the entire transaction, along with along with a version of the transaction structure where the facts that Isabelle is not entitled to see are replaced by blinded hashes of those facts. A \emph{blinded} hash is a regular cryptographic hash which has been combined with a salt value so that the source data cannot feasibly be recovered by brute force.
 
 For the sake of presentation, lets abbreviate the factoids in the transaction from the previous section as just $d_1, d_2, d_3, d_4$, and write the complete transaction as the following tuple, where we use $h(X)$ to mean the hash of value $X$.
@@ -107,8 +106,44 @@ Note that in our system there is nothing preventing a party from adding a fact t
 
  As with the consensus mechanism, our programming model does not specify a particular dispute mechanism, as different mechanisms are appropriate for different environments. In a commercial banking system it would be a rare occurrence for a party to actively propose an invalid transaction, so it may be appropriate to pause the system and investigate the issue manually. In a hostile internet environment it maybe instead be appropriate to blacklist the submitting party and not accept further transactions from them.
 
+% -----------------------------------------------------------------------------
+\subsection{Nested Transactions}
+For the transaction described in \S\ref{s:Transactions}, the view to be given to Isabelle is constructed by blinding the @Offer@ and @Accept@ facts, as Isabelle is not an observer of these. Blinding these facts means that that Isabelle cannot use the information on the transaction to directly re-execute the rule and check the output. In an application where there is trusted monitor party such as Mona, this may not matter, as the monitor could be trusted to re-execute the transaction themselves and answer truthfully when asked if they believe it is valid. If we instead wish to allow Isabelle to validate the transaction output based on the input facts she can see, we can split the transfer rule into two parts: one part that checks that Alice and Bob agree on the offer, and another part concerning the actual coin transfer:
+
+\begin{small}
+\begin{code}
+  rule  agreeOffer
+  await Accept [id = ?i, accepter = ?a]            gain {a}
+    and Offer  [id = i,  giver = g, receiver = ?a] gain {g}
+  to
+   say  Agreed [giver = g,   receiver = a]
+    by  {g, a} obs {!Mona, !Isabelle}
+
+  rule  doTransfer
+  await Agreed [giver  = ?g, receiver = ?a] gain {g, a}
+   and  Coin   [issuer = ?s, holder   = g]  gain {s, g}
+  to
+   say  Coin   [issuer = s,  holder   = a]
+    by  {s, a} obs {!Mona, s, a}
+\end{code}
+\end{small}
+
+With these two rule definitions Alice can build a nested transaction \CITE. For our purposes it is sufficient to represent a nested transaction as containing a list of sub-transactions as per the layout described in \S\ref{s:Transactions}, but with its own overall hash based identifier formed by combining the hashes of the sub-transactions. For the example above, the first sub-transaction will consume the @Accept@ and @Offer@ facts and produce and @Agreed@ fact with both Alice and Bob's authority. The second sub-transaction will immediately consume the @Agreed@ fact along with the @Coin@ fact, and produce a new @Coin@ fact. Importantly, both the created @Agreed@ fact in the first transaction, as well as the input @Coin@ fact are guaranteed to be visible to Isabelle, so she will be able to re-run the second sub-transaction and validate the output herself. Isabelle will still not be able to see the terms of the offer, but will be able to confirm with both Alice and Bob that they both agreed to it.
+
+The fact that some parties in a distributed system may not see all the components of a nested transaction is a common to most distributed database implementations.
+
+% \TODO{Cite the XA distributed transaction model}.
+% \TODO{Cite Corda Tearoffs}.
+% \TODO{Cite Fabric private transactions} mentioned in DAML blog post.
+% https://medium.com/daml-driven/keeping-smart-contracts-private-is-hard-unless-you-truly-understand-them-920b31d723e4
+
+% TODO: contrast with DAML. In a DAML choice execution we always combine the authority
+% of the contract instance with the controller of the choice. Both the signatories of the
+% initial contract instance, and the controller can always see the full transaction, so
+% we end up with partially blinded transactions like the first form of 'transfer'.
 
 % -----------------------------------------------------------------------------
+\eject{}
 \subsection{Upgrade}
 In practical information systems it is often necessary to upgrade data formats and business rules as requirements change over time. The fact that sets of rule names attached to each fact can be manipulated from the term language makes it easy to perform upgrades. For example, we can perform an upgrade of the business rules associated with @Coin@ fact using an upgrade rule such as:
 
@@ -116,9 +151,9 @@ In practical information systems it is often necessary to upgrade data formats a
 \begin{code}
   rule  upgrade
   await Coin [ issuer = ?s, holder = ?h ]  gain {s, h}
-    and UpgradePropose [ rules = ?rs ]     gain {!Operator}
-    and UpgradeAccept  [ party = s, rules = ?rs ] gain {s}
-    and UpgradeAccept  [ party = h, rules = ?rs ] gain {h}
+    and LetsUpgrade [ rules = ?rs ]     gain {!Operator}
+    and YeahOk      [ party = s, rules = ?rs ] gain {s}
+    and YeahOk      [ party = h, rules = ?rs ] gain {h}
    to
     say Coin [ issuer = s, holder = h ]
      by {s, h} use rs
@@ -129,9 +164,8 @@ Here, and @!Operator@ party adds an @UpgradePropose@ fact with a set of new rule
 
 
 % -----------------------------------------------------------------------------
-\subsection{Rule Splitting and Nested Transactions}
-\TODO{Cite the XA distributed transaction model}. \TODO{Cite Corda Tearoffs}. As the transaction is specified Isabelle does not enough facts to actually re-execute the transaction and check the output. However, this is possible after performing slight rearrangement of the rule code.
-
+\subsection{Query}
+\TODO{Motivate the need for the first/last select constructs. We want to gather a set of candidate facts, and then select the most recent one}.
 
 
 
