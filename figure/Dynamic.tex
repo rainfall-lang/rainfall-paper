@@ -14,11 +14,11 @@ $$
 { \begin{array}{ll}
         \jMatches{N}{A_{sub}}{S}{\cdot}
                  {H^m}
-                 {F_{read}^r}{D_{spend}^s}{A_{has}}{E}
+                 {F_{read}^r}{D_{spend}^s}{A_{gain}}{E}
   \quad  \jStoreDown{S}{D_{spend}^s}{S'}
   \\[1ex]
         \jEval{E}{M}{D_{new}^n}
-  \quad \bigwedge \{ A_{has} \supseteq \trm{auth-by}~D~|~D \in D_{new}^n \}
+  \quad \bigwedge \{ A_{gain} \supseteq \trm{auth-by}~D~|~D \in D_{new}^n \}
   \hspace{1.8em} \jStoreUp{S'}{D_{new}^n}{S''}
   \end{array}
 }
@@ -85,18 +85,8 @@ $$
                 \kgain~ M_{gain}
         \\ & \Rightarrow F ~|~ (F,~ W_{spend}) ~|~ A_{gain} ~|~ E'
   \end{array}
-%         \jMatch
-%        {N_{rule}}{A_{sub}}{S}{E}
-%        {\hspace{-1ex}
-%         \begin{array}{ll}
-%          X~\kfrom~ N_{fact}~ ~\kwhere~ M_{pred}~
-%            \\ \hspace{1em} \kselect~ C~ \kconsume~ M_{num}~
-%            \\ \hspace{1em} \kgain~ M_{gain}
-%         \end{array}
-%        }
-%        {F}{(F, W_{spend})}{A_{gain}}{E'}
 }
-& (\trm{EvMatch})
+& (\trm{EvMatchOne})
 \\[5ex]
 
 

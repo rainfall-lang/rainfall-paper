@@ -17,7 +17,7 @@ The gather/select/consume/gain process is a regularized database query, reminisc
 
 The basis for the $Type$ and $Term$ grammars is STLC with records. Our only non-standard extension is the @say@ form which constructs a new fact value, much like a data constructor. We also include a few primitive operators to split out the components of a fact value, taking the @fact'payload@ and so on. In Figure~\ref{f:CoinTransferDesugared} we have also used some additional primitive operators for equality, boolean logic, and retained the sugared set literals. We also leave applications of the @fact'payload@ primitive implicit when retrieving fields from fact values. If @f@ is a fact whose payload has type $\tau$, and $\tau$ is a record type that includes a field with label @x@, then we just write @f.x@ instead of @(fact'payload@$_\tau$ @f).x@
 
-\TODO{describe Fact and FACT types}
+\TODO{describe Fact and Factoid types, and $(Fact, Weight)$} factoid form.
 
 
 % -----------------------------------------------------------------------------
@@ -139,11 +139,32 @@ The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the prem
 
 % -----------------------------------------------------------------------------
 \subsection{Dynamic Semantics}
-The operational semantics essentially expresses relational joins using naive cartesian product and filtering, and has no indexing mechanism. A production implementation would implement the same semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, a parallel extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra.
+The dynamic semantics is shown in Figure~\ref{f:Dynamics}. In the figure we use the abbreviation $Auth$ to mean a set of party values that currently authorize some action, $Facts$ to mean a \emph{set} of facts, $Factoid$ to mean a fact value paired with its weight, and $Factoids$ to mean a map of facts to their weights, which can alternatively be interpreted as a multiset. In the notation we indicate that a variable stands for a collection like a vector, set or multiset by including a superscript that indicates the size of that collection, so $F^n$ would stand for a set of facts with size $n$.
 
+The semantics can be used to both execute rules to produce a transaction structure as shown in \REF, and also to validate that a transaction is well formed. The semantic rules are non-deterministic in the sense that given a store and a single rule definition, it may be possible to execute that rule by matching various subsets of facts, and the semantic rules do not specify which particular subset to use. As described in \REF, when a particular party submits a transaction, it is up to them to resolve the non-determinism as they see fit. Rainfall is specifically a \emph{contract system}, which specifies a range of valid behavior for a concurrent system, rather than an abstract machine that fixes a single order for rule firings.
+
+Starting with the top-level EvFire rule, the judgment: \\
+($\jFire{A_{sub}}{S}{R}{F^r_{read}}{D^s_{spend}}{D^n_{new}}{S'}$) says that a party with authority $A_{sub}$ and initial store $S$ can execute rule $R$, which reads facts $F^r_{read}$, spends factoids $D^s_{spend}$, creates new factoids $D^n_{new}$, producing a new store $S'$. The result sets can be used to produce (or check) a transaction structure, where the @spend@ list in the transaction is formed from both $F^r_{read}$ and $D^s_{spend}$, using zero valued weights for facts listed in $F^r_{read}$ which are read but not consumed.
+
+The semantics is written from a global point of view, where the store includes the complete set of facts visible to all parties. The particular subset of facts visible to a submitting party is specified by $A_{sub}$. In the premises of EvFire, we apply the fact matches producing sets of read, and spent facts, along with the gained authority $A_{gain}$, which must cover the by-authority of all factoids $D^n_{new}$ produced by the body of the rule. The premise $\jStoreDown{S}{D^s_{spend}}{S'}$ checks that factoids needing to be spent are available in the store $S$ with sufficient weight, and then removes them from the store, producing a new store $S'$. Similarly $\jStoreUp{S}{D^n_{new}}{S''}$ adds the new facts produced by the rule body.
+
+Rules EvMatchNil/Cons apply the match clauses to the store, collecting the set of facts read factoids spent, authority gained and the environment containing the matched facts. We use the $\uplus$ operator to mean multiset union, where the weights of identical facts are summed. Rule EvMatchOne applies a single match clause, performing the gather/select/consume/gain stages of the query in turn, producing the fact selected, the weight consumed, and any authority gained from that fact. We also check that name of the current rule is in the rule set of the fact. Note that if a fact is to be read but not consumed, the weight $W_{spend}$ will be zero. When the $(F,~ 0)$ factoid produced by EvMatch will be eliminated by the use of $\uplus$ in EvMatchCons, but the fact identifier $F$ will be retained in the set of facts read.
+
+Rule EvGather collects the facts that match the gather predicate. The premise is written as a set comprehension, where the clause $\trm{sees}~ A_{sub}~ F$ ensures we only include facts visible to the submitting party. The $\trm{sees}$ predicate was defined back in \REF.
+
+Rules EvAny/First specify how a single fact can be selected from the set of gathered facts. With EvAny any fact can be selected. EvFirst we first produce a set of pairs $D^m$ of sort keys and values, and select the value corresponding to the minimum sort key. Handling the @last@ keyword is just the reverse, and we elide the rule to save space.
+
+Rule EvConsume just evaluates the term specifying the fact weight to be consumed. We check that a fact of this weight is actually available back in EvFire before removing the set of spent facts from the store. Rule EvGain evaluates the term specifying the authority to be gained from the selected fact, and also checks the fact can actually provide that authority.
+
+Rule EvSay simply evaluates its arguments and produces the corresponding factoid. The remaining rules to evaluate the STLC term language are standard and have been omitted to save space.
+
+Finally, as our match clauses are evaluated sequentially in EvMatchNil/Cons, and EvGather uses a set comprehension, our semantics embeds the computation of a relational join between fact sets. A direct implementation of the fact matching semantics would be equivalent to using naive cartesian product and filtering to perform the join, rather than using a more efficient indexing mechanism. A production that monitors the store and determines when rules can fire could perhaps implement the semantics using the RETE algorithm~\cite{Forgy1981:RETE, Doorenbos1995:ProductionMatching}, a parallel extension of it~\cite{Aref1998:LanaMatch}, or by conversion onto relational algebra for execution on a back-end relational database.
 \input{figure/Dynamic.tex}
 
+
+
 % -----------------------------------------------------------------------------
+\eject{}
 \subsection{Properties}
 
 \AMOS{The following lemmas have been proved for a subset of the semantics without `retain' semantics}
