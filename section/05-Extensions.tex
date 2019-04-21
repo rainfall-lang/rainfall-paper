@@ -3,17 +3,16 @@
 
 \begin{figure}
 $$
-\begin{array}{cl}
+\begin{array}{cc}
 %% -- store
 \fbox{$\jStoreDown{Store}{Factoids}{Store}$}
+&
+\fbox{$\jStoreUp  {Store}{Factoids}{Store}$}
 \\[3ex]
 \ruleI  {       D^n \subseteq S
         \quad   S' = S - D^n}
         {\jStoreDown{S}{D^n}{S'}}
-
-\\[2ex]
-\fbox{$\jStoreUp  {Store}{Factoids}{Store}$}
-\\[3ex]
+&
 \ruleI  {       S' = S \uplus D^n}
         {\jStoreUp{S}{D^n}{S'}}
 \end{array}
@@ -33,6 +32,9 @@ An example non-numeric weight type is a simple @Present@ / @Absent@ indicator. I
 
 % -----------------------------------------------------------------------------
 \subsection{Minimum Weight Thresholds}
-\TODO{talk about @require@ keyword. Require weight to be over a given threshold without needing to consume it. Add to the semantics by exending the set of read facts to be a map from facts to needed weights.}
+In our current system, rules can match on visible facts that do not have that rule in their use set, provided they do not try to consume any weight of that fact or gain any authority from it. This is sympathetic to the intended physical implementation, where party using the system holds a copy of all facts they can observe -- so there is no reason to stop the transactions they submit from reading this data.
 
-\eject{}
+When a rule reads a fact but does not consume weight or gain authority from it then the fact appears in the set of facts read ($F^r_{read}$ in EvFire), but not the set of facts spent ($D^s_{spend}$). This means the rule can fire if the required fact is present in the store with any non-zero weight. A natural extension is then to change this set of facts read to be a map of fact to the weight required before the rule can fire, perhaps by extending the grammar of $Consume$ specifications with a (@require M@) form, where M is a term that evaluates to the weight the rule should weight for before firing.
+
+
+
