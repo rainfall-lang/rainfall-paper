@@ -57,7 +57,9 @@ Transaction
 
 This is the complete transaction that describes all inputs and outputs. Alice can send the complete transaction to Mona, which from Figure~\ref{f:CoinTransfer} is also entitled to see all the input and output facts. In contrast, Isabelle is not entitled to see the Offer fact as she is not listed as either an authorizer or an observer on it. Instead, Alice can compute a \emph{restricted view} of the transaction to send to Isabelle, which enables her to validate that Alice and Bob have authorized the coin facts to be moved, but does not reveal the Offer fact that contains the terms of the transfer.
 
-Curiously, Bob himself is not listed in the metadata of the consumed coin fact, but will be able to infer its contents anyway because according to the transfer rule, the fields must match data in facts that he can see. Alice herself is not listed in the meta-data of the produced coin fact, but will certainly know what this fact is because she is the one forming the transaction. We return to these points in \REF.
+Note that Alice herself is not listed in the meta-data of the produced coin fact, but will certainly know what this fact is because she is the one forming the transaction. In this case we say that Alice is an \emph{incidental observer} of this fact. Although Alice knows that this fact will be added to Isabelle, Bob, and Mona's view of the store, she should not add it to her own store. As Alice is not a \emph{formal observer} of the fact, she will be notified of transactions that spend this fact, so cannot be sure about its weight once her own transaction has been processed.
+
+% Note that Bob is not listed in the metadata of the consumed coin fact, but will be able to infer its contents anyway because according to the transfer rule, the fields must match data in facts that he can see.
 
 
 % -----------------------------------------------------------------------------
@@ -107,9 +109,23 @@ Note that in our system there is nothing preventing a party from adding a fact t
 
 
 % -----------------------------------------------------------------------------
-\subsection{Incidental Observers}
+\subsection{Upgrade}
+In practical information systems it is often necessary to upgrade data formats and business rules as requirements change over time. The fact that sets of rule names attached to each fact can be manipulated from the term language makes it easy to perform upgrades. For example, we can perform an upgrade of the business rules associated with @Coin@ fact using an upgrade rule such as:
 
-\TODO{In above transaction the meta-data reveals that it can be formally seen by Isabelle, Bob and Mona, though of course Alice knows about it as she built the transaction}. Distinguish between observer, formal observer, and incidental observer. As Alice is only an incidental observer she should not retain the fact data, as she will not receive information about transactions that spend this fact. Any transactions she might form based on this information may be invalid without her knowing.
+\begin{small}
+\begin{code}
+  rule  upgrade
+  await Coin [ issuer = ?s, holder = ?h ]  gain {s, h}
+    and UpgradePropose [ rules = ?rs ]     gain {!Operator}
+    and UpgradeAccept  [ party = s, rules = ?rs ] gain {s}
+    and UpgradeAccept  [ party = h, rules = ?rs ] gain {h}
+   to
+    say Coin [ issuer = s, holder = h ]
+     by {s, h} use rs
+\end{code}
+\end{small}
+
+Here, and @!Operator@ party adds an @UpgradePropose@ fact with a set of new rules that should be swapped in for the @use@ set of each coin. Once both the issuer and holder add facts that state they accept this upgrade the old coins can be consumed and new ones created that have the new @use@ set. The ability to upgrade the coins is specified by including the name of the upgrade rule in their original @use@ set (or not), but the new business rules can be specified after the initial coin facts have been generated.
 
 
 % -----------------------------------------------------------------------------
@@ -117,10 +133,6 @@ Note that in our system there is nothing preventing a party from adding a fact t
 \TODO{Cite the XA distributed transaction model}. \TODO{Cite Corda Tearoffs}. As the transaction is specified Isabelle does not enough facts to actually re-execute the transaction and check the output. However, this is possible after performing slight rearrangement of the rule code.
 
 
-
-% -----------------------------------------------------------------------------
-\subsection{Rule Upgrade}
-For upgrade, the data model itself does not depend on hashing. In DAML contract ids are hashes that include the code of the template. In Rainfall hashing is used as part of the transaction structure but the fact that fact identity includes the hash of the rule that uses it does not leak into the programming model.
 
 
 
