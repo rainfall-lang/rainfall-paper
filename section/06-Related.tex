@@ -4,32 +4,37 @@
 \label{s:Related}
 \section{Related Work}
 
-\TODO{Distinguish between authorized fact production and contract pricing systems. Rainfall isn't about pricing}.
+% TODO: Distinguish between authorized fact production and contract pricing systems. Rainfall isn't about pricing
 
-\TODO{Describe how Rainfall rules have no breach state. Does not fit well into framework of Deontic or Defeasible logic, even though these are commonly used to describe contracts.}
+% TODO: Describe how Rainfall rules have no breach state. Does not fit well into framework of Deontic or Defeasible logic, even though these are commonly used to describe contracts.
 
 % ---------------------------------------------------------
 \subsection{Linda-style Tuple Spaces}
-Linda~\cite{Gelernter1985:Linda} is a CSP-like process language where the individual processes communicate by adding, removing and non-destructively reading tuples from a globally shared tuple space. Tuples have named fields, and retrieved using simple, typed patterns. For example, we could retrieve (input) a tuple that specifies the price of apples with the following pattern:
-\begin{code}
-   in(name("Apple"), price(?p))
-\end{code}
-Processes that try to retrieve a tuple that matches some pattern block until one is available. If multiple tuples match a given pattern then one is selected nondeterministically.
+Linda~\cite{Gelernter1985:Linda} is a CSP-like process language where the individual processes communicate by adding, removing and non-destructively reading tuples from a globally shared tuple space. Tuples have named fields, and retrieved using simple, typed patterns. The basic Linda communication model is open, meaning that any party connected to it is free to add and remove tuples at will. The lack of access control or provenance information on data makes it unusable for as a communication medium for mutually distrusting parties.
 
-The basic Linda communication model is open, meaning that any party connected to it is free to add and remove tuples at will. The lack of access control or provenance information on data makes it unusable for as a communication medium for mutually distrusting parties. For example, given a tuple:
-\begin{code}
-   (giver("Alice"), receiver("Bob"), amount(100))
-\end{code}
-There is no guarantee that Alice was the one that added this tuple to the system, and there is nothing preventing a third party from removing before the workflow completes and Bob gets his money.
+Several extensions to the basic Linda model add meta-data to the tuples so that it can be used in open systems, and this meta-data is similar to the 'by' and 'obs' sets of our own model. SecSpaces~\cite{Busi2003:SecSpaces} adds authority metadata to the tuples, signing them with the private keys of the parties that create them, and specifying the identities of those that can see and consume them. Merrick~\cite{Merrick2000:Scopes} describes a scoping/visibility system for tuple spaces where new scopes can be created at will and combined using a set of scope combinators. Oriol~\cite{Oriol2005:TaggedSets} describes a system of tagged sets where the tuples are identified by a formula in propositional logic, which allows authority and visibility metadata to be encoded uniformly. Udzir~\cite{Udzir2007:MultiCapabilities}~describes a model where the tuples (or collections of them) have unique identifiers, and the client program must provide a matching runtime capability value when accessing them. Each of these extended systems refines the data model only. There is no mechanism for parties to combine authorized facts to produce new facts that are transitively authorized by any other party accept themselves. The ability to do this is the main contribution of our own system.
 
-Various extended tuple space models extend the basic Linda system to support meta-data equivalent to the auth-by and auth-obs sets described in~\S\ref{s:Authority}. SecSpaces~\cite{Busi2003:SecSpaces} adds authority metadata to the tuples, signing them with the private keys of the parties that create them, and specifying the identities of those that can see and consume them. Merrick~\cite{Merrick2000:Scopes} describes a scoping/visibility system for tuple spaces where new scopes can be created at will and combined using a set of scope combinators. Oriol~\cite{Oriol2005:TaggedSets} describes a system of tagged sets where the tuples are identified by a formula in propositional logic, which allows authority and visibility metadata to be encoded uniformly. Udzir~\cite{Udzir2007:MultiCapabilities}~describes a model where the tuples (or collections of them) have unique identifiers, and the client program must provide a matching runtime capability value when accessing them. Each of these extended systems refines the data model only. There is no mechanism for parties to combine authorized facts to produce new facts that are transitively authorized by any other party accept themselves. The ability to do this is the main contribution of our own system.
+
+%For example, we could retrieve (input) a tuple that specifies the price of apples with the following pattern:
+% \begin{code}
+%    in(name("Apple"), price(?p))
+% \end{code}
+% Processes that try to retrieve a tuple that matches some pattern block until one is available. If multiple tuples match a given pattern then one is selected nondeterministically.
+
+% For example, given a tuple:
+% \begin{code}
+%    (giver("Alice"), receiver("Bob"), amount(100))
+% \end{code}
+% There is no guarantee that Alice was the one that added this tuple to the system, and there is nothing preventing a third party from removing before the workflow completes and Bob gets his money.
+
 
 
 % ---------------------------------------------------------
 \subsection{Law Governed Linda}
-Law Governed Linda~(LGL)~\cite{Minsky1994:LawGovernedLinda, Minsky2001:SafeTupleSpace} takes the basic Linda model and inserts a \emph{controller} between the tuple space and each communicating process. Each controller has a copy of a communication law, written in a fragment of Prolog, that specifies the allowable interactions with the tuple space. For example, the law may specify that a process can only add a tuple such as the above to the space, when the @giver@ field is set to the identify of the process that adds it. In this way, the codified law specifies the allowable \emph{interaction} with the communication medium. The controllers themselves are assumed to run on a trusted computing platform, either as part of the server that provides the tuple space, or on a secure co-processor~\cite{Minsky2001:SafeTupleSpace}.
+Law Governed Linda~(LGL)~\cite{Minsky1994:LawGovernedLinda, Minsky2001:SafeTupleSpace} takes the basic Linda model and inserts a \emph{controller} between the tuple space and each communicating process. Each controller has a copy of a communication law, written in a fragment of Prolog, that specifies the allowable interactions with the tuple space. For example, the law may specify that a process can only add a tuple such as the above to the space, when the @giver@ field is set to the identify of the process that adds it. In this way, the codified law specifies the allowable \emph{interaction} with the communication medium. The controllers themselves are assumed to run on a trusted computing platform, either as part of the server that provides the tuple space, or on a secure co-processor~\cite{Minsky2001:SafeTupleSpace}. In contrast, the rules in our Rainfall model do not seek to limit the form of data added to the system. Instead, they specify how authorized facts that are already in the system may be combined to generate new authorized facts.
 
-In contrast, the rules in our Rainfall model do not seek to limit the form of data added to the system. Instead, they specify how authorized facts that are already in the system may be combined to generate new authorized facts. In Rainfall there is nothing stopping a party from adding a fact to the system which says ``I have a million dollars", just with their own authority. Additionally, the rules in our model are executed as part of transaction validation, on the computers of the individual parties. A nefarious party could form an invalid transaction that transfers themselves a million dollars, but honest parties will not confirm the transaction views they are sent that disagree with their own understanding of the facts.
+% TODO: check this is described earlier.
+% In Rainfall there is nothing stopping a party from adding a fact to the system which says ``I have a million dollars", just with their own authority. Additionally, the rules in our model are executed as part of transaction validation, on the computers of the individual parties. A nefarious party could form an invalid transaction that transfers themselves a million dollars, but honest parties will not confirm the transaction views they are sent that disagree with their own understanding of the facts.
 
 
 % ---------------------------------------------------------
@@ -44,7 +49,7 @@ Another minor difference is that the ESP fact matching system does not have dire
 \subsection{Actors}
 Our rules have a passing similarity to Actors~\cite{Agha92:ActorTheory}, but the computation framework is quite different. The rules do not have their own private state, or process identity in the sense that they are addressable by mailbox or channel names. It would be straightforward to embed an Actor model \emph{into} Rainfall, by building facts that represent the local state of each actor, but it would be a full compilation process much like compiling a functional language onto a procedural one. Actor languages such as Erlang have extensions~\cite{Sulzmann2008:MultiHeaded} that support the sort of multi-headed pattern matching provided by Rainfall rules, but perform deterministic matching on streams of incoming messages, rather than selecting candidates from an unordered soup of tuples. ActorSpaces~\cite{Agha1993:ActorSpace} is a model where communication is still done by message passing, but messages can be broadcast to all actors in a group, rather than just a single one as in point-to-point communication.
 
-Rainfall system is not directly reactive, in the sense that there are concurrent processes waiting to receive messages and provide responses. As described in \REF, in normal use a submitting party decides when to perform a transaction according to one of the rules, and is free to disambiguate any non-determinism in pattern matching as they see fit.
+% Rainfall system is not directly reactive, in the sense that there are concurrent processes waiting to receive messages and provide responses. As described in \REF, in normal use a submitting party decides when to perform a transaction according to one of the rules, and is free to disambiguate any non-determinism in pattern matching as they see fit.
 \TODO{compare with constraint handling rules:likewise CHR specifies a particular matching order for constraints, (is that right?)}
 
 
