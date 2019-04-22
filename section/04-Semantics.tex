@@ -107,7 +107,7 @@ await accept from Accept
 to
     \{ say Coin [ stamp  = coin.stamp
                , holder = offer.receiver]
-       by  \{ !Bank, offer.receiver \}  obs \{ \}
+       by  \{ !Bank, offer.receiver \}  obs \{ !Mona \}
        use \{ 'Transfer \}              num 1) \}
 \end{alltt}
 \end{small}
