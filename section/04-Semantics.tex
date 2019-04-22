@@ -158,46 +158,60 @@ Finally, as our match clauses are evaluated sequentially in EvMatchNil/Cons, and
 \eject{}
 \subsection{Properties}
 
-\AMOS{The following lemmas have been proved for a subset of the semantics without `retain' semantics}
+We have formalised Rainfall in the Isabelle interactive theorem prover, and proved several isolation and authorisation properties of the dynamic semantics.
+The following theorem states that execution of a rule can only depend on the facts explicitly used by the rule:
 
-\begin{lemma}
-New facts are included in the new store (trivial):
-$$
-\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies
-D_{new}^m \subseteq S'
-$$
-\end{lemma}
-(Using the $\subseteq$ notation to refer to the multiset subset operation here -- would it be better to unroll it as something like $\forall (x,w) \in D_{new}^m.\ (x,w') \in S' \wedge w \le w'$ ?)
-
-\begin{lemma}
-Rules only spend what is in the store (pretty trivial):
-$$
-\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies
-D_{spent}^n \subseteq S
-$$
-\end{lemma}
+% \AMOS{These lemmas are boring, I think. The second is used in the proof of frame constriction.}
+% \begin{lemma}
+% New facts are included in the new store (trivial):
+% $$
+% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+% \implies
+% D_{new}^m \subseteq S'
+% $$
+% \end{lemma}
+% (Using the $\subseteq$ notation to refer to the multiset subset operation here -- would it be better to unroll it as something like $\forall (x,w) \in D_{new}^m.\ (x,w') \in S' \wedge w \le w'$ ?)
+% 
+% \begin{lemma}
+% Rules only spend and read values from the store:
+% $$
+% \begin{array}{c}
+% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+% \implies \\
+% F_{read}^r ~\Cup~ D_{spent}^n \subseteq S
+% \end{array}
+% $$
+% \end{lemma}
 
 \begin{theorem}
-Frame constriction: if a rule succeeds, the rule would succeed, resulting in the same value, in a store containing only what it spent:
+Frame constriction:
 $$
 \begin{array}{c}
-\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+\jFire{A}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
-\jFire{A_{sub}}{D_{spent}^n}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+\quad \jFire{A}{F_{read}^r \Cup D_{spent}^n}{R}{F_{read}^r}{D_{spent}^n}{D'}{S'} \quad
+\\[1ex]
+\multicolumn{1}{l}{ \texttt{where } D' ~=~ D_{new}^m \uplus (F_{read}^r - D_{spent}^n)}
+\\
 \end{array}
 $$
 \end{theorem}
-This theorem statement isn't quite correct at the moment, because it's ignoring retained/non-consumed values. I will update this rule to find the non-consumed values in the spent facts and copy them from the original store after I have updated the formalisation. I think updating the formalisation will expose some other lemmas.
+
+This theorem has the hypothesis that the rule $R$ executes in store $S$, reading the facts $F_{read}^r$ and spending the facts $D_{spent}^n$, and resulting in the new facts $D_{new}^m$.
+Executing the same rule in a restricted environment that contains only the read and spent facts will create the same new facts.
+For the restricted environment, we use the $\Cup$ operator to union with the maximum weight of each fact, as facts that exist in both the read set and spent multiset should not be counted twice.
+In the original execution, the updated store $S'$ contains the original store without the spent facts and with the new facts; in the restricted environment, the new store $D'$ contains the new facts as well as the unspent read facts.
+
+
+The following two theorems state that execution can only depend upon facts visible to the submitter:
 
 \begin{theorem}
-Spend only visible: execution can only spend facts visible to the submitter:
+Spend and read only visible:
 $$
 \begin{array}{c}
 \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
-\forall f \in D_{spent}^n.\ \trm{sees}~ A_{sub}~ f
+\forall f \in F_{read}^r \Cup D_{spent}^n.\ \trm{sees}~ A_{sub}~ f
 \end{array}
 $$
 \end{theorem}
@@ -215,22 +229,25 @@ $$
 $$
 \end{theorem}
 
+The following theorem states that all authority used to create new facts must be gained from the matched facts.
+The submitter's authority only affects which facts are visible, but the submitter's authority is not necessarily added to created facts:
+
 \begin{theorem}
-All authority in new facts is gained from spent facts:
+Authority comes from facts:
 $$
 \begin{array}{c}
 \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
 \implies \\
-\forall f \in D_{new}^m.\ \forall a \in \trm{auth-by}~f.\ \exists d \in D_{spent}^n.\ a \in \trm{auth-by}~d
+\forall f \in D_{new}^m.\ \forall a \in \trm{auth-by}~f.\ \exists d \in F_{read}^r \Cup D_{spent}^n.\ a \in \trm{auth-by}~d
 \end{array}
 $$
 \end{theorem}
 
-\AMOS{I haven't proved the following yet.}
-The following theorems do not hold for all programs, but do hold for subsets.
+The following two theorems state that, for rules containing only `any' selectors, new facts and authorities can be added without changing the execution.
+For programs containing `first' selectors, adding new facts, or making new facts visible, could change the minimum value selected by `first'.
 
 \begin{theorem}
-Store weakening for `any' selectors: if the rule doesn't contain any `first' selectors, we can add new facts without changing the execution:
+Store weakening for `any' selectors:
 $$
 \begin{array}{c}
 \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
@@ -241,10 +258,8 @@ $$
 $$
 \end{theorem}
 
-This theorem doesn't hold for `first' selectors because adding new values to the store might change the minimum, and so change which value the first selector chooses.
-
 \begin{theorem}
-More permissions do not change behaviour of `any' selectors: if the rule doesn't contain any `first' selectors, we can add new authority without changing the execution:
+More permissions for `any' selectors:
 $$
 \begin{array}{c}
 \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
@@ -254,4 +269,6 @@ $$
 \end{array}
 $$
 \end{theorem}
+
+\eject
 
