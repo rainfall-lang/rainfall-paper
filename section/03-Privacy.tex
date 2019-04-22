@@ -95,16 +95,25 @@ All four parties, including Alice, are then able to use their transaction view t
 \subsection{Consensus}
 Once Alice has sent the appropriate restricted transaction view to each party those parties can compare it against their own view of the current ledger state and confirm whether they believe it is valid. Isabelle is able to see the complete number of coins that are currently held by Alice, so Bob can ask Isabelle to confirm that her view of the transaction is valid, and hence enough coins were available for the transfer. In a practical workflow Isabelle would likely represent a commercial Bank, and Bob would trust Isabelle to answer truthfully when asked if enough coins are available for a currency transfer, even though he does not want the Bank to know that he is adding to his collection of guitars. Likewise, Isabelle can ask Bob to confirm that his view of the transaction is valid, and that he really did accept the transfer.
 
-For a concrete implementation there are many ways to manage the transaction confirmation process. For a small number of parties, such as to manage commercial workflows between banks, it could be sufficient for each party to confirm the transaction directly with all others. This would require $O(n^2)$ confirmations in practice, but in the happy case the only information that needs to be exchanged is that the confirming party agrees with the transaction. Each transaction has a unique(ish) identifier consisting of the transaction hash, so each confirmation message is not a large amount of data. For a greater number of parties, cryptographically signed confirmation messages could be propagated with a peer-to-peer protocol, using a spanning tree structure to avoid exchanging a quadratic number of messages~\cite{El-Ansary2003:Broadcast}. In hostile environment such as on the public internet the confirmations could be propagated via a Byzantine Fault Tolerant (BFT) consensus protocol~\cite{Lamport1982:Byzantine, Ongaro2014:Consensus}, or one additionally resistant to Sybil attacks~\cite{Gilad2017:Algorand}. Our programming model is not specific to any specific consensus mechanism, and different mechanisms are appropriate for different environments, so we do not seek to specify one here.
+For a concrete implementation there are many ways to manage the transaction confirmation process. For a small number of parties, such as to manage commercial workflows between banks, it could be sufficient for each party to confirm the transaction directly with all others. This would require $O(n^2)$ confirmations in practice, but in the happy case the only information that needs to be exchanged is that the confirming party agrees with the transaction of the given hash code. For a greater number of parties, cryptographically signed confirmation messages could be propagated with a peer-to-peer protocol~\cite{El-Ansary2003:Broadcast}, or Byzantine Fault Tolerant (BFT) consensus protocol~\cite{Lamport1982:Byzantine, Ongaro2014:Consensus, Gilad2017:Algorand}
+
+
+
+% Each transaction has a unique(ish) identifier consisting of the transaction hash, so each confirmation message is not a large amount of data.
+
+
+% In hostile environment such as on the public internet the confirmations could be propagated via a , or one additionally resistant to Sybil attacks~\cite{}.
+
+% Our programming model is not specific to any specific consensus mechanism, and different mechanisms are appropriate for different environments, so we do not seek to specify one here.
 
 
 % -----------------------------------------------------------------------------
 \subsection{Authorization Flow}
-Note that in our system there is nothing preventing a party from adding a fact to the system which says ``I have a million dollars'', just with their own authority. As mentioned in \label{s:Authority} we allow parties to add arbitrary facts with their own authority, and delete fact that only authorized with their own authority. In the transaction structure of \S\ref{s:Transactions} this is achieved just by leaving the @rule@ field empty, as well as either the @spent@ or @new@ fields. The key property we need to manage is whether anyone else in the system should rightly believe those facts.
+Note that in our system there is nothing preventing a party from adding a fact to the system which says ``I have a million dollars'', just with their own authority. As mentioned in \label{s:Authority} we allow parties to add arbitrary facts with their own authority, and delete fact that only authorized with their own authority. In the transaction structure of \S\ref{s:Transactions} this is achieved just by leaving the @rule@ field empty, as well as either the @spent@ or @new@ fields. The key property we need to manage is whether anyone else in the system should \emph{believe} those facts.
 
- Recall that in the coin transfer example from \S\ref{s:Facts}, the coin facts always carry the authority of multiple parties, which is justified by the sequence of transactions that result in their production. The coin issuer (@Isabelle@ in the example) creates the initial coin facts, specifies the rules for using them, and signs the facts with their own authority. When the coins are transferred onwards the transactions recording the use of the transfer rule are also signed by the parties that propose them. Assuming most parties in the system are honest, invalid transactions will simply not be confirmed. Dishonest parties are free to corrupt their own databases by adding invalid transactions, but honest parties will not accept transactions that do not agree with their own view of the facts.
+Recall that in the coin transfer example from \S\ref{s:Facts}, the coin facts always carry the authority of multiple parties, which is justified by the sequence of transactions that result in their production. The coin issuer (@Isabelle@ in the example) creates the initial coin facts, specifies the rules for using them, and signs the facts with their own authority. When the coins are transferred onwards the transactions recording the use of the transfer rule are also signed by the parties that propose them. Assuming most parties in the system are honest, invalid transactions will simply not be confirmed. Dishonest parties are free to corrupt their own databases by adding invalid transactions, but honest parties will not accept transactions that do not agree with their own view of the facts.
 
- As with the consensus mechanism, our programming model does not specify a particular dispute mechanism, as different mechanisms are appropriate for different environments. In a commercial banking system it would be a rare occurrence for a party to actively propose an invalid transaction, so it may be appropriate to pause the system and investigate the issue manually. In a hostile internet environment it maybe instead be appropriate to blacklist the submitting party and not accept further transactions from them.
+%  As with the consensus mechanism, our programming model does not specify a particular dispute mechanism, as different mechanisms are appropriate for different environments. In a commercial banking system it would be a rare occurrence for a party to actively propose an invalid transaction, so it may be appropriate to pause the system and investigate the issue manually. In a hostile internet environment it maybe instead be appropriate to blacklist the submitting party and not accept further transactions from them.
 
 % -----------------------------------------------------------------------------
 \subsection{Nested Transactions}
@@ -130,7 +139,7 @@ For the transaction described in \S\ref{s:Transactions}, the view to be given to
 
 With these two rule definitions Alice can build a nested transaction \CITE. For our purposes it is sufficient to represent a nested transaction as containing a list of sub-transactions as per the layout described in \S\ref{s:Transactions}, but with its own overall hash based identifier formed by combining the hashes of the sub-transactions. For the example above, the first sub-transaction will consume the @Accept@ and @Offer@ facts and produce and @Agreed@ fact with both Alice and Bob's authority. The second sub-transaction will immediately consume the @Agreed@ fact along with the @Coin@ fact, and produce a new @Coin@ fact. Importantly, both the created @Agreed@ fact in the first transaction, as well as the input @Coin@ fact are guaranteed to be visible to Isabelle, so she will be able to re-run the second sub-transaction and validate the output herself. Isabelle will still not be able to see the terms of the offer, but will be able to confirm with both Alice and Bob that they both agreed to it.
 
-The fact that some parties in a distributed system may not see all the components of a nested transaction is a common to most distributed database implementations.
+% The fact that some parties in a distributed system may not see all the components of a nested transaction is a common to most distributed database implementations.
 
 % \TODO{Cite the XA distributed transaction model}.
 % \TODO{Cite Corda Tearoffs}.
@@ -144,7 +153,6 @@ The fact that some parties in a distributed system may not see all the component
 
 
 % -----------------------------------------------------------------------------
-\eject{}
 \subsection{Upgrade}
 In practical information systems it is often necessary to upgrade data formats and business rules as requirements change over time. The fact that sets of rule names attached to each fact can be manipulated from the term language makes it easy to perform upgrades. For example, we can perform an upgrade of the business rules associated with @Coin@ fact using an upgrade rule such as:
 
@@ -154,7 +162,7 @@ In practical information systems it is often necessary to upgrade data formats a
   await Coin [ issuer = ?s, holder = ?h ]  gain {s, h}
     and LetsUpgrade [ rules = ?rs ]     gain {!Operator}
     and YeahOk      [ party = s, rules = ?rs ] gain {s}
-    and YeahOk      [ party = h, rules = ?rs ] gain {h}
+    and YeakOk      [ party = h, rules = ?rs ] gain {h}
    to
     say Coin [ issuer = s, holder = h ]
      by {s, h} use rs
@@ -165,12 +173,41 @@ Here, and @!Operator@ party adds an @UpgradePropose@ fact with a set of new rule
 
 
 % -----------------------------------------------------------------------------
+\begin{figure}
+\begin{center}
+\includegraphics{figure/auction-visibility.pdf}
+\end{center}
+\vspace{-2ex}
+\caption{Fact Visibility in Auction Example}
+\label{f:AuctionVisibility}
+\end{figure}
+
+
 \subsection{Query}
-\TODO{Motivate the need for the first/last select constructs. We want to gather a set of candidate facts, and then select the most recent one}.
+In our examples so far, each matching clause in a rule has always selected a single fact. In contrast, consider an auction workflow where we will need to rank offers by price, instead of just selecting any which matches. The fact visibility of such a workflow is depicted in Figure~\ref{f:AuctionVisibility}. Mark runs the auction market, Brendan is a broker, and Alice is a customer. The house rules are such that a customer (Alice) may not bid on items directly. Instead, the customer enlists a broker (Brendan) to which they provide an @Order@ describing the sort of @Item@ they wish to purchase, and their price limit. Naturally, the details of the @Order@ are private between the broker and customer, as the party running the auction house should not know the absolute maximum price a customer is willing to pay. During the auction, the market announces which items are for sale, including their lot number, description, and asking price. If anyone wishes to pay the asking price then the item is sold immediately. Bids may also be entered below the asking price, and the market will then communicate with the original owner of the item (not shown) about whether they are willing to sell at that lower price. The following rule shows how the broker can enter bids with the joint authority of themselves, as well as their customer:
 
+\begin{small}
+\begin{code}
+fact Item  [lot: Nat, desc: Text, ask: Nat]
+fact Order [buyer:  Party, desc: Text, limit: Nat]
+fact Enter [broker: Party, lot: Nat, offer: Nat]
+fact Bid  [broker: Party, buyer: Party, lot: Nat, offer: Nat]
 
+  rule  bid
+  await Item   [lot = ?n, desc = ?d, ask = ?a]
+               select first a   consume none
+    and Order  [buyer  = ?y, desc = d, limit = ?l] gain {y}
+    and Enter  [broker = ?k, lot  = n, offer = ?o] gain {k}
+         where o <= l && o <= a
+  to
+    say Bid    [buyer = y, broker = k, lot = n, offer = o]
+     by {y, k} obs {!Mark}
+\end{code}
+\end{small}
 
+In the first matching clause we have used @select first a@ to indicate that all matching @Item@ facts should be sorted by the asking price, and the first (cheapest) one selected. As the @Item@ fact is an announcement, rather than an asset to be ``spent'', we add @consume none@ to indicate the fact should not be consumed in the match. We have also added a @where@ clause to indicate that the offer entered by the broker must be no greater than the asking price for the item, or the limit of the customer. This allows the broker to use their own knowledge to try to get a better deal for the customer.
 
+Finally, note that the transaction views generated from this rule that are given to Mark will have Alice's order fact blinded. In a practical implementation of an auction house workflow it may not be necessary for Mark to confirm the validity of each view in real time with Alice. Instead, after the auction is completed, if there is any dispute about about Brendan's involvement then he can provide the full transaction which includes Alice's signed order, as proof that he was acting in good faith.
 
 
 

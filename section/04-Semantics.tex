@@ -1,5 +1,4 @@
 
-\clearpage{}
 % -----------------------------------------------------------------------------
 \section{Semantics}
 The Rainfall semantics is specified in terms of a core language where pattern matching is desugared into set comprehension like generators, and we use a version of Simply Typed Lambda Calculus (STLC) for the rule bodies. We STLC for expositional purposes, though in a production implementation it may be preferable to define rule bodies using a more expressive term language such as a version System-F, or as a well defined bytecode. The key ideas of our system are embodied in the overall rule structure and authority mechanism, and are not specific to the language used for rule bodies.
@@ -17,7 +16,7 @@ The gather/select/consume/gain process is a regularized database query, reminisc
 
 The basis for the $Type$ and $Term$ grammars is STLC with records. Our only non-standard extension is the @say@ form which constructs a new fact value, much like a data constructor. We also include a few primitive operators to split out the components of a fact value, taking the @fact'payload@ and so on. In Figure~\ref{f:CoinTransferDesugared} we have also used some additional primitive operators for equality, boolean logic, and retained the sugared set literals. We also leave applications of the @fact'payload@ primitive implicit when retrieving fields from fact values. If @f@ is a fact whose payload has type $\tau$, and $\tau$ is a record type that includes a field with label @x@, then we just write @f.x@ instead of @(fact'payload@$_\tau$ @f).x@
 
-\TODO{describe Fact and Factoid types, and $(Fact, Weight)$} factoid form.
+% describe Fact and Factoid types, and $(Fact, Weight)$} factoid form
 
 
 % -----------------------------------------------------------------------------

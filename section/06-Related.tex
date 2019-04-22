@@ -64,7 +64,9 @@ Our rules are closer to those used by production rule engines OPS~\cite{Forgy198
 
 % ---------------------------------------------------------
 \subsection{Account Based Ledgers}
-In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cite{Lee2018:EOSIO} all data on the ledger is visible to all parties. In these systems each account is associated with a contract that has its own mutable state. The contract code can export methods which are callable by other parties in the system. Authority is managed programatically, where method code must check at runtime that the party that calls a particular method is permitted to do so. Contracts that require authority from multiple parties to perform some action can use local mutable state to build a set of parties that have provided their consent so far. In our system the authority to create and consume facts is managed at the meta level as this also affects the whether each party can see the data. Rules are free to perform their own ``business level'' checks, such as ensuring that only a given set of parties can activate the rule.
+In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cite{Lee2018:EOSIO} all data on the ledger is visible to all parties. In these systems each account is associated with a contract that has its own mutable state. The contract code can export methods which are callable by other parties in the system. Authority is managed programatically, where method code must check at runtime that the party that calls a particular method is permitted to do so. Contracts that require authority from multiple parties to perform some action can use local mutable state to build a set of parties that have provided their consent so far. In our system the authority to create and consume facts is managed at the meta level as this also affects the whether each party can see the data.
+
+% Rules are free to perform their own ``business level'' checks, such as ensuring that only a given set of parties can activate the rule.
 
 
 % ---------------------------------------------------------
@@ -79,6 +81,7 @@ Business Process Execution Language (BPEL)~\cite{Andrews2003:BPEL} itself lacks 
 \subsection{Process Algebras}
 The Join Calculus~\cite{Cedric1996:Reflexive} and Chemical Abstract Machine~\cite{Berry1992:Chemical} Process algebras that model local interaction of code and data. CHAM has very explicit rules about grouping (cooling) and ungrouping (heating) facts to form compounds. For our application we want to model locality but it's sufficient to use a seggregated global ``top level'' store, rather than than explicit nesting of stores.
 
+TODO: describe Deon Digital DSL and "Compositional Specification of Commercial Contracts", Henglein.
 
 % ---------------------------------------------------------
 \subsection{Permissioned Distributed Ledgers}
