@@ -28,7 +28,7 @@
 \email{andrae.muys@digitalasset.com}
 
 \begin{abstract}
-We present an approach to managing assets in distributed ledger systems, where the asset is represented as a fact in a database. System allows workflows to be define to allow mutually distrusting parties to manage those assets. Our intended application is asset management on distributed ledger systems such as Bitcoin and Ethereum. Our ambient system manages authority to ensure that no workflow can be defined that permits assets to be claimed from, or assigned to parties without their explicit approval.
+We present a smart contract programming model that allows mutually distrusting parties to manage assets on a distributed ledger. The model consists of a tuple space of authorized facts, and a set of rules. Rules match on authorized facts, gaining their authority, and produce new facts with a subset of the gained authority. Our programming model allows assets such as crypto currencies to be defined in user code, rather than being baked directly into the model, while being more general than existing account based ledger systems.
 \end{abstract}
 
 \maketitle
@@ -45,7 +45,9 @@ We present an approach to managing assets in distributed ledger systems, where t
 
 
 \textbf{Acknowledgements}
-Thanks to Raphael Speyer for the connection with Join Calculus, Lance Arlaus for nested transactions and Erwin Ramirez for Constraint Handling Rules.
+Thanks to Fil Mackay, Raphael Speyer, Lance Arlaus, Erwin Ramirez and Ben Sinclair for helpful discussions and pointers to related work.
+
+
 
 
 % -----------------------------------------------------------------------------
