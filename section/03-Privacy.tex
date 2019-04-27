@@ -184,6 +184,7 @@ Here, and @!Operator@ party adds an @UpgradePropose@ fact with a set of new rule
 
 
 \subsection{Query}
+\label{s:Query}
 In our examples so far, each matching clause in a rule has always selected a single fact. In contrast, consider an auction workflow where we will need to rank offers by price, instead of just selecting any which matches. The fact visibility of such a workflow is depicted in Figure~\ref{f:AuctionVisibility}. Mark runs the auction market, Brendan is a broker, and Alice is a customer. The house rules are such that a customer (Alice) may not bid on items directly. Instead, the customer enlists a broker (Brendan) to which they provide an @Order@ describing the sort of @Item@ they wish to purchase, and their price limit. Naturally, the details of the @Order@ are private between the broker and customer, as the party running the auction house should not know the absolute maximum price a customer is willing to pay. During the auction, the market announces which items are for sale, including their lot number, description, and asking price. If anyone wishes to pay the asking price then the item is sold immediately. Bids may also be entered below the asking price, and the market will then communicate with the original owner of the item (not shown) about whether they are willing to sell at that lower price. The following rule shows how the broker can enter bids with the joint authority of themselves, as well as their customer:
 
 \begin{small}
