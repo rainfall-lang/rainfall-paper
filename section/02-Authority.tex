@@ -8,14 +8,14 @@
 fact  Coin   [issuer: Party,  holder:   Party]
 fact  Offer  [id:     Symbol, terms:    Text,
               giver:  Party,  receiver: Party ]
-fact  Accept [id: Symbol,     accepter: Party]
+fact  Accept [id:     Symbol, accepter: Party]
 
 rule  transfer
-await Accept [id = ?i, accepter = ?a]  gain \{a\}
+await Accept [id = ?i, accepter = ?a]            gain \{a\}
   and Offer  [id = i,  giver = ?g, receiver = a] gain \{g\}
-  and Coin   [issuer = ?s, holder = g] gain \{s, g\}
+  and Coin   [issuer = ?s, holder = g]           gain \{s,g\}
 to                                        ^^^ TODO: describe
-  say Coin   [issuer = s, holder = a]
+  say Coin   [issuer = s,  holder = a]
    by \{s, a\} use \{transfer\}
 \end{alltt}
 \end{small}
@@ -25,55 +25,53 @@ to                                        ^^^ TODO: describe
 
 
 % -------------------------------------------------------------------------------------------------
-% TODO: reenforce that auth of facts comes from two mechanisms.
-%  1) parties signing bare facts, 2) transitive authority due to rule firings.
 \section{Facts, Rules, and Authority}
 \label{s:FactsWeights}
-Rainfall has two main components: a ledger of facts and a set of rules. Parties using the system add facts to the ledger, cryptographically signing them using public key encryption, and thus embodying them with their authority. Rules match on collections of facts, and when successful, consume some of the facts, and create new facts. The new facts are embodied with a subset of the authority of the matched facts. Not all facts are visible to all parties, rather, the visibility of facts is managed using the authority metadata of each fact. We describe facts, rules and fact meta data in turn, finishing with the formal definition of the ledger data model.
+The Rainfall programming model includes a ledger of facts and a set of rules. Parties using the system add facts to the ledger, cryptographically signing them to demonstrate that they authorize their contents. Rules match on several facts and create new facts, possibly consuming matched facts in the process. Rules can also gain authority from matched facts, and new facts created can be given a subset of the authority gained from the matched facts. The set of facts visible to each party is also specified by the authority system, so not all facts need to be visible to all parties. In this section we describe facts, rules and the authority system, finishing with the formal definition of the data model.
 
 
 % -----------------------------------------------------------------------------
 \subsection{Facts}
 \label{s:Facts}
-% TOOD: we don't have a way to generate fresh names. Hand-wave away where the identifier came from.
-Figure~\ref{f:CoinTransfer} contains the fact and rule definitions for a simple coin transfer workflow. A @fact@ declaration gives the \emph{tag} and \emph{payload} types of a particular sort of fact. In this example, a @Coin@ fact describes a single coin that has been created by an @issuer@ party and is currently held by a @holder@. An @Offer@ fact represents an offer by a coin holder, the @giver@, which offers to give their coin to a second party, the @receiver@. The offer also carries a value of abstract @Symbol@, type that is used to uniquely identify the offer. An @Accept@ fact represents that fact that the receiver of the offer does indeed wish to accept a coin offer with the given identifier.
+Figure~\ref{f:CoinTransfer} contains the fact and rule definitions for a simple coin transfer workflow. A @fact@ declaration gives the \emph{tag} and \emph{payload} types of each sort of fact used in the workflow. In this example, a @Coin@ fact represents a single coin that has been created by an @issuer@ party, and is currently held by a @holder@. An @Offer@ fact represents an offer by the coin holder, the @giver@, to transfer their coin to a @receiver@. The offer includes a value of abstract @Symbol@, type that uniquely identifies the offer, and a text string describing the terms of the offer. An @Accept@ fact specifies that the receiver does indeed wish to accept a coin offer with the given terms.
 
-As an example use, suppose we have facts of the above types currently on the ledger:
+For example, we suppose we have the following facts:
 \begin{small}
 \begin{code}
  Coin   [issuer = !Isabelle, holder = !Alice]
- Offer  [id = '1234, terms = "To purchase a Guitar"
-         giver = !Alice, receiver = !Bob]
+ Offer  [id     = '1234,  terms    = "To purchase a guitar"
+         giver  = !Alice, receiver = !Bob]
 \end{code}
 \end{small}
 
-Names prefixed by @!@ are identifiers of parties (principles) using the system, and their values have type @Party@. Names prefixed by @'@ are symbols (strings), and their values have type @Symbol@. The facts reveal that @Alice@ wishes to transfer the coin she currently holds to @Bob@. If @Bob@ wishes to accept the transfer he can then add the following fact to the ledger:
+Names prefixed by @!@ are identifiers of the parties using the system, and their values have type @Party@. Names prefixed by @'@ are symbolic identifiers (strings), and their values have type @Symbol@. The facts reveal that @Alice@ wishes to transfer her coin to @Bob@ for the purchase of a guitar. If @Bob@ wishes to accept her offer he can add the following fact to the ledger:
 \begin{small}
 \begin{code}
  Accept [id = '1234, accepter = !Bob]
 \end{code}
 \end{small}
 
-Given the @Coin@, @Offer@, and @Accept@ facts, the @transfer@ rule from Figure~\ref{f:CoinTransfer} can fire, which \emph{consumes} the three above facts and produces a new one:
+Given the @Coin@, @Offer@, and @Accept@ facts, the @transfer@ rule from Figure~\ref{f:CoinTransfer} can fire, which \emph{consumes} the three input facts and produces a new one:
 \begin{small}
 \begin{code}
- Coin [issuer = !Isabelle, holder = !Bob]
+ Coin   [issuer = !Isabelle, holder = !Bob]
 \end{code}
 \end{small}
 
-This new fact shows that the coin now belongs to Bob, or alternatively, the old coin has been destroyed and a new one created that is owned by Bob. In financial terms this workflow is known as a \emph{bilateral transfer} because the receiver must explicitly accept the offered coin, rather than being an \emph{unilateral transfer}, where the receiver has no say in whether the transfer takes place.
+This new coin belongs to Bob, alternatively, we could say that the coin Alice had has been transferred to Bob.
+
+% In financial terms, this workflow is a \emph{bilateral transfer} because the receiver must explicitly accept the offered coin, rather than being an \emph{unilateral transfer}, where the receiver has no say in whether the transfer takes place.
 
 
 % -----------------------------------------------------------------------------
-\subsection{Rules}
-The @transfer@ rule of Figure~\ref{f:CoinTransfer} how the facts of the above types can be combined. The rule is written in a syntax similar to existing production rule systems based on OPS5. The rule definition has the form (@rule@ \emph{name} @await@ \emph{pattern} @to@ \emph{body}) where \emph{name} of the rule, \emph{pattern} specifies which facts must be matched for the rule to fire, and \emph{body} is a term that optionally adds new facts to the ledger.
-
-
 % TODO: Explain RETE in implementation sketch. RETE does not require nested scoping, can match facts in any order, not ness. in sequence.
-Names prefixed by @?@ are binding occurrences of variables, so the rule waits for an @Accept@ fact with its @id@ field set to some value, binds it to @i@, and then waits for an @Offer@ fact whose @id@ field is set to the same value. The runtime intuition is that matching of facts proceeds in sequence, so the rule will wait for an @Accept@ fact, then an @Offer@ fact, then a @Coin@ fact. Variables bound in earlier facts are in scope when matching latter facts, and also in the body. Implementations of traditional production rule engines use the RETE~\cite{Forgy1981:RETE} algorithm, or some extension of it, to implement rule matching in an efficient way.
 
-% TODO: System is transactional, spends all facts or none. Does not spend facts in sequence, but does build spend list in sequence.
-By default, when a rule matches on a given fact, that fact is \emph{spent}, meaning that it is removed from the active ledger state. As we will see in \REF the knowledge that that fact once existed is not lost, as the implementation retains the full history of transactions, but after a fact is spent it can no longer be matched in a subsequent rule.
+\subsection{Rules}
+The @transfer@ rule of Figure~\ref{f:CoinTransfer} specifies how existing facts can be combined to create new facts. The rule is written in a syntax based on production rule systems such as OPS5~\cite{Forgy1981:OPS5} and CLIPS~\cite{Riley2017:CLIPS}. The rule definition has the form (@rule@ \emph{name} @await@ \emph{pattern} @to@ \emph{body}) where \emph{pattern} specifies which facts must be matched for the rule to fire, and \emph{body} is a pure term expression that computes the set of new facts to add to the ledger.
+
+Names prefixed by @?@ are binding occurrences of variables, so the rule requires an @Accept@ fact with its @id@ field set to some value, binds it to @i@, and must wait for an @Offer@ fact whose @id@ field is set to the same value. The runtime intuition is that matching of facts proceeds in sequence, so the rule will wait for an @Accept@ fact, then an @Offer@ fact, then a @Coin@ fact. Variables bound in earlier facts are in scope when matching latter facts, and also in the body. Implementations of traditional production rule engines based on the RETE~\cite{Forgy1981:RETE} algorithm do not require facts to be matched in order, but we fix the sequence here to simplify the operational semantics.
+
+By default, when a rule matches its required facts those facts are consumed from the active ledger state, and any new facts created in an atomic transaction. We also refer to the process of consuming a fact as \emph{spending} that fact, after the original Unspent Transaction Output (UTXO) model of the Bitcoin system~\CITE. When a fact is spent we say it has become \emph{inactive}, and can no longer be matched by a subsequent rule.
 
 
 % -----------------------------------------------------------------------------
