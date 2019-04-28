@@ -1,4 +1,5 @@
 
+\eject{}
 % -----------------------------------------------------------------------------
 \section{Semantics}
 The Rainfall semantics is specified in terms of a core language where pattern matching is desugared into set comprehension like generators, and we use a version of Simply Typed Lambda Calculus (STLC) for the rule bodies. We STLC for expositional purposes, though in a production implementation it may be preferable to define rule bodies using a more expressive term language such as a version System-F, or as a well defined bytecode. The key ideas of our system are embodied in the overall rule structure and authority mechanism, and are not specific to the language used for rule bodies.
@@ -170,7 +171,7 @@ The following theorem states that execution of a rule can only depend on the fac
 % $$
 % \end{lemma}
 % (Using the $\subseteq$ notation to refer to the multiset subset operation here -- would it be better to unroll it as something like $\forall (x,w) \in D_{new}^m.\ (x,w') \in S' \wedge w \le w'$ ?)
-% 
+%
 % \begin{lemma}
 % Rules only spend and read values from the store:
 % $$

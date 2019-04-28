@@ -1,7 +1,6 @@
 
 \clearpage{}
 
-
 \begin{figure}
 \begin{small}
 \begin{alltt}
@@ -17,7 +16,7 @@ await Accept [id = ?i, accepter = ?a]            gain \{a\}
       gain \{!Isabelle,g\}
 to
   say Coin   [issuer = !Isabelle,  holder = a]
-   by \{!Isabelle, a\} use \{transfer\}
+   by \{!Isabelle,a\}  use \{'transfer\}
 \end{alltt}
 \end{small}
 \caption{Coin Transfer Workflow}
@@ -91,14 +90,13 @@ Rules can also consume an arbitrary weight of a fact, including zero which non-d
 
 % -----------------------------------------------------------------------------
 \subsection{Rules}
-The @transfer@ rule of Figure~\ref{f:CoinTransfer} specifies how existing facts can be combined to create new facts. The rule is written in a syntax based on production rule systems such as OPS5~\cite{Forgy1981:OPS5} and CLIPS~\cite{Riley2017:CLIPS}. The rule definition has the form (@rule@ \emph{name} @await@ \emph{pattern} @to@ \emph{body}) where \emph{pattern} specifies which facts must be matched for the rule to fire, and \emph{body} is a pure term expression that computes the set of new facts to add to the ledger. These new facts can be authorized by a subset of the parties specified by the @gain@ clauses on the patterns.
+The @transfer@ rule of Figure~\ref{f:CoinTransfer} specifies how existing facts can be combined to create new facts. The rule is written in a syntax based on production rule systems such as OPS5~\cite{Forgy1981:OPS5} and CLIPS~\cite{Riley2017:CLIPS}. The rule definition has the form (@rule@ \emph{name} @await@ \emph{pattern} @to@ \emph{body}) where \emph{pattern} specifies which facts must be matched for the rule to fire, and \emph{body} is a pure term expression that constructs the set of new facts to add to the ledger. These new facts can be authorized by a subset of the parties specified by the @gain@.
 
 Names prefixed by @?@ are binding occurrences of variables, so the rule requires an @Accept@ fact with its @id@ field set to some value, binds it to @i@, and must wait for an @Offer@ fact whose @id@ field is set to the same value. The runtime intuition is that matching of facts proceeds in sequence, so the rule will wait for an @Accept@ fact, then an @Offer@ fact, then a @Coin@ fact. Variables bound in earlier facts are in scope when matching latter facts, and also in the body. Implementations of traditional production rule engines based on the RETE~\cite{Forgy1981:RETE} algorithm do not require facts to be matched in order, but we fix the sequence here to simplify the operational semantics.
 
-By default, when a rule matches its required facts those facts are consumed from the active ledger state, and any new facts created in an atomic transaction. We also refer to the process of consuming a fact as \emph{spending} that fact, after the original Unspent Transaction Output (UTxO) model of the Bitcoin system~\cite{Zahnentferner2018:UTxO}.
+By default, when a rule matches its required facts those facts are consumed from the active ledger state, and any new facts created in an atomic transaction. We also refer to the process of consuming a fact as \emph{spending} that fact, after the original Unspent Transaction Output (UTxO)~\cite{Zahnentferner2018:UTxO} model of the Bitcoin system.
 
 % CUT: When a fact is spent we say it has become \emph{inactive}, and can no longer be matched by a subsequent rule.
-
 
 
 % -----------------------------------------------------------------------------
@@ -108,58 +106,53 @@ A given currency can only retain value when it is \emph{scarce}. Commodity curre
 
 In our coin example, the scarcity of coin facts is enforced by requiring that they are authorized by an issuing party @!Isabelle@. We assume that everyone using the system trusts @!Isabelle@ to not add new, signed @Coin@ facts to the ledger in an inappropriate way.\footnote{meaning they will not print money, or at least, not too much} In a private financial system @!Isabelle@ might represent a bank. In a public ledger system, a fixed supply of coins might be generated using a secure multiparty protocol to sign the facts similarly to how the ZCash system~\cite{Bowe2018:MultiParty, Hopwood2016:zcash} was initialized.
 
-In our current example, when coin facts are created we assume they are authorized by both the issuer and the initial holder of the coins. The set of parties which authorize a fact is called the \emph{by-authority set}. Any party can add any fact to the ledger at any time, provided the fact has only that parties authority. Likewise, any party can consume (spend) a fact from the ledger at any time, provided the fact only carried that parties authority. Ensuring that coin facts are always authorized by two parties ensures that neither can unilaterally create, transfer or consume them. Coins facts can only be modified by pre-agreed rules that first collect the authority of all relevant parties.
+In our current example, when coin facts are created we assume they are authorized by both the issuer and the initial holder of the coins. The set of parties which authorize a fact is called the \emph{by-authority} set. Any party can add any fact to the ledger at any time, provided the fact is only given that parties authority. Likewise, any party can consume (spend) a fact from the ledger at any time, provided the fact was only authorized by that parties authority. Ensuring that coin facts are always authorized by two parties ensures that neither can unilaterally create, transfer or consume them. Shared facts can only be modified by pre-agreed rules that first collect the authority of all relevant parties. Our by-authority sets are similar to the sets of \emph{contract signatories} in DAML~\cite{DA2019:DAML}.
+
+In our data model we attach the by-authority set directly to the fact data, so rule code can read the set of parties that have authorized that fact just as they would read the payload data. In a concrete implementation, when a new fact is created directly by a party then it would be cryptographically signed by that party, demonstrating that the by-authority set containing their own name is as intended. When a new fact is created by a rule firing then the transaction log of the system, which lists the rule name along with the facts spent and created by that rule, records that the authorization of these new facts is as intended. We discuss transactions further in \S\ref{s:Transactions}.
 
 
 % -----------------------------------------------------------------------------
 \subsection{Observation}
 \label{s:Observation}
-% TODO: as an extension could make it so rule can only see the other parties that can observe a fact if it also has authority to spend a fact.
-% This would need to be handled by the submitter of the transaction.
-When a fact carries the authority of a particular party then it is natural that the party should be aware of the fact. In Rainfall, all facts with the authority of a particular party are visible to that party. For example, the original @Coin@ fact from \S\ref{s:Facts} carries the authority of both @!Isabelle@ and @!Alice@, so those parties will be informed of the creation and subsequent consumption of that fact.
+When a fact has been authorized by a particular party then naturally that party should be aware of the details of the fact. In Rainfall, all facts that are authorized by a party are visible to that party. For example, the original @Coin@ fact from \S\ref{s:Facts} is authorized by both Isabelle and Alice, so those parties will be informed of the creation and subsequent consumption of that fact. However, the @Offer@ fact that Alice creates is authorized by Alice alone, so we need an additional mechanism to reveal it to Bob. We attach an additional set, the \emph{obs-authority} set, to each fact, which lists the extra parties that are permitted to observe a fact but have not authorized its creation. The same party name may be in both the by-authority set, as well as the obs-authority set, though this provides no additional benefit. We also discuss this further \S\ref{s:NestedTransactions}.
 
-% TODO: The obs authority is not "metadata", it is part of the fact, so is real live data.
-In practical commercial workflows, it is often the case that extra parties must be informed of events such as coin transfers and contract completion, even though they do not have direct authority over the facts themselves. For example, in Australia, the Australian Securities and Investments Commission (ASIC) monitors the activity of the Australian Securities eXchange (ASX), even though they are not themselves a giver or receiver on any of the currency transfers or securities transactions. In Rainfall, we use an additional meta-data field associated with each fact, called the \emph{obs-authority} set to collect the set of parties that can observe a fact but do not have authority over it. The obs-authority set of a fact may contain the name of a party that is also in the by-authority set for the same fact, though it provides no additional benefit. Privacy will be discussed in more detail in \S\ref{s:Privacy}
+% TODO: as an extension could make it so rule can only see the other parties that can observe a fact
 
 
 % -----------------------------------------------------------------------------
 \subsection{Usable Rules}
-To conserve the overall number of coin facts we must each rule that adds a coin fact also consumes an identical number of coin facts. As we allow the body of a rule to contain arbitrary code, deciding whether or not an arbitrary rule preserves the quantify of some fact is undecidable in general. Instead of trying to specify an (inevitably incomplete) automated analysis we instead require the parties using the system to ensure the rules use had the desired properties themselves. Each fact is then annotated with the cryptographic hash of the rules that are permitted to consume, and gain authority from it. This final piece of meta-data called the \emph{valid rules set}.
+Rainfall is an open system, in the sense that new parties can join at any time, adding new facts and rules as they see fit. As mentioned in \S\ref{s:FactAuthority}, a party can unilaterally create and consume any fact in the system, provided it is authorized by that party alone. To also allow parties to  add any \emph{rule} they like, we must ensure that these new rules do not consume or gain authority from other parties in a way that those other parties did not intend. This is achieved by attaching a final set, the \emph{use-set}, to each fact, which lists the rules that can consume or gain authority from (can use) that fact.
 
-The valid rules set for a fact determines the business-level meaning of the fact. In our current example, the coin facts have the name of the single @transfer@ rule in their valid rules set, meaning that coins are things that can be transferred, but nothing else. As we mentioned in \S\ref{s:Authority} we also arrange coin facts to always be authorized by two separate parties, the issuer and the holder. This means that no single party can unilaterally create or remove coin facts, but they can come to an agreement that through the use of the system, the total number of coin facts that have this special form will be conserved.
+
+In a concrete implementation we would record the cryptographic hash of the rule code, instead of just the literal rule name, but we use the name in our examples for readability. For practical workflows the set of rules that can consume a given fact could be quite large. We assume that the underlying implementation represents facts with the same use-set efficiently. This could be done by recording the hash of each \emph{set} of rule hashes along with individual facts, instead listing the per-rule hashes directly.
+
+The valid rules set for a fact specifies the business-level meaning of the fact. For our transfer example, the consumed and created @Coin@ facts all have a use-set that specifies the single @transfer@ rule. Coins are things that can be transferred and nothing else. As we will see in \S\ref{s:Upgrade} attaching the use-set directly to facts make it easy to support the upgrade of facts formats and rule code, which is usually necessary in practical information systems.
 
 
 % -----------------------------------------------------------------------------
-% TODO: say that in a practical system we would store hashes of parties and rule
-% sets, not naively list out every element of every set, as replicating this data
-% for every fact is likely not a good use of space.
-\subsection{Now with Metadata}
+\subsection{Data Model}
 \label{s:NowWithMetadata}
-
-Returning to our coin transfer example from \S\ref{s:Facts}, we restate the facts that will be consumed, along with all their meta data.
-
+\label{s:DataModel}
+Returning to the coin transfer facts listed in \S\ref{s:Facts}, we now restate them with all their annotations, assuming that Alice starts out owning 100 coins.
 \begin{small}
 \begin{code}
- Accept [id = '1234, accepter = !Bob]
-    by  {!Bob}                obs {!Mona, !Alice}
-    use {'transfer}           num 1
+ Coin   [issuer = !Isabelle, holder  = !Alice]
+    by  {!Isabelle, !Alice}  obs {}
+    use {'transfer}          num 100
 
  Offer  [id = '1234, terms = "To purchase one Guitar"
          giver = !Alice, receiver = !Bob]
-    by  {!Alice}              obs {!Mona, !Bob}
-    use {'transfer}           num 1
+    by  {!Alice}             obs {!Bob}
+    use {'transfer}          num 1
 
- Coin   [issuer = !Isabelle, holder  = !Alice]
-    by  {!Isabelle, !Alice}   obs {!Mona}
-    use {'transfer}           num 100
+ Accept [id = '1234, accepter = !Bob]
+    by  {!Bob}               obs {!Alice}
+    use {'transfer}          num 1
 \end{code}
 \end{small}
+In summary, the word @Coin@ in the first fact is its \emph{tag}, and the following record the \emph{payload}. The @by@ keyword marks the \emph{by-authority} set, lists the parties that the fact has been authorized by. The @obs@ keyword marks the \emph{obs-authority} set, which lists extra the parties that can observe the fact but do not necessarily authorize it. The @use@ keyword marks the \emph{use}, which lists the names of the rules that can consume a fact or gain authority from it. Finally, the @num@ keyword marks the \emph{weight} of the fact, which can be interpreted as the number of active copies of the fact on the ledger.
 
-In summary, the @Accept@ in the first fact is the \emph{tag} of the fact, and the following record the \emph{payload}. The @by@ field specifies the \emph{by-authority set}, which contains the parties that the fact has been authorized by. The @obs@ field specifies the \emph{obs-authority set}, which contains the extra parties that can observe the fact but do not necessarily authorize it. The @use@ field gives the \emph{rules set}, which are the names of the rules that consume a fact and gain authority from it. Finally, the @num@ field gives the \emph{weight} of the fact, which can be interpreted as the number of usable ``copies'' of the fact.
-
-When the rule from Figure~\ref{f:CoinTransfer} matches on each of these facts in turn, it gains the authority specified by the @gain@ clause in the pattern match. For the above facts, the first pattern gains authority of @!Bob@, and the third the authority of @!Isabelle@ and @!Alice@. When all three patterns have matched the rule \emph{fires} and executes the body with all the matched variables from @?i@, @?a@, @?r@ and so on in scope. In this case the body uses the @say@ clause to produce a new fact, giving it the authority of the issuer @!Isabelle@ and new holder @!Bob@. Note that we do not need a @gain g@ clause in the second pattern, because if @Alice@ does not want to give away her coin then she can just not add an @Offer@ fact to the system. The @Offer@ fact can be consumed by virtue of the fact that it has @transfer@ in its valid rules set. The rules needs to gain the authority of @Isabelle@ and @Bob@ to create the new @Coin@ fact, but as no new fact is created with the authority of @Alice@, it does not need hers as well.
-
-We are now in a position to describe the full data model of the ledger, which appears below. The current ledger state is a map from $Fact$ to its current $Weight$, where the $Fact$ includes the \emph{by-authority}, \emph{obs-authority} and \emph{rules-set} along with the tag and payload. If two facts have different authority meta-data then they are taken to be different facts.
+The full data model is specified below. The current ledger state is a map from $Fact$ to its current $Weight$, where the $Fact$ includes the \emph{by-authority}, \emph{obs-authority} and \emph{use} set along with the tag and payload. If facts with differing authority or use set annotations are different facts.
 $$
 \begin{array}{ll}
    State   & = Map~ Fact~ Weight
@@ -171,23 +164,20 @@ $$
 \\ Weight  & = Nat
 \end{array}
 $$
-If a given fact does not appear in the set then we assume that the weight is zero. The $State$ here is the current state of the ledger. As we will discuss in \REF the \emph{ledger} itself is a list of transactions, that includes the full history of all changes, whereas a $State$ refers to the facts that are active after the most recent transaction.
-
-% In this semantic model we specify the parties that authorize a given fact just by including their names in the appropriate set of the fact tuple. We discuss the concrete implementation details of cryptographic signing and hashing in \REF.
+When a the state has a fact with weight zero then we treat this as being identical to a state without that fact listed at all. We could equivalently specify the state as being a \emph{multiset} of facts, but in most cases we find treating it as a map from facts to their weights as being more intuitive. Note that the $State$ here is the current \emph{active state} of the ledger. In related work on distributed ledgers the \emph{ledger} itself is typically taken as being the sequence of transactions that including the full history of changes. Given a sequence of transactions it is always possible to rebuild the active state after a prefix of those transactions has been applied~\cite{Zahnentferner2018:Chimeric}.
 
 
+\eject{}
 % -----------------------------------------------------------------------------
-\subsection{Ledger Integrity}
-As mentioned in the previous section, the new facts created by a rule can be authorized by a set of parties that is at most the parties whose authority has been gained by matching on existing facts. This restriction allows Rainfall to operate as an open system, where arbitrary new parties can join, and create whatever new facts and rules they see fit. In doing so, it is not possible for a new party to cause a fact to be created that is carries the authority of another party that did not explicitly agree to its creation. For example, consider the following rule:
-
-\begin{small}
-\begin{code}
-  rule  mint
-  await Mint [minter = ?m] gain m
-   to   say Coin [issuer = 'Isabelle, holder = m]
-         by {'Isabelle, m} use {transfer}
-\end{code}
-\end{small}
-
-An arbitrary party can add a @Mint@ fact to the system to trigger this rule, and state that they should be the holder of the new coin. However, there is no way for the rule to gain the authority of @Isabelle@, the usual coin issuer. As we will see in \REF our operational semantics performs a runtime check to ensure that the authority of all new facts created by a rule are covered by the authority that has been gained by matching against existing ones.
+% \subsection{Ledger Integrity}
+% As mentioned in the previous section, the new facts created by a rule can be authorized by a set of parties that is at most the parties whose authority has been gained by matching on existing facts. This restriction allows Rainfall to operate as an open system, where arbitrary new parties can join, and create whatever new facts and rules they see fit. In doing so, it is not possible for a new party to cause a fact to be created that is carries the authority of another party that did not explicitly agree to its creation. For example, consider the following rule:
+% \begin{small}
+% \begin{code}
+%   rule  mint
+%   await Mint [minter = ?m] gain m
+%    to   say Coin [issuer = 'Isabelle, holder = m]
+%          by {'Isabelle, m} use {transfer}
+% \end{code}
+% \end{small}
+% An arbitrary party can add a @Mint@ fact to the system to trigger this rule, and state that they should be the holder of the new coin. However, there is no way for the rule to gain the authority of @Isabelle@, the usual coin issuer. As we will see in \REF our operational semantics performs a runtime check to ensure that the authority of all new facts created by a rule are covered by the authority that has been gained by matching against existing ones.
 

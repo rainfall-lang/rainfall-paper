@@ -8,7 +8,7 @@
 \includegraphics{figure/coin-transfer-visibility.pdf}
 \end{center}
 \vspace{-2ex}
-\caption{Fact Visibility in Coin Transfer Example}
+\caption{Fact Visibility in Monitored Coin Transfer}
 \label{f:CoinTransferVisibility}
 \end{figure}
 
@@ -117,6 +117,7 @@ Recall that in the coin transfer example from \S\ref{s:Facts}, the coin facts al
 
 % -----------------------------------------------------------------------------
 \subsection{Nested Transactions}
+\label{s:NestedTransactions}
 For the transaction described in \S\ref{s:Transactions}, the view to be given to Isabelle is constructed by blinding the @Offer@ and @Accept@ facts, as Isabelle is not an observer of these. Blinding these facts means that that Isabelle cannot use the information on the transaction to directly re-execute the rule and check the output. In an application where there is trusted monitor party such as Mona, this may not matter, as the monitor could be trusted to re-execute the transaction themselves and answer truthfully when asked if they believe it is valid. If we instead wish to allow Isabelle to validate the transaction output based on the input facts she can see, we can split the transfer rule into two parts: one part that checks that Alice and Bob agree on the offer, and another part concerning the actual coin transfer:
 
 \begin{small}
@@ -154,6 +155,7 @@ With these two rule definitions Alice can build a nested transaction \CITE. For 
 
 % -----------------------------------------------------------------------------
 \subsection{Upgrade}
+\label{s:Upgrade}
 In practical information systems it is often necessary to upgrade data formats and business rules as requirements change over time. The fact that sets of rule names attached to each fact can be manipulated from the term language makes it easy to perform upgrades. For example, we can perform an upgrade of the business rules associated with @Coin@ fact using an upgrade rule such as:
 
 \begin{small}
