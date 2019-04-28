@@ -12,11 +12,7 @@
 \label{f:CoinTransferVisibility}
 \end{figure}
 
-In many practical commercial workflows, it is either not desirable or not legal for all parties to be able to see all data in the system. In the coin transfer example from \S\ref{s:FactsWeights}, it is reasonable to expect that Alice would not want to reveal the total amount of coins she holds to Bob, nor the item she wishes to purchase (the Guitar) to Isabelle. Recall from \S\ref{s:Observation} that a party can see a fact when it is listed in either its \emph{by-authority} set or its \emph{obs-authority} set. We can express this as a simple predicate, where the functions \trm{auth-by} and \trm{auth-obs} retrieve the respective metadata from a fact value.
-$$
-\trm{sees}~ P~ F = |(\trm{auth-by}~F \cup \trm{auth-obs}~F) \cap \{P\}| \ge 0
-$$
-Applying this predicate to the initial facts from \S\ref{s:NowWithMetadata} we see that we already have the desired situation. The coin fact and its weight is visible to Alice (the giver), and Mona (the monitor), while the Offer and Accept facts only visible to Alice, Bob and Mona. Figure~\ref{f:CoinTransferVisibility} shows this in diagrammatic form.
+In practical multi-party workflows it is often not desirable, or not legal, for all data used in the workflow to be provided to all parties. In the coin transfer example from \S\ref{s:FactsWeights}, we could assume that Alice would not want to reveal the total number of coins she holds to Bob, nor the item she wishes to purchase (the Guitar) to Isabelle. Conversely, it is often the case that the details of workflows \emph{must} be revealed to third parties that do not themselves authorize any of the facts used in the workflow. Details of transactions may be required to be sent to financial regulators that monitor the operation of markets, or to credit agencies that offer loans based on the spending patterns of their clients. For the sake of example, we extend the coin transfer workflow described in the previous section with an extra party, Mona, who monitors all coin transactions. Figure~\ref{f:CoinTransferVisibility} shows who can see which facts in diagramatic form. The associated transfer rule is as per Figure~\ref{f:CoinTransfer}, extending by listing Mona listed as an observer of the produced coin fact.
 
 
 % -----------------------------------------------------------------------------
@@ -27,56 +23,64 @@ Applying this predicate to the initial facts from \S\ref{s:NowWithMetadata} we s
 % themselves. This seems like a design variable where we might want the extra list,
 % or not, and both answers are valid.
 
-\subsection{Transactions and Validation}
+\subsection{Transaction and Validation}
 \label{s:Transactions}
-Maintaining fact privacy has implications for the underlying implementation. Assume that Alice, Bob, Mona and Isabelle all have their own computers in their own offices that each initially contain the subset of facts that each can see as per Figure~\ref{f:CoinTransferVisibility}. Assume that each party also has a copy of the transfer rule shown in Figure~\ref{f:CoinTransfer}. Now, suppose Alice decides that it is time to perform the transfer. On her own computer she executes the rule while recording the facts that have been consumed and the new facts that have been produced. She then builds a transaction data structure that records this information along with the cryptographic hash of the rule code, which we describe as so:
+Assume that Alice, Bob, Mona and Isabelle have their own computers in their own offices, each containing a subset of facts as per Figure~\ref{f:CoinTransferVisibility}. Each party also has a copy of the extended transfer rule. Alice decides that it time to perform the transfer, and builds the following transaction structure:
 
 \begin{small}
 \begin{code}
 Transaction
- seq   = ... sequence number ...
- rule  = ... hash of code for transfer rule ...
- spent = [ Offer [id = '1234, terms = "To purchase a Guitar"
+ seq    = ... sequence number ...
+ rule   = ... hash of the transfer rule ...
+ input  = [ Offer [id = '1234, terms = "To purchase a Guitar"
                   giver = !Alice, receiver = !Bob]
-           by  {!Alice}            obs {!Mona, !Bob}
-           use {'transfer}         num   1
+            by  {!Alice}            obs {!Mona, !Bob}
+            use {'transfer}         num  1
 
-         , Accept [id = '1234, accepter = !Bob]
-           by  {!Bob}              obs {!Mona, !Alice}
-           use {'transfer}         num 1
+          , Accept [id = '1234, accepter = !Bob]
+            by  {!Bob}              obs {!Mona, !Alice}
+            use {'transfer}         num 1
 
-         , Coin   [issuer = !Isabelle, holder = !Alice]
-           by  {!Isabelle, !Alice} obs {!Mona}
-           use {'transfer}         num 1 ]
+          , Coin   [issuer = !Isabelle, holder = !Alice]
+            by  {!Isabelle, !Alice} obs {!Mona}
+            use {'transfer}         num 1 ]
 
- new   = [ Coin   [issuer = !Isabelle, holder = !Bob]
-           by  {!Isabelle, !Bob}   obs {!Mona}
-           use {'transfer}         num 1 ]
+ output = [ Coin   [issuer = !Isabelle, holder = !Bob]
+            by  {!Isabelle, !Bob}   obs {!Mona}
+            use {'transfer}         num 1 ]
 \end{code}
 \end{small}
 
-This is the complete transaction that describes all inputs and outputs. Alice can send the complete transaction to Mona, which from Figure~\ref{f:CoinTransfer} is also entitled to see all the input and output facts. In contrast, Isabelle is not entitled to see the Offer fact as she is not listed as either an authorizer or an observer on it. Instead, Alice can compute a \emph{restricted view} of the transaction to send to Isabelle, which enables her to validate that Alice and Bob have authorized the coin facts to be moved, but does not reveal the Offer fact that contains the terms of the transfer.
+The transaction includes a fresh sequence number as an identifier, the hash of the code of the transfer rule, the list of facts being spent (input) by the transaction, and the list of new fact created (output). Alice would now like the other parties to agree that this is a valid execution of the transfer rule, and update their own local databases. However, as per Figure ~\ref{f:CoinTransferVisibility} not all parties are entitled to see all facts listed in the transaction.
 
-Note that Alice herself is not listed in the meta-data of the produced coin fact, but will certainly know what this fact is because she is the one forming the transaction. In this case we say that Alice is an \emph{incidental observer} of this fact. Although Alice knows that this fact will be added to Isabelle, Bob, and Mona's view of the store, she should not add it to her own store. As Alice is not a \emph{formal observer} of the fact, she will be notified of transactions that spend this fact, so cannot be sure about its weight once her own transaction has been processed.
+Recall from \S\ref{s:Observation} that a party $P$ can see a fact $F$ when it is listed in either its \emph{by-authority} set or its \emph{obs-authority} set. We express this as a simple predicate, where the functions \trm{auth-by} and \trm{auth-obs} retrieve the respective annotations from a fact value.
+$$
+\trm{sees}~ P~ F = |(\trm{auth-by}~F \cup \trm{auth-obs}~F) \cap \{P\}| \ge 0
+$$
+Applying this predicate to the facts in the transaction, Alice computes that 1) the @Offer@ and @Accept@ should be visible to Alice, Bob and Mona; 2) the input @Coin@ fact should be visible to Isabelle, Alice and Mona, and 3) the output @Coin@ fact should be visible to Isabelle, Bob and Mona. Importantly, the details of the transaction do not reveal how many coins Alice might happen to have when she builds it. Isabelle and Mona will already know how many coins Alice, has as they have seen previous coin transactions, but there is no reason for this information to appear in the transaction structure itself.
 
-% Note that Bob is not listed in the metadata of the consumed coin fact, but will be able to infer its contents anyway because according to the transfer rule, the fields must match data in facts that he can see.
+Alice cannot sent the complete transaction to all parties as they are not all entitled to see all the facts. Instead, Alice computes a \emph{restricted view} for each of the other parties using the `sees' predicate above, and blinds the facts that a particular party is not entitled to see before from their view.
 
 
 % -----------------------------------------------------------------------------
 \subsection{Transaction Views}
-Alice cannot sent the complete transaction from the previous section to Isabelle, as Isabelle is not entitled to see the contents of the Offer fact. However, Alice does wish Isabelle to know that transfer has taken place, and that Bob has agreed to it, because Isabelle is an authorizer of the Coin facts being moved. To achieve this Alice computes a \emph{restricted view} of the transaction for Isabelle, which consists of a blinded hash of the entire transaction, along with along with a version of the transaction structure where the facts that Isabelle is not entitled to see are replaced by blinded hashes of those facts. A \emph{blinded} hash is a regular cryptographic hash which has been combined with a salt value so that the source data cannot feasibly be recovered by brute force.
+% Alice cannot sent the complete transaction from the previous section to Isabelle, as Isabelle is not entitled to see the contents of the Offer fact. However, Alice does wish Isabelle to know that transfer has taken place, and that Bob has agreed to it, because Isabelle is an authorizer of the Coin facts being moved. To achieve this Alice computes a \emph{restricted view} of the transaction for Isabelle, which consists of a blinded hash of the entire transaction, along with along with a version of the transaction structure where the facts that Isabelle is not entitled to see are replaced by blinded hashes of those facts.
 
-For the sake of presentation, lets abbreviate the factoids in the transaction from the previous section as just $d_1, d_2, d_3, d_4$, and write the complete transaction as the following tuple, where we use $h(X)$ to mean the hash of value $X$.
+For the sake of presentation, we will abbreviate the four weighted facts in the transaction structure from \S\ref{s:Transactions} as $d_1, d_2, d_3, d_4$. We use the letter $d$ as a mnemonic short for \emph{factoid} --- meaning an unreliable fact, and ``unreliable'' because the weight may be zero. We express the complete transaction as the following tuple, using $h(X)$ to mean the hash of value $X$.
 $$
  (seq,~ h(tx), [d_1, d_2, d_3], [d_4])
 $$
-The above tuple consists of the sequence number, hash of the code for the transaction rule (abbreviated $h(tx)$), a list of factoids being spent, and a list of factoids being created. To compute the blinded hash of the overall transaction we generate a random salt value for each of the factoids, $s_1 .. s_4$, and use it when hashing those factoids.
+Here we have the transaction sequence number, hash of the transaction rule code, a list input factoids, and list of output factoids. We will compute the views for each party by replacing some of the factoids by their \emph{blinded hashes}. A blinded hash is a cryptographic hash which has been combined with a random salt value so that the source data cannot feasibly be recovered by brute force guessing. We will use $s_1 .. s_4$ as the salts for each factoid.
+
+Before computing the view for each particular party, we will compute a transaction identifier by replacing all factoids in the transaction with their blinded hashes, then hashing the result. We will use this value in a moment.
 $$
 \begin{array}{rl}
  \hspace{-2ex} h((seq,~ h(tx), [h(d_1, s_1), h(d_2, s_2), h(d_3, s_3)], [h(d_4, s_4)]))
 \end{array}
 $$
-This value is a unique(ish) identifier for the transaction, assuming that the resulting hash values are long enough that we will not see a collision in practice. Now, as Isabelle is entitled to see the Coin facts but not the consumed Offer and Accept facts she receives a view containing the fact data and salt for the Coin facts, but only the blinded hash of the Offer and Accept facts.
+This is a unique(ish) identifier for the transaction, provided the hash values are long enough that we will not see a collision in practice.
+
+Now, as Isabelle is entitled to see the @Coin@ facts but not the @Offer@ and @Accept@ facts she receives a view containing the fact data and salt values for the Coin facts, but only the blinded hash of the @Offer@ and @Accept@ facts:
 $$
 \trm{Isabelle:}~~(seq,~ h(tx), [h(d_1, s_1), h(d_2, s_2), (d_3, s_3)], [(d_4, s_4)])
 $$
@@ -89,6 +93,12 @@ $$
 \trm{Mona:}~~(seq,~ h(tx), [(d_1, s_1), (d_2, s_2), (d_3, s_3)], [(d_4, s_4)])
 $$
 All four parties, including Alice, are then able to use their transaction view to compute the same transaction identifier. Isabelle does not have the data for the Offer and Accept facts, but as she knows their hashes she can still form the hash of the overall transaction. Isabelle also cannot feasibly determine what the Offer and Accept facts originally were because the hashes of these facts have been salted by random numbers $s_1, s_2$ that she does not know. Isabelle \emph{can} determine that the $giver$ and $receiver$ fields of the Offer fact must have been @!Alice@ and @!Bob@ respectively as she knows the rule that the transaction was generated from, and the rule code reveals that these fields must match the corresponding fields in the Coin facts that she does see. Isabelle does not see that a Coin is being transferred @"To purchase on Guitar"@. That information is none of her business.
+
+
+% Note that Alice herself is not listed in the meta-data of the produced coin fact, but will certainly know what this fact is because she is the one forming the transaction. In this case we say that Alice is an \emph{incidental observer} of this fact. Although Alice knows that this fact will be added to Isabelle, Bob, and Mona's view of the store, she should not add it to her own store. As Alice is not a \emph{formal observer} of the fact, she will be notified of transactions that spend this fact, so cannot be sure about its weight once her own transaction has been processed.
+
+% Note that Bob is not listed in the metadata of the consumed coin fact, but will be able to infer its contents anyway because according to the transfer rule, the fields must match data in facts that he can see.
+
 
 
 % -----------------------------------------------------------------------------
