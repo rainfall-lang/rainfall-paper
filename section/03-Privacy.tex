@@ -137,9 +137,9 @@ For the transaction in \S\ref{s:Transactions}, Isabelle's view is constructed by
 
 With these two rule definitions Alice can build a nested transaction \CITE, which is a list containing the subtransactions for each of the rule firings. For the above rules, the first sub-transaction will consume the @Offer@ and @Accept@ facts to produce an @Agreed@ fact that is authorized by both Alice and Bob. The second sub-transaction will then immediately consume this @Agreed@ fact along with the @Coin@ fact, to produce the new @Coin@ fact. Both the created @Agreed@ fact in the first transaction, as well as the input @Coin@ fact are guaranteed to be visible to Isabelle, so she will be able to re-run the second sub-transaction and validate the output herself. Isabelle will still not be able to see the terms of the offer, but will be able to confirm with Bob that he agreed to it.
 
-In related work, the DAML~\cite{DA2019:DAML} ledger model is a more object oriented version of our own system. DAML combines facts and rules into a \emph{contract instance}, similar to an object in an OO model, where our facts are the object's fields, and our rules its methods. Parties using the system authorize whole objects, instead of using separate systems for the authorization of facts (our by-authority set) and rules (our use-set). The DAML model is based on UTxO~\cite{Zahnentferner2018:UTxO}, so invoking a method on an object typically causes it to allocate some new objects and consume (or ``spend'') the called object.
+In related work, the DAML~\cite{DA2019:DAML} ledger model combines facts and rules into a \emph{contract instance}, similar to an object in an OO model --- where our facts would be the object's fields, and our rules its methods. Parties using the system authorize whole objects, instead of using separate systems for the authorization of facts (our by-authority set) and rules (our use-set). DAML is based on UTxO~\cite{Zahnentferner2018:UTxO}, so invoking a method on an object typically causes it to allocate some new objects and consume (or ``spend'') the called object.
 
-A design decision of DAML is to ensure that each party that authorized an object is able to re-execute the subtransaction that consumes their object. This can require the system to \emph{divulge} additional objects to an authorizing party that where not visible until the object they authorized is consumed. However, the object oriented code structure of DAML causes the transactions produced by method invocation to have a nested form similar to the above. In DAML, the details of the equivalent @doTheTransfer@ subtransaction can be sent to @Isabelle@, leaving the details of @agreeOnOffer@ private between Alice and Bob.
+A design decision of DAML is to ensure that each party that has authorized an object is able to re-execute the subtransaction that consumes that object. This can require the system to \emph{divulge} additional objects to an authorizing party that where not visible until the object they authorized is consumed. However, the object oriented code structure of DAML causes the transactions produced by method invocation to have a nested form similar to the above. In DAML, the details of the equivalent @doTheTransfer@ subtransaction can be sent to @Isabelle@, leaving the details of @agreeOnOffer@ private between Alice and Bob.
 
 % TOOD: in transfer, auth of 'g' is gained but not used. This is added to check the agreement is really authorized by 'g'. Can probably work this into the auction example.
 
@@ -151,25 +151,6 @@ In the transaction structure from \S\ref{s:Transactions} note that although Alic
 % In a related point, although Bob is not listed as an observer of the input @Coin@ fact, the transaction view that he receives includes enough information for him to determine most of its contents. According to the rule definition the fields of the input coin fact must match other fields in the input @Accept@ and output @Coin@ facts that he can see. However, in general, Bob will not know the obs-authority set of the input @Coin@, as this is not fixed by the rule.
 
 
-% -----------------------------------------------------------------------------
-\subsection{Upgrade}
-\label{s:Upgrade}
-In practical systems it is often necessary to upgrade data formats and business rules as requirements change over time. As the use-sets attached to each fact are sets of rule names that can be manipulated from the term language, it is easy to construct rules that perform upgrades.
-
-\begin{small}
-\begin{code}
-  rule  upgrade
-  await Coin [issuer = ?s, holder = ?h]   gain {s, h}
-    and LetsUpgrade [party = s, rules = ?rs] gain {s}
-    and LetsUpgrade [party = h, rules = ?rs] gain {h}
-   to
-    say Coin [issuer = s, holder = h]
-     by {s, h} use rs
-\end{code}
-\end{small}
-
-Provided the upgrade rule is listed in the use-set of the original @Coin@, this rule allows the issuer and holder to upgrade it to another one, possibly listing different rules. There is no need for a privileged operator party to orchestrate the upgrade. The meaning of facts is controlled by the parties that authorize them, not the people  that run the ledger system, which we will return to in \REF.
-
 
 % -----------------------------------------------------------------------------
 \begin{figure}
@@ -177,37 +158,75 @@ Provided the upgrade rule is listed in the use-set of the original @Coin@, this 
 \includegraphics{figure/auction-visibility.pdf}
 \end{center}
 \vspace{-2ex}
-\caption{Fact Visibility in Auction Example}
+\caption{Fact Visibility for Market Example}
 \label{f:AuctionVisibility}
 \end{figure}
 
 
-\subsection{Query}
+\subsection{Queries and Markets}
 \label{s:Query}
-In the examples we have presented so far, each matching clause in a rule has always selected a single fact at a time. In contrast, consider an auction workflow where we will need to rank offers by price, instead of just selecting any which matches. The fact visibility of such a workflow is depicted in Figure~\ref{f:AuctionVisibility}. Mark runs the auction market, Brendan is a broker, and Alice is a customer. The house rules are such that a customer (Alice) may not bid on items directly. Instead, the customer enlists a broker (Brendan) to which they provide an @Order@ describing the sort of @Item@ they wish to purchase, and their price limit. Naturally, the details of the @Order@ are private between the broker and customer, as the party running the auction house should not know the absolute maximum price a customer is willing to pay. During the auction, the market announces which items are for sale, including their lot number, description, and asking price. If anyone wishes to pay the asking price then the item is sold immediately. Bids may also be entered below the asking price, and the market will then communicate with the original owner of the item (not shown) about whether they are willing to sell at that lower price. The following rule shows how the broker can enter bids with the joint authority of themselves, as well as their customer:
+In the coin transfer rules discussed so far, each pattern matching clause has only matched a single fact at a time. Consider instead a market workflow where the rules will need to perform more complex queries, such as ranking items for sale by price. Figure~\ref{f:AuctionVisibility} shows the fact visibility for an example workflow. Mark runs the market, Brendan is a broker, and Alice is a client who wishes to buy some items. Alice must interact with Mark through Brendan, instead of communicating directly. The workflow operates as follows:
+
+\begin{enumerate}
+\item Mark maintains @Item@ facts that describe items available for sale, along with their current asking price. Brendan can pay the asking price to buy an item immediately, or bid below the asking price, which Mark may or may not accept.
+
+\item Alice creates @Order@ facts describing the items she wishes to buy, the maximum price per item, and her total budget. Brendan can see Alice's @Order@ facts, but Mark naturally cannot, as Alice does not want the market to know the maximum price she is willing to pay.
+
+\item Brendan attempts to satisfy Alice's orders by bidding on multiple items concurrently. Brendan maintains a local @Budget@ fact recording how much of Alice's total budget has not yet been committed to bids. This ensures he does not accidentally bid on items that Alice is not prepared to pay for.
+
+\item When Brendan wishes enter a new bid he first creates a local @Reserve@ fact, which indicates that some of Alice's budget needs to be reserved for this bid. This causes one of Brendan's business rules to fire, which first checks enough @Budget@ is available, and if so, subtracts from the current @Budget@, then sends an active @Bid@ to Mark.
+
+\item On Mark's side, one of Mark's business rules finds the cheapest available @Item@ that matches the description in Brendan's @Bid@, and if the bid price is lower than the ask price converts the bid to an outstanding @Offer@.
+
+\item Later, if Mark wishes to accept Brendan's offer, then Mark creates a local @Accept@ fact. One of Mark's business rules matches the @Accept@ with the corresponding @Offer@ and @Item@, consumes all three, and creates and @Invoice@ which is visible to all three parties.
+\end{enumerate}
+
+An interesting aspect of this workflow is that the different parties in the system will naturally want to maintain their own local business rules, and corresponding fact declarations. The way Brendan accounts for the bids he has placed on behalf of Alice is of no concern to Mark, but expressing them all in the same framework means they can communicate directly. Here is the rule to check the @Budget@ and produce a @Bid@. This rule has been specialized to use Brendan as the broker and Alice as the client. A version generalized to arbitrary brokers and clients is available in the appendix, along with the other rules for the workflow~(\TODO{add appendix}).
 
 \begin{small}
 \begin{code}
-fact Item  [lot: Nat, desc: Text, ask: Nat]
-fact Order [buyer:  Party, desc: Text, limit: Nat]
-fact Enter [broker: Party, lot: Nat, offer: Nat]
-fact Bid  [broker: Party, buyer: Party, lot: Nat, offer: Nat]
+  fact Item    [lot:   Nat,   desc:   Text,  ask: Nat]
+  fact Bid     [lot:   Nat,   offer:  Nat]
+  fact Order   [desc:  Text], limit:  Nat]
+  fact Budget  [total: Nat,   remain: Nat]
+  fact Reserve [lot:   Nat,   bid:    Nat]
 
-  rule  bid
-  await Item   [lot = ?n, desc = ?d, ask = ?a]
-               select first a   consume none
-    and Order  [buyer  = ?y, desc = d, limit = ?l] gain {y}
-    and Enter  [broker = ?k, lot  = n, offer = ?o] gain {k}
-         where o <= l && o <= a
-  to
-    say Bid    [buyer = y, broker = k, lot = n, offer = o]
-     by {y, k} obs {!Mark}
+  rule  reserve
+  await Order   [desc  = ?d, limit  = ?l]
+        consume none                      gain  {!Alice}
+    and Item    [lot   = ?o, desc   = d, ask = ?a]
+        select first a   consume none     check {!Mark}
+    and Budget  [total = t,  remain = ?m] gain  {!Brendan}
+    and Reserve [lot   = o,  bid    = ?b]
+        where b <= l && b <= a && b <= m  gain  {!Brendan}
+   to {
+    say Budget  [total = t, remain = m - a]
+        by {!Brendan}  use ...,
+    say Bid     [lot   = l, price  = a]
+        by {!Brendan, !Alice}  obs {!Mark}  use ... }
 \end{code}
 \end{small}
 
-In the first matching clause we have used @select first a@ to indicate that all matching @Item@ facts should be sorted by the asking price, and the first (cheapest) one selected. As the @Item@ fact is an announcement, rather than an asset to be ``spent'', we add @consume none@ to indicate the fact should not be consumed in the match. We have also added a @where@ clause to indicate that the offer entered by the broker must be no greater than the asking price for the item, or the limit of the customer. This allows the broker to use their own knowledge to try to get a better deal for the customer.
+The @Order@ pattern has a @consume none@ clause to indicate that we only want to read the fact data, rather then consume any weight of it, as the order might not be satisfied yet. The @Item@ pattern has a @select first a@ clause to indicate the all items that match the description in the order should be sorted by the asking price, and the first one selected. Brendan only wants to bid on the cheapest matching item available. The @Reserve@ pattern has a @where@ clause to check that the bid being placed is no more than the customer price limit, no more than the market asking price, and no more than the remaining budget for Alice.
 
-Finally, note that the transaction views generated from this rule that are given to Mark will have Alice's order fact blinded. In a practical implementation of an auction house workflow it may not be necessary for Mark to confirm the validity of each view in real time with Alice. Instead, after the auction is completed, if there is any dispute about about Brendan's involvement then he can provide the full transaction which includes Alice's signed order, as proof that he was acting in good faith.
+As we match on facts we @gain@ the authority of the client and the broker. The output @Budget@ only needs to be authorized by Brendan as this is part of his internal accounting. The output @Bid@ is authorized jointly by Brendan and Alice, as Brendan is entering the bid on behalf of Alice. Finally, in the pattern for @Item@ we @check@ that this fact has been authorized by Mark rather than trying to @gain@ his authority. The @check@ clause allows patterns to match on observable facts without the rule name being mentioned in the use-set of the matched fact. Mark should not need to concern himself with Brendan's accounting, so the @Item@ facts that Mark creates do not need to mention Brendan's rules. Brendan can still read the data in his @reserve@ rule because it is not consuming facts authorized by Mark, or producing any that are authorized in his name.
 
 
+% -----------------------------------------------------------------------------
+\subsection{Upgrade}
+\label{s:Upgrade}
+As a final example, in practical workflows it is usually necessary to upgrade data formats and business rules as requirements change. In Rainfall upgrading workflows is easy, as the use-sets attached to each fact can be manipulated directly:
+
+\begin{small}
+\begin{code}
+  rule   upgrade
+  await  Coin [issuer = ?s, holder = ?h]      gain {s,h}
+     and LetsUpgrade [party = s, rules = ?rs] gain {s}
+     and LetsUpgrade [party = h, rules = ?rs] gain {h}
+  to say Coin [issuer = s, holder = h]
+      by {s, h} use rs
+\end{code}
+\end{small}
+
+This rule allows the issuer and holder of a @Coin@ to jointly agree to change the rule use-set of the @Coin@, and the new use-set can mention new versions of existing rules. There is no need for a privileged operator party to orchestrate the upgrade. The meaning of facts is controlled by the parties that authorize them, and not the people that run the ledger system.
 
