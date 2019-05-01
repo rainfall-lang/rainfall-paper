@@ -1,18 +1,5 @@
 
 
-% \TODO{Cite the XA distributed transaction model}.
-% \TODO{Cite Corda Tearoffs}.
-% \TODO{Cite Fabric private transactions} mentioned in DAML blog post.
-% https://medium.com/daml-driven/keeping-smart-contracts-private-is-hard-unless-you-truly-understand-them-920b31d723e4
-
-% TODO: How does a confirming party know which other parties to ask for confirmations?
-% It may see some in the facts revealed to it, but if a fact has been blinded it may not
-% know it can ask the parties listed in that fact. We may want to add an extra field
-% to the transaction listing the parties involved, which is separate from the facts
-% themselves. This seems like a design variable where we might want the extra list,
-% or not, and both answers are valid.
-
-
 % -----------------------------------------------------------------------------
 \section{Privacy}
 \label{s:Privacy}
@@ -26,15 +13,13 @@
 \label{f:CoinTransferVisibility}
 \end{figure}
 
-In practical multi-party workflows it is often not desirable, or not legal, for all data used in the workflow to be provided to all parties. In the coin transfer example from \S\ref{s:FactsWeights}, we could assume that Alice would not want to reveal the total number of coins she holds to Bob, nor the item she wishes to purchase (the Guitar) to Isabelle. Conversely, it is often the case that the details of workflows \emph{must} be revealed to third parties that do not themselves authorize any of the facts used in the workflow. Details of transactions may be required to be sent to financial regulators that monitor the operation of markets, or to credit agencies that offer loans based on the spending patterns of their clients. For the sake of example, we extend the coin transfer workflow described in the previous section with an extra party, Mona, who monitors all coin transactions. Figure~\ref{f:CoinTransferVisibility} shows who can see which facts in diagramatic form. The associated transfer rule is as per Figure~\ref{f:CoinTransfer}, extending by listing Mona listed as an observer of the produced coin fact.
-
-% TODO: refer back to the store data model to say each party has their own fragment of the state.
+In practical multi-party workflows it is often not desirable, or even legal, for all data used in the workflow to be provided to all parties. In the coin transfer example from \S\ref{s:FactsWeights}, we could assume that Alice did not want to reveal the total number of coins she holds to Bob, nor the item she wishes to purchase (the Guitar) to Isabelle. Conversely, sometimes the details of a workflow \emph{must} be revealed to third parties that do not otherwise participate in that workflow. Details of transactions may need to be sent to financial regulators that monitor the operation of markets, or to credit agencies that offer loans based on the spending patterns of their clients. For the sake of example, we extend the coin transfer workflow described in the previous section with an extra party, Mona, who monitors all coin transactions. Figure~\ref{f:CoinTransferVisibility} describes this fact visibility as a Venn diagram. The extended transfer rule is as per Figure~\ref{f:CoinTransfer}, but with Mona listed as an observer of the produced coin fact.
 
 
 % -----------------------------------------------------------------------------
 \subsection{Transaction and Validation}
 \label{s:Transactions}
-Assume that Alice, Bob, Mona and Isabelle have their own computers in their own offices, each containing a subset of facts as per Figure~\ref{f:CoinTransferVisibility}. Each party also has a copy of the extended transfer rule. Alice decides that it time to perform the transfer, and builds the following transaction structure:
+Assume that Alice, Bob, Mona and Isabelle all have their own computers in their own offices, each containing a \emph{fragment} of the ledger state as per Figure~\ref{f:CoinTransferVisibility}. Each party also has a copy of the extended transfer rule. Alice decides that it is time to perform the transfer, and builds the following transaction structure:
 
 \begin{small}
 \begin{code}
@@ -42,7 +27,7 @@ Transaction
  seq    = ... sequence number ...
  rule   = ... hash of the transfer rule ...
  input  = [ Offer [id = '1234, terms = "To purchase a Guitar"
-                  giver = !Alice, receiver = !Bob]
+                   giver = !Alice, receiver = !Bob]
             by  {!Alice}            obs {!Mona, !Bob}
             use {'transfer}         num  1
 
@@ -60,24 +45,25 @@ Transaction
 \end{code}
 \end{small}
 
-The transaction includes a fresh sequence number as an identifier, the hash of the code of the transfer rule, the list of facts being spent (input) by the transaction, and the list of new fact created (output). Alice would now like the other parties to agree that this is a valid execution of the transfer rule, and update their own local databases. However, as per Figure ~\ref{f:CoinTransferVisibility} not all parties are entitled to see all facts listed in the transaction.
+\eject{}
+The transaction includes a fresh sequence number, the hash of the transfer rule definition, the list of facts being consumed (input) by the transaction, and the list of new fact created (output). Alice would like the other parties to agree that this is a valid execution of the transfer rule, and update their own local fragments of the ledger state. However, as per Figure ~\ref{f:CoinTransferVisibility} not all parties are entitled to see all facts listed in the transaction.
 
-Recall from \S\ref{s:Observation} that a party $P$ can see a fact $F$ when it is listed in either its \emph{by-authority} set or its \emph{obs-authority} set. We express this as a simple predicate, where the functions \trm{auth-by} and \trm{auth-obs} retrieve the respective annotations from a fact value.
+Recall from \S\ref{s:Observation} that a party $P$ can see a fact $F$ when it is listed in either its \emph{by-authority} set or its \emph{obs-authority} set. We express this as a predicate, where the functions \trm{auth-by} and \trm{auth-obs} retrieve the corresponding sets from the fact value.
 $$
-\trm{sees}~ P~ F = |(\trm{auth-by}~F \cup \trm{auth-obs}~F) \cap \{P\}| \ge 0
+\trm{sees}~ P~ F = (P \in \trm{auth-by}~F) \lor (P \in \trm{auth-obs}~F)
 $$
-Applying this predicate to the facts in the transaction, Alice computes that 1) the @Offer@ and @Accept@ should be visible to Alice, Bob and Mona; 2) the input @Coin@ fact should be visible to Isabelle, Alice and Mona, and 3) the output @Coin@ fact should be visible to Isabelle, Bob and Mona. Importantly, the details of the transaction do not reveal how many coins Alice might happen to have when she builds it. Isabelle and Mona will already know how many coins Alice, has as they have seen previous coin transactions, but there is no reason for this information to appear in the transaction structure itself.
+Applying this predicate to the facts in the transaction, Alice computes that 1) the @Offer@ and @Accept@ should be visible to Alice, Bob and Mona; 2) the input @Coin@ fact should be visible to Isabelle, Alice and Mona, and 3) the output @Coin@ fact should be visible to Isabelle, Bob and Mona. Importantly, the details of the transaction do not reveal how many coins Alice might happen to have when she builds it. Both Isabelle and Mona will already know how many coins Alice has, as they have seen previous coin transfers, but there is no reason for this information to appear in the transaction structure itself.
 
-Alice cannot send the complete transaction to all parties as they are not all entitled to see all the facts. Instead, Alice sends a \emph{restricted view} for each of the other parties using the `sees' predicate above, blinding the facts that a particular party is not entitled to see from their view.
+Alice cannot send the complete transaction to all parties as they are not all entitled to see all the facts. Instead, Alice computes a \emph{restricted view} of the transaction for each of the other parties, blinding the facts that a particular party is not entitled to see from their view before sending it.
 
 
 % -----------------------------------------------------------------------------
 \subsection{Transaction Views}
-For the sake of presentation we will abbreviate the four weighted facts in the transaction from \S\ref{s:Transactions} as $d_1, d_2, d_3, d_4$. We use the letter $d$ as a mnemonic short for \emph{factoid} --- being an ``unreliable'' fact, because the weight might be zero. We express the complete transaction as the following tuple, using $h(X)$ to mean the hash of value $X$.
+We abbreviate the four weighted facts in the transaction structure as $d_1, d_2, d_3, d_4$. The letter $d$ is a mnemonic or \emph{factoid} --- being an ``unreliable'' fact, because the weight might be zero. We express the complete transaction as the following tuple, using $h(X)$ to mean the hash of value $X$.
 $$
  (seq,~ h(tx), [d_1, d_2, d_3], [d_4])
 $$
-The above tuple contains the transaction sequence number, the hash of the transaction rule code, the list of input factoids, and list of output factoids. The views for each party are computed by replacing some of the factoids by their \emph{blinded hashes}. A blinded hash is a cryptographic hash which has been combined with a random salt value, so that the source data cannot feasibly be recovered by brute force guessing. We write $s_1 .. s_4$ as the salts for each factoid.
+This tuple contains the transaction sequence number, the hash of the rule definition, the list of input factoids, and the list of output factoids. The views for each party are computed by replacing some of the factoids by their \emph{blinded hashes}. A blinded hash is a cryptographic hash which has been combined with a random salt value, so that the plaintext data cannot feasibly be recovered by brute force guessing. We write $s_1 .. s_4$ as the salts for each factoid.
 
 Before computing the view for each party, Alice first computes an overall transaction identifier by replacing all factoids in the transaction with their blinded hashes, then hashing the result:
 $$
@@ -85,13 +71,13 @@ $$
  \hspace{-2ex} h((seq,~ h(tx), [h(d_1, s_1), h(d_2, s_2), h(d_3, s_3)], [h(d_4, s_4)]))
 \end{array}
 $$
-This is a unique(ish) identifier for the transaction, provided the hash values are long enough that there will not be collision in practice.
+This is a unique(ish) identifier for the transaction, provided the hash values are long enough that we will not see a collision in practice.
 
-Now, as Isabelle is entitled to see the @Coin@ facts but not the @Offer@ or @Accept@ facts, she receives a view containing the fact data and salt values for the @Coin@ facts, but only the blinded hashes of the @Offer@ and @Accept@ facts:
+Now, as Isabelle is entitled to see the @Coin@ facts but not the @Offer@ or @Accept@ facts, she receives a view containing the data and salt values for the @Coin@ facts, but only the blinded hashes of the @Offer@ and @Accept@ facts:
 $$
 \trm{for Isabelle:}~~(seq,~ h(tx), [h(d_1, s_1), h(d_2, s_2), (d_3, s_3)], [(d_4, s_4)])
 $$
-Similarly, Bob is entitled to see the @Offer@, @Accept@ and produced @Coin@ fact, but not the consumed @Coin@ fact, so receives a corresponding view. In this particular example Bob will be able to use the definition of the @transfer@ rule to infer what the consumed coin fact must have been anyway, but we will discuss this in the next section.
+Similarly, Bob is entitled to see the @Offer@, @Accept@ and produced @Coin@ fact, but not the consumed @Coin@ fact, so receives a corresponding view.
 $$
 \trm{for Bob:}~~(seq,~ h(tx), [(d_1, s_1), (d_2, s_2), h(d_3, s_3)], [(d_4, s_4)])
 $$
@@ -99,18 +85,18 @@ Finally, Mona is entitled to see all the facts, so she gets the full unblinded t
 $$
 \trm{for Mona:}~~(seq,~ h(tx), [(d_1, s_1), (d_2, s_2), (d_3, s_3)], [(d_4, s_4)])
 $$
-All four parties, including Alice, will be able use their own view to compute the same transaction identifier. Isabelle was not given the data for the @Offer@ and @Accept@ facts, but as she knows their hashes she can still compute the hash of the overall transaction. Isabelle \emph{can} determine that the giver and receiver fields of the @Offer@ fact must have contained the values @!Alice@ and @!Bob@ respectively. Isabelle knows the rule that the transaction was generated from, and the rule says that the giver and receiver of an @Offer@ must match the corresponding fields of the input @Coin@ facts that she does see. However, Isabelle cannot see that the coin is being transferred @"To purchase a Guitar"@, because that information is was only present in the @Offer@.
+All four parties, including Alice, can now use their own view to compute the same transaction identifier. Isabelle was not given the data for the @Offer@ or @Accept@ facts, but as she knows their blinded hashes she can still compute the hash of the overall transaction. Isabelle \emph{can} infer that the giver and receiver fields of the @Offer@ must have contained values @!Alice@ and @!Bob@ respectively. Isabelle knows which rule the transaction has been generated from, and that rule says the giver and receiver of an @Offer@ must match the corresponding fields of the @Coin@ facts that she does see. However, Isabelle cannot see that the coin is being transferred @"To purchase a Guitar"@, because that information is was only present in the @Offer@.
 
 
 % -----------------------------------------------------------------------------
 \subsection{Consensus}
-Once each party has received their own transaction view, they can compare it against their own fragment of the ledger state and confirm with each other whether their views are valid. The fragment of ledger state visible to Isabelle contains the total weight of @Coin@ facts currently held by Alice. When Bob confirms with Isabelle that her view of the transaction is valid, this tells Bob whether Alice actually has a coin to transfer to him. Similarly, when Isabelle confirms with Bob that his view of the transaction is valid, this tells Isabelle that Bob really did agree to the transfer. In a practical workflow Isabelle might represent a commercial Bank, and in this case Bob would likely trust Isabelle to answer truthfully when asked if enough coins are available for a transfer, even though he does not want her to know that he is adding to his collection of guitars.
+Once each party has received their transaction view, they can compare it against their own fragment of the ledger state and confirm with each other whether their views are valid. The fragment of ledger state visible to Isabelle includes the total weight of @Coin@ facts currently held by Alice. When Bob confirms with Isabelle that her view of the transaction is valid, this tells Bob whether Alice actually has a coin to transfer to him. Similarly, when Isabelle confirms with Bob that his view is valid, this tells Isabelle that Bob really did agree to the transfer. In a practical workflow Isabelle might represent a commercial Bank, and in this case Bob would likely trust Isabelle to answer truthfully when asked if enough coins are available for a transfer, even though he does not want her to know that he is adding to his collection of guitars.
 
-There are many ways to manage the confirmation process in a concrete implementation. For a small number of parties, such as to manage commercial workflows between banks, it may be sufficient for each party to confirm the transaction directly with all others. This would require $O(n^2)$ confirmations in practice, but in the happy case the only information that needs to be exchanged is that the confirming party agrees with the transaction view identified by its hash code. For a greater number of parties, cryptographically signed confirmation messages could be propagated with a peer-to-peer protocol~\cite{El-Ansary2003:Broadcast}, or Byzantine Fault Tolerant (BFT) consensus protocol~\cite{Lamport1982:Byzantine, Ongaro2014:Consensus, Gilad2017:Algorand}.
+In a concrete implementation there are many ways to manage the distributed, network level confirmation process. For a small number of parties, such as to manage commercial workflows between banks, it could be sufficient for each party to confirm the transaction directly with all others. This would require $O(n^2)$ confirmations in practice, but in the happy case the only information that needs to be exchanged is that the confirming party agrees with the transaction view identified by its hash code. For a greater number of parties, cryptographically signed confirmation messages could be propagated with a peer-to-peer protocol~\cite{El-Ansary2003:Broadcast}, or Byzantine Fault Tolerant (BFT) consensus protocol~\cite{Lamport1982:Byzantine, Ongaro2014:Consensus, Gilad2017:Algorand}.
 
-Alternatively, @Mona@ could represent a monitoring company that simply receives transaction views and archives them. For applications where the parties know each other and are expected to be honest, there may not be a need to synchronously confirm each transaction. If there are any disputes between Alice, Bob or Isabelle, then they could retrieve the views given to Mona and validate that the transaction hashes of those views match their own.
+Alternatively, @Mona@ could represent a monitoring company that simply receives transaction views and archives them. In applications where the parties know each other and are expected to be honest, they may not need to synchronously confirm every transaction. If there are any disputes between Alice, Bob or Isabelle, then they could retrieve the complete views given to Mona, and validate that the transaction hashes of those views match their own.
 
-
+\eject{}
 % -----------------------------------------------------------------------------
 \subsection{Nested Transactions}
 \label{s:NestedTransactions}
@@ -229,4 +215,19 @@ As a final example, in practical workflows it is usually necessary to upgrade da
 \end{small}
 
 This rule allows the issuer and holder of a @Coin@ to jointly agree to change the rule use-set of the @Coin@, and the new use-set can mention new versions of existing rules. There is no need for a privileged operator party to orchestrate the upgrade. The meaning of facts is controlled by the parties that authorize them, and not the people that run the ledger system.
+
+
+
+% \TODO{Cite the XA distributed transaction model}.
+% \TODO{Cite Corda Tearoffs}.
+% \TODO{Cite Fabric private transactions} mentioned in DAML blog post.
+% https://medium.com/daml-driven/keeping-smart-contracts-private-is-hard-unless-you-truly-understand-them-920b31d723e4
+
+% TODO: How does a confirming party know which other parties to ask for confirmations?
+% It may see some in the facts revealed to it, but if a fact has been blinded it may not
+% know it can ask the parties listed in that fact. We may want to add an extra field
+% to the transaction listing the parties involved, which is separate from the facts
+% themselves. This seems like a design variable where we might want the extra list,
+% or not, and both answers are valid.
+
 

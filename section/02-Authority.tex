@@ -144,11 +144,11 @@ The full data model is specified below. The current ledger state is a map from $
 $$
 \begin{array}{ll}
    State   & = Map~ Fact~ Weight
-\\ Fact    & = (Name, Record, By, Obs, Rules)
-\\ Record  & = List~ (Name, Value)
+\\ Fact    & = (Name, Payload, By, Obs, Use)
+\\ Payload & = List~ (Name, Value)
 \\ By      & = Set~ Party
 \\ Obs     & = Set~ Party
-\\ Rules   & = Set~ Name
+\\ Use     & = Set~ Name
 \\ Weight  & = Nat
 \end{array}
 $$
