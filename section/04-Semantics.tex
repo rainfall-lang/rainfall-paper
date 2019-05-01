@@ -271,5 +271,27 @@ $$
 $$
 \end{theorem}
 
+\subsubsection{Properties of the auction example}
+For the auction example, we define an invariant over the store.
+The invariant states that each order has at most one associated budget.
+For each budget, the invariant states that the total amount of bids, invoices and offers associated with the budget must not exceed the budget total.
+The invariant also states that the remaining budget is the difference between the total amounts and the budget total.
+
+We show that the invariant is established initially for newly created budgets with no bids, invoices or offers.
+We also show that the invariant is preserved by each rule individually.
+The following theorem shows that the @reserve@ rule preserves the invariant, by stating that if the rule executes from store $S$ to $S'$, and the invariant holds for the original store $S$, then the invariant also holds for the updated store $S'$:
+
+\begin{theorem}
+Reserve rule preserves budget invariant
+$$
+\begin{array}{c}
+\jFire{A_{sub}}{S}{@reserve@}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+\implies \\
+\trm{store-ok}~{S} \implies \\
+\trm{store-ok}~{S'}
+\end{array}
+$$
+\end{theorem}
+
 \eject
 
