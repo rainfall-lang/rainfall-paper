@@ -13,11 +13,11 @@ $$
 \\[2ex]
 
 \ruleI  {    \jTypeMatch{\Sigma}{\cdot}{H^n}{\Gamma}
-         \qq \jType{\Sigma}{\Gamma}{M}{\kSet~ \kFACT} }
+         \qq \jType{\Sigma}{\Gamma}{M}{\kSet~ \kFactoid} }
         {\jOk{\Sigma}{\krule~ N~ \kawait~ H^n~ \kto~ M}}
 \end{array}
 $$
-\vspace{1ex}
+
 
 % -- Matches ----------------------------------------------
 $$
@@ -31,7 +31,6 @@ $$
         {\jTypeMatch{\Sigma}{\Gamma}{H~H^n}{\Gamma''}}
 \end{array}
 $$
-\vspace{1ex}
 
 
 % -- Match ------------------------------------------------
@@ -40,35 +39,20 @@ $$
 \fbox{$\jTypeMatch{Decls}{Env}{Match}{Env}$}
 \\[2ex]
 \ruleI  {\begin{array}{ll}
-            \jTypeGather{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}
-        \\  \jOk{\Gamma'}{C} \quad
-            \jType{\cdot}{\Gamma'}{M'}{\kNat} \quad
-            \jType{\cdot}{\Gamma'}{M''}{\kSet~ \kParty}
+            (N : T) \in \Sigma \quad \quad \Gamma' = \Gamma,~ X : \kFact~ T
+        \\  \jType{\cdot}{\Gamma'}{M}{\kBool} \quad
+            \jOk{\Gamma'}{C} \quad
+            \jOk{\Gamma'}{U} \quad
+            \jOk{\Gamma'}{I}
          \end{array}
         }
         {\jTypeMatch
                 {\Sigma}{\Gamma}
-                {\hspace{-1ex}
-                 X~ \kfrom~ N~ \kwhere~ M~ \kselect~ C~ \kconsume~ M'~ \kgain~ M''}
+                {\hspace{-0.5ex}
+                 X~ \kfrom~ N~ \kwhere~ M~ \kselect~ C~ \kconsume~ U~ \kgain~ I}
                 {\Gamma'}}
 \end{array}
 $$
-\vspace{1ex}
-
-
-% -- Gather -----------------------------------------------
-$$
-\begin{array}{cl}
-\fbox{$\jTypeGather{Decls}{Env}{Var ~;~ Name ~;~ Term}{Env}$}
-\\[2ex]
-\ruleI  {    (N : T) \in \Sigma
-         \quad \Gamma' = \Gamma,~ X : \kFact~ T
-         \quad \jType{\cdot}{\Gamma'}{M}{\kBool}
-        }
-        {\jTypeGather{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}}
-\end{array}
-$$
-\vspace{1ex}
 
 
 % -- Select ---------------------------------------------
@@ -85,7 +69,32 @@ $$
         {\jOk  {\Gamma}{\klast~ M}}
 \end{array}
 $$
-\vspace{1ex}
+
+
+% -- Consume ----------------------------------------------
+$$
+\begin{array}{cl}
+\fbox{$\jOk{Env}{Consume}$}
+\\[2ex]
+\jOk    {\Gamma}{\knone}
+\qq
+\ruleI  {\jType{\cdot}{\Gamma}{M}{\kNat}}
+        {\jOk  {\Gamma}{M}}
+\end{array}
+$$
+
+
+% -- Gain -------------------------------------------------
+$$
+\begin{array}{cl}
+\fbox{$\jOk{Env}{Gain}$}
+\\[2ex]
+\jOk    {\Gamma}{\knone}
+\qq
+\ruleI  {\jType{\cdot}{\Gamma}{M}{\kSet~ \kParty}}
+        {\jOk  {\Gamma}{M}}
+\end{array}
+$$
 
 
 % -- Term -------------------------------------------------
@@ -123,6 +132,14 @@ $$
         }
         {       \jType  {\Sigma}{\Gamma}
                         { M ~.~ l }{T} }
+\\[2ex]
+\ruleI  {       \{ \jType{\Sigma}{\Gamma}{M_i}{T}
+                \}^{i \gets 1 \ldots n}
+        }
+        {       \jType  {\Sigma}{\Gamma}
+                        { \{|~ M_1 \ldots M_n ~|\}^{i \gets 1 \ldots n} }
+                        {\kSet~ T}
+        }
 \\[2ex]
 \ruleI  { \begin{array}{ll}
            (N : T) \in \Sigma

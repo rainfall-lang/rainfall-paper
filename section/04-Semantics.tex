@@ -1,7 +1,7 @@
 
 % -----------------------------------------------------------------------------
 \section{Semantics}
-The Rainfall semantics is specified in terms of a core language where pattern matching is desugared into set comprehension like generators. For expositional purposes we express rule bodies using a version of Simply Typed Lambda Calculus (STLC) with records and sets, but a production implementation would probably want a more expressive language like System-F, or a well defined bytecode. The key ideas of our system are embodied in the rule structure and authority mechanism, while the language of rule bodies is arbitrary.
+The Rainfall semantics is defined in terms of a core language where pattern matching is expressed as set comprehension style generators. For expositional purposes we express rule bodies using a version of Simply Typed Lambda Calculus (STLC) with records and sets, but a production implementation could also use a more expressive language like System-F, or a well defined bytecode. The key ideas of our system are embodied in the rule structure and authority mechanism, while the language of rule bodies is arbitrary.
 
 
 % -----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 
 \\[1ex]
   $M,$   \> $Term$      \> ::= \> $Literal~ |~ Var~ |~ Term~ Term~ |~ \lambda Var : Type.~ Term$
-\\ \>                   \> ~|  \> $[ (Label = Term)* ]~ |~ Term~ .~ Label ~|~ \{ Term* \}$
+\\ \>                   \> ~|  \> $[ (Label = Term)* ]~ |~ Term~ .~ Label ~|~ \{|~ Term* |\}$
 
 \\[0.5ex] \>            \> ~|  \> $\ksay~ Name~ Term~$
 \\        \>            \>     \> \hspace{0.5em} $\kby~ Term~ \kobs~ Term~ \kuse~ Term~ \knum~ Term$
@@ -54,7 +54,6 @@ MMMMMMMM \= Mx \= MMMMM \kill
 \\ @fact'by@$_T$      \> $:: @Fact@~ T \to \kSet~ \kParty$
 \\ @fact'obs@$_T$     \> $:: @Fact@~ T \to \kSet~ \kParty$
 \\ @fact'use@$_T$     \> $:: @Fact@~ T \to \kSet~ \kSymbol$
-\\ @fact'num@$_T$     \> $:: @Fact@~ T \to \kNat$
 \end{tabbing}
 
 \medskip
@@ -76,7 +75,7 @@ Mx              \= MMMMMx       \= Mx \= MMMMMMM \kill
 \begin{figure}
 \begin{small}
 \begin{alltt}
-rule  Transfer
+rule  Transfer                ** TODO make this match source.
 await accept from Accept
        where true
        select any  consume 1 gain accept.accepter
@@ -103,25 +102,23 @@ to
 % -----------------------------------------------------------------------------
 \subsection{Grammar}
 The grammar for the core language is in Figure~\ref{f:Grammar}, with a matching version of the coin transfer rule from Figure~\ref{f:CoinTransfer} given in Figure~\ref{f:CoinTransferDesugared}.
-$Rule$ has a name, list of matching clauses and a term for the body that produces a set of new factoids. We use EBNF, so $Match+$ in the production for $Rule$ means there must be at least one match clause. Fact matching is desugared into a sequence of clauses of the form:
+A $Rule$ has a name, pattern matching clauses, and a term for the body to produce a set of new factoids. We use EBNF, so $Match+$ in the production for $Rule$ means there must be at least one match clause. The matching clauses have the form:
 $$
-X~ @from@~ N~ @where@~ M~ @select@~ Select~ @consume@~ M'~ @gain@~ M''
+X~ @from@~ N~ @where@~ M~ @select@~ C~ @consume@~ U~ @gain@~ I
 $$
-This clauses states that we should scan through all facts in the store with name $N$, binding each in turn to the variable $X$ which is in scope for the sub-terms in the clause. We then \emph{gather} all such facts that satisfy predicate $M$ into a set, \emph{select} a single fact according to the $Select$ specifier, \emph{consume} the weight specified by $M'$ from the store, and \emph{gain} the authority specified by $M''$. In the $Select$ clause, @any@ indicates that any gathered that satisfies the @where@ predicate in the matching clause can be selected. For $@first@~ M$ and $@last@~ M$ we sort the facts by the key value $M$ and take the first or last one. This gather/select/consume/gain process is a regularized database query, reminiscent to the FLWOR blocks of XQuery~\cite{Boag2002:XQuery}. We default the preciously elided @select@ and @consume@ clauses to @select any@ and @consume 1@ respectively.
+This clause states that we should scan through all facts in the store with name $N$, binding each in turn to the variable $X$ which is in scope for the sub-terms in the clause. We then \emph{gather} all such facts that satisfy predicate $M$ into a set, \emph{select} the single fact specified by $C$, \emph{consume} the weight specified by $U$, and \emph{gain} the authority specified by $I$. In the select clause $C$, the @any@ keyword indicates that any gathered fact that satisfies the @where@ predicate can be selected. For $@first@~ M$ and $@last@~ M$ we sort facts by the key $M$ and take the first or last one. Our gather/select/consume/gain process is a regularized database query, reminiscent of the FLWOR blocks of XQuery~\cite{Boag2002:XQuery}. Join style queries are expressed using multiple fact matching patterns. We default previously elided @select@ and @consume@ clauses to @select any@ and @consume 1@ respectively.
 
-In the term language we require a few primitive operators to split out the components of a fact value --- @fact'payload@ and so on. In Figure~\ref{f:CoinTransferDesugared}, however, we have left applications of @fact'payload@ implicit for readability, and retained some standard infix operators.
-
-
-% TODO: check clauses are desugared to use
-% TODO: need to describe Fact and Factoid types, and $(Fact, Weight)$} factoid value form.
+In the term language we require a few primitive operators to split out the components of a fact value --- @fact'payload@ and so on. In Figure~\ref{f:CoinTransferDesugared}, however, we have left applications of @fact'payload@ implicit for readability, and retained some standard infix operators. The @check@ clauses used in \S\ref{s:Selection} can be desugared into applications of @fact'by@ that check the authority of a fact in a @where@ clause.
 
 
 % -----------------------------------------------------------------------------
 \eject{}
 \subsection{Static Semantics}
-The static semantics is shown in Figure~\ref{f:Statics}. Most judgment forms used two environments: $Decls$ ($\Sigma$) which maps fact names to their payload types, and $Env$ ($\Gamma$) which maps variable names to their types. The grammar for the environments is given back in Figure~\ref{f:Grammar}. In the source language example in Figure~\ref{f:CoinTransfer} we specified the payload type of each fact using the @fact@ keyword, though in the static semantics here we assume all such types are added to the @Decls@ environment before checking each rule.
+Our type language is standard. In Figure~\ref{f:Grammar} the type ($@Fact@~ Type$) classifies fact values whose payload has type $Type$. The type @Factoid@ classifies factoid values which are written $(Fact, Weight)$. This type omits a parameter for the payload so that rule bodies can produce sets of factoids of differing sorts.
 
-The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the premises we check the sequence of pattern matches, producing a type environment $\Gamma$, that specifies the types of variables that are in scope in the body of the rule. The body $M$ produces a set of weighted facts that are to be added to the store. The judgment $(\jTypeMatch{\Sigma}{\Gamma}{H^n}{\Gamma'})$ checks the sequence of pattern matches $H^n$, the following judgment form a single pattern match. The judgment ($\jTypeMatch{\Sigma}{\Gamma}{X ~;~ N ~;~ M}{\Gamma'}$) is used to check the \emph{gather} part of the pattern match, where $X$ is bound to to each fact of name $N$ in turn, and we keep the facts that match the boolean predicate $M$. The premise $(N:T) \in \Sigma$ retrieves the payload type $T$ of the fact, which is used to construct the type of $X$ which is in scope in the rule body $M$. Checking of $Select$ constructs and body terms is straightforward. The @say@ construct produces a value of the opaque @Factoid@ type so that weighted facts with different payload types can be collected into the same set.
+The typing rules are in Figure~\ref{f:Statics}. Most judgment forms use two environments: $Decls$ ($\Sigma$) which maps fact names to their payload types, and $Env$ ($\Gamma$) which maps variable names to their types. The grammar for the environment are back in Figure~\ref{f:Grammar}. In the source language example in Figure~\ref{f:CoinTransfer} we specified the payload type of each fact using the @fact@ keyword. In the static semantics here we assume all such types are added to the initial @Decls@ environment.
+
+The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the premises we check the sequence of pattern matches, producing a type environment $\Gamma$, that lists the types of variables that are in scope in the body of the rule. The body $M$ produces a set of new factoids. The judgment ($\jTypeMatch{\Sigma}{\Gamma}{X ; N ; M}{\Gamma'}$) checks the \emph{gather} part of the pattern match, where $X$ is bound to to each fact of name $N$ in turn, and we keep the facts that match the boolean predicate $M$. The premise $(N:T) \in \Sigma$ retrieves the payload type $T$ of the fact, which is used to construct the type of $X$ which is in scope in the rule body $M$. Checking of $Select$, $Consume$, $Gain$ and $Term$ expressions straightforward.
 
 
 % -----------------------------------------------------------------------------

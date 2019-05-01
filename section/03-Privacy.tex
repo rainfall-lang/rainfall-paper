@@ -127,8 +127,6 @@ In related work, the DAML~\cite{DA2019:DAML} ledger model combines facts and rul
 
 A design decision of the DAML model is to ensure each party that authorizes an object is able to re-execute the subtransaction that consumes that object. Supporting this can require the system to sometimes \emph{divulge} additional objects to an authorizing party that were not visible until the object they authorized was consumed. However, the object oriented code structure of DAML causes the transactions produced by method invocation to have a nested form similar to the above. In DAML, the details of the equivalent @doTheTransfer@ subtransaction can be sent to @Isabelle@, leaving the details of @agreeOnOffer@ private between Alice and Bob.
 
-% TOOD: in transfer, auth of 'g' is gained but not used. This is added to check the agreement is really authorized by 'g'. Can probably work this into the auction example.
-
 
 % -----------------------------------------------------------------------------
 \subsection{Incidental Observers}
@@ -151,6 +149,7 @@ For the transaction from \S\ref{s:Transactions}, although Alice was the one that
 
 \subsection{Fact Selection and Checking}
 \label{s:Query}
+\label{s:Selection}
 In the coin transfer rules discussed so far, each pattern matching clause has only gathered a single fact at a time. Consider instead a market workflow where rules need to perform more complex queries, such selecting the cheapest item that matches some criteria. Figure~\ref{f:AuctionVisibility} shows the fact visibility for an example workflow. Mark runs the market, Brendan is a broker, and Alice is a client who wishes to buy some items. Alice must interact with Mark through Brendan, instead of communicating directly, like so:
 
 \begin{enumerate}
