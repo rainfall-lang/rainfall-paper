@@ -75,22 +75,24 @@ Mx              \= MMMMMx       \= Mx \= MMMMMMM \kill
 \begin{figure}
 \begin{small}
 \begin{alltt}
-rule  Transfer                ** TODO make this match source.
-await accept from Accept
+rule  transfer
+await offer  from Offer
        where true
-       select any  consume 1 gain accept.accepter
- and  offer  from Offer
-       where accept.id       == offer.id  &&
+       select any  consume 1  gain \{offer.giver\}
+ and  accept from Accept
+       where accept.id       == offer.id &&
              accept.accepter == offer.receiver
-       select any  consume 1 gain offer.giver
+       select any  consume 1  gain \{offer.receiver\}
  and  coin   from Coin
-       where coin.holder == offer.giver
-       select any  consume 1 gain coin.issuer
-to
-    \{ say Coin [ stamp  = coin.stamp
-               , holder = offer.receiver]
-       by  \{ !Bank, offer.receiver \}  obs \{ !Mona \}
-       use \{ 'Transfer \}              num 1) \}
+       where coin.issuer     == !Isabelle &&
+             coin.holder     == offer.receiver
+       select any  consume 1  gain \{!Isabelle, offer.giver\}
+to \{
+     say Coin [ issuer = !Isabelle
+              , holder = offer.receiver ]
+      by  \{!Isabelle,offer.receiver\}  obs \{!Mona\}
+      use \{'transfer\}                 num 1
+   \}
 \end{alltt}
 \end{small}
 
@@ -101,12 +103,12 @@ to
 
 % -----------------------------------------------------------------------------
 \subsection{Grammar}
-The grammar for the core language is in Figure~\ref{f:Grammar}, with a matching version of the coin transfer rule from Figure~\ref{f:CoinTransfer} given in Figure~\ref{f:CoinTransferDesugared}.
-A $Rule$ has a name, pattern matching clauses, and a term for the body to produce a set of new factoids. We use EBNF, so $Match+$ in the production for $Rule$ means there must be at least one match clause. The matching clauses have the form:
+The grammar for the core language is in Figure~\ref{f:Grammar}. A matching desugared version of the coin transfer rule from Figure~\ref{f:CoinTransfer}, using @!Mona@ as an observer, is in Figure~\ref{f:CoinTransferDesugared}.
+A $Rule$ has a name, pattern matching clauses, and a term for the body to produce a set of new factoids. We use EBNF, so $Match+$ in the production for $Rule$ requires at least one match clause. Each $Match$ clause has form:
 $$
 X~ @from@~ N~ @where@~ M~ @select@~ C~ @consume@~ U~ @gain@~ I
 $$
-This clause states that we should scan through all facts in the store with name $N$, binding each in turn to the variable $X$ which is in scope for the sub-terms in the clause. We then \emph{gather} all such facts that satisfy predicate $M$ into a set, \emph{select} the single fact specified by $C$, \emph{consume} the weight specified by $U$, and \emph{gain} the authority specified by $I$. In the select clause $C$, the @any@ keyword indicates that any gathered fact that satisfies the @where@ predicate can be selected. For $@first@~ M$ and $@last@~ M$ we sort facts by the key $M$ and take the first or last one. Our gather/select/consume/gain process is a regularized database query, reminiscent of the FLWOR blocks of XQuery~\cite{Boag2002:XQuery}. Join style queries are expressed using multiple fact matching patterns. We default previously elided @select@ and @consume@ clauses to @select any@ and @consume 1@ respectively.
+This says we should scan through all facts in the store with name $N$, binding each in turn to the variable $X$ which is in scope for the sub-terms in the clause. We then \emph{gather} all such facts that satisfy predicate $M$ into a set, \emph{select} the single fact specified by $C$, \emph{consume} the weight specified by $U$, and \emph{gain} the authority specified by $I$. In the select clause $C$, the @any@ keyword indicates that any gathered fact that satisfies the @where@ predicate can be selected. For $@first@~ M$ and $@last@~ M$ we sort facts by the key $M$ and take the first or last one. Our gather/select/consume/gain process is a regularized database query, reminiscent of the FLWOR blocks of XQuery~\cite{Boag2002:XQuery}. Join style queries are expressed using multiple fact matching patterns. We default previously elided @select@, @consume@ and @gain@ clauses to @select any@, @consume 1@ and @gain {}@ respectively.
 
 In the term language we require a few primitive operators to split out the components of a fact value --- @fact'payload@ and so on. In Figure~\ref{f:CoinTransferDesugared}, however, we have left applications of @fact'payload@ implicit for readability, and retained some standard infix operators. The @check@ clauses used in \S\ref{s:Selection} can be desugared into applications of @fact'by@ that check the authority of a fact in a @where@ clause.
 
