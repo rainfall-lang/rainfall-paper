@@ -142,7 +142,7 @@ Rules EvMatchNil/Cons apply the pattern matches to the store, gathering the set 
 
 Rule EvGather collects the facts that match the gather predicate. The premise is written as a set comprehension, where the clause $\trm{sees}~ A_{sub}~ F$ ensures we only include facts visible to the submitting party. The $\trm{sees}$ predicate was defined back in \S\ref{s:Transactions}.
 
-Importantly, we bind the \emph{fact} value instead of the whole \emph{factoid} to avoid confusion about what weight a pattern match should observe when a pattern before it consumes the same fact. Binding the whole factoid would allow rules to check the weights of factoids more directly than using @consume@ clauses, but interleaving consumption with matching would mean patterns could not be reordered freely. Similar issues arise in related \emph{active database systems}~\cite{Paton1999:Active}. A programmer would ultimately want to specify further behavior, but we leave this to future work.
+Importantly, we bind the \emph{fact} value instead of the whole \emph{factoid} to avoid confusion about what weight a pattern match should observe when a pattern before it consumes the same fact. Binding the whole factoid would allow rules to check the weights of factoids more directly than using @consume@ clauses, but then interleaving consumption with matching would mean patterns could not be reordered freely. Similar issues arise in related \emph{active database systems}~\cite{Paton1999:Active}. A programmer would ultimately want to specify further behavior, but we leave this to future work.
 
 Rules EvAny/First specify how a single fact should be selected from the set of gathered facts. With EvAny any fact can be selected. In EvFirst we compute a set of pairs $D^m$ of sort keys and values, and select the value with the smallest key. Handling @last@ is similar.
 
@@ -158,119 +158,72 @@ Rule EvSay evaluates its arguments and produces the corresponding factoid. The r
 % -----------------------------------------------------------------------------
 \eject{}
 \subsection{Properties}
+We have mechanized Rainfall using the Isabelle/HOL interactive theorem prover, and proved several useful isolation and authorization properties. Using this theory as a basis, we have also mechanized the market example from \S\ref{s:Selection} to demonstrate how to prove safety properties of business logic encoded in our system.
 
-We have formalised Rainfall in the Isabelle interactive theorem prover, and proved several isolation and authorisation properties of the dynamic semantics.
-The following theorem states that execution of a rule can only depend on the facts explicitly used by the rule:
 
-% \AMOS{These lemmas are boring, I think. The second is used in the proof of frame constriction.}
-% \begin{lemma}
-% New facts are included in the new store (trivial):
-% $$
-% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-% \implies
-% D_{new}^m \subseteq S'
-% $$
-% \end{lemma}
-% (Using the $\subseteq$ notation to refer to the multiset subset operation here -- would it be better to unroll it as something like $\forall (x,w) \in D_{new}^m.\ (x,w') \in S' \wedge w \le w'$ ?)
-%
-% \begin{lemma}
-% Rules only spend and read values from the store:
-% $$
-% \begin{array}{c}
-% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-% \implies \\
-% F_{read}^r ~\Cup~ D_{spent}^n \subseteq S
-% \end{array}
-% $$
-% \end{lemma}
+% -------------------------------------
+\subsubsection{Properties of the Semantics}
+\begin{theorem}
+Frame Constriction:
+Given an arbitrary store, if a rule can fire using facts from that store, producing a set of facts read, factoids spent, and new factoids created, then the same rule can fire in a store containing only information from those produced sets.
+\end{theorem}
+\begin{tabbing}
+MMx \= MMMMMM \= MM \kill
+\trm{If}     \> $\jFire{A}{S}
+                       {R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
+\trm{then}   \> $\jFire{A}{F_{read}^r \Cup D_{spent}^n}
+                       {R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S''}$ \\
+             \> \trm{where} $S'' ~=~ D_{new}^m \uplus (F_{read}^r - D_{spent}^n)$
+\end{tabbing}
+
+Frame Constriction guarantees that the (unblinded) transaction structures described in \S\ref{s:Transactions} can always be validated in isolation, without needing the entire state of the ledger that existed at the time the transaction was formed.
+
+In our formalization we use multisets for both the set of facts read $F^r_{read}$ and factoids spent $D^n_{spent}$. When forming the store used for the second rule firing we need to ensure that facts listed in both $F^r_{read}$ and $D^n_{spent}$ are not counted twice. To achieve this we use the $\Cup$ operator which performs a version of multiset union where elements that exist in both of the argument sets are given their maximum weight in the result set, rather than their sum.
+
+% CUT: Similarly, the output store of the second firing $S''$ consists of the new facts created, along with facts from the original store that were read but not spent.
+
+
+% -------------------------------------
+\begin{theorem}
+No Poltergeists: Facts that are not visible to a submitting party do not influence rule firing:
+\end{theorem}
+\begin{tabbing}
+M \= MMx \= MMMMM \= MMM \kill
+\> If     \> $\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
+\> ~and   \> $\forall f \in S_{others}.\ \neg (\trm{sees}~ A_{sub}~ f)$ \\
+\> then   \> $\jFire{A_{sub}}{S \uplus S_{others}}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$
+\end{tabbing}
 
 \begin{theorem}
-Frame constriction:
-$$
-\begin{array}{c}
-\jFire{A}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies \\
-\quad \jFire{A}{F_{read}^r \Cup D_{spent}^n}{R}{F_{read}^r}{D_{spent}^n}{D'}{S'} \quad
-\\[1ex]
-\multicolumn{1}{l}{ \texttt{where } D' ~=~ D_{new}^m \uplus (F_{read}^r - D_{spent}^n)}
-\\
-\end{array}
-$$
+No Exorcism: A rule firing cannot influence facts that are not visible to the submitting party.
 \end{theorem}
+\begin{tabbing}
+MMM \= MMx \= MMMMMMM \= MM \kill
+\> If     \> $\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
+\> then   \> $\forall f \in F_{read}^r \Cup D_{spent}^n.\ \trm{sees}~ A_{sub}~ f$
+\end{tabbing}
 
-This theorem has the hypothesis that the rule $R$ executes in store $S$, reading the facts $F_{read}^r$ and spending the facts $D_{spent}^n$, and resulting in the new facts $D_{new}^m$.
-Executing the same rule in a restricted environment that contains only the read and spent facts will create the same new facts.
-For the restricted environment, we use the $\Cup$ operator to union with the maximum weight of each fact, as facts that exist in both the read set and spent multiset should not be counted twice.
-In the original execution, the updated store $S'$ contains the original store without the spent facts and with the new facts; in the restricted environment, the new store $D'$ contains the new facts as well as the unspent read facts.
+No Poltergeists ensures that the validity of transaction views sent by the submitter to a receiving party will not be affected by extra facts that are visible to the receiver but not the submitter. Dually, No Exorcism ensures that any extra facts that are visible to the receiver but not the submitter cannot be influenced (spent) by those views.
 
 
-The following two theorems state that execution can only depend upon facts visible to the submitter:
-
+% -------------------------------------
 \begin{theorem}
-Spend and read only visible:
-$$
-\begin{array}{c}
-\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies \\
-\forall f \in F_{read}^r \Cup D_{spent}^n.\ \trm{sees}~ A_{sub}~ f
-\end{array}
-$$
+Authority Flow: If a fact created by a rule firing is authorized by some party, then the same party authorized a fact that was read or spent by that rule firing.
 \end{theorem}
+\begin{tabbing}
+M \= MMx \= MMMMMMM \kill
+\> If   \> $\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
+\> then \> $\forall f \in D_{new}^m.\
+            \forall a \in \trm{auth-by}~f.\
+            \exists d \in F_{read}^r \Cup D_{spent}^n.$ \\
+\>      \> \hspace{1em}$a \in \trm{auth-by}~d$
+\end{tabbing}
 
-\begin{theorem}
-Store weakening with invisible facts: adding facts that are not visible to the submitter does not affect execution:
-$$
-\begin{array}{c}
-\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies \\
-\forall f \in S_{others}.\ \neg (\trm{sees}~ A_{sub}~ f)
-\implies \\
-\jFire{A_{sub}}{S \uplus S_{others}}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\end{array}
-$$
-\end{theorem}
+This key property of our authorization system implies that the submitter of a transaction cannot attach their own authority to any of the created facts. The authorization of facts is controlled by the production rules expressed in the system, rather than the particular parties that form transactions.
 
-The following theorem states that all authority used to create new facts must be gained from the matched facts.
-The submitter's authority only affects which facts are visible, but the submitter's authority is not necessarily added to created facts:
 
-\begin{theorem}
-Authority comes from facts:
-$$
-\begin{array}{c}
-\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies \\
-\forall f \in D_{new}^m.\ \forall a \in \trm{auth-by}~f.\ \exists d \in F_{read}^r \Cup D_{spent}^n.\ a \in \trm{auth-by}~d
-\end{array}
-$$
-\end{theorem}
-
-The following two theorems state that, for rules containing only `any' selectors, new facts and authorities can be added without changing the execution.
-For programs containing `first' selectors, adding new facts, or making new facts visible, could change the minimum value selected by `first'.
-
-\begin{theorem}
-Store weakening for `any' selectors:
-$$
-\begin{array}{c}
-\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies \\
-\trm{rule-contains-only-any}~R \implies \\
-\jFire{A_{sub}}{S \uplus S_{others}}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\end{array}
-$$
-\end{theorem}
-
-\begin{theorem}
-More permissions for `any' selectors:
-$$
-\begin{array}{c}
-\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies \\
-\trm{rule-contains-only-any}~R \implies \\
-\jFire{A_{sub} \cup A_{others}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\end{array}
-$$
-\end{theorem}
-
+\eject{}
+% -----------------------------------------------------------------------------
 \subsubsection{Properties of the auction example}
 For the auction example, we define an invariant over the store.
 The invariant states that each order has at most one associated budget.
@@ -293,5 +246,97 @@ $$
 $$
 \end{theorem}
 
-\eject
 
+
+\subsection{Extensions}
+
+\begin{figure}
+$$
+\begin{array}{cc}
+%% -- store
+\fbox{$\jStoreDown{Store}{Factoids}{Store}$}
+&
+\fbox{$\jStoreUp  {Store}{Factoids}{Store}$}
+\\[3ex]
+\ruleI  {       D^n \subseteq S
+        \quad   S' = S - D^n}
+        {\jStoreDown{S}{D^n}{S'}}
+&
+\ruleI  {       S' = S \uplus D^n}
+        {\jStoreUp{S}{D^n}{S'}}
+\end{array}
+$$
+\caption{Store Modification}
+\label{f:StoreModification}
+\end{figure}
+
+
+% -----------------------------------------------------------------------------
+\subsubsection{Extended Weight Types}
+There is no particular reason why the weight of each fact must be restricted to being a natural number as per \REF. Our dynamic semantics only depend on the exact representation of weights in three places: to combine the weights of factoids in EvMatchCons and EvStoreUp, and in the subset test and set difference operators in EvStoreDown.
+
+In general it is sufficient to use an Abelian group which also has a partial order. The Abelian group provides a weight combining operator that is associative, commutative and invertible. Requiring weight combining operator to be associative and commutative allows the facts needed by a rule to be matched in arbitrary order, which supports efficient implementations based on the RETE algorithm mentioned in \REF. We need the partial order to determine if a weight of the required value is present in the store, and the weight combining operator needs to be invertable so we can reduce the weight of facts in the store when they are spent.
+
+An example non-numeric weight type is a simple @Present@ / @Absent@ indicator. If multiple facts are added with a weight of @Present@ then the resulting fact is still @Present@. If this @Present@ fact is then spent then it becomes @Absent@. Using such a weight is useful for situation where a fact represents a statement like ``someone needs to water the plants''. As the plants should only be watered once it does not make sense to allow a weight greater than one, and once a real-world party actually gets around to watering the plants, then the whole fact can be removed from the store.
+
+
+% -----------------------------------------------------------------------------
+\subsubsection{Minimum Weight Thresholds}
+In our current system, rules can match on visible facts that do not have that rule in their use set, provided they do not try to consume any weight of that fact or gain any authority from it. This is sympathetic to the intended physical implementation, where party using the system holds a copy of all facts they can observe -- so there is no reason to stop the transactions they submit from reading this data.
+
+When a rule reads a fact but does not consume weight or gain authority from it then the fact appears in the set of facts read ($F^r_{read}$ in EvFire), but not the set of facts spent ($D^s_{spend}$). This means the rule can fire if the required fact is present in the store with any non-zero weight. A natural extension is then to change this set of facts read to be a map of fact to the weight required before the rule can fire, perhaps by extending the grammar of $Consume$ specifications with a (@require M@) form, where M is a term that evaluates to the weight the rule should weight for before firing.
+
+
+
+% ----
+% TODO: We could make it so a rule body can only extract the set of other parties that can obs a fact if it is also authorized to spend it..
+
+
+
+
+% \begin{theorem}
+% Store weakening for `any' selectors:
+% $$
+% \begin{array}{c}
+% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+% \implies \\
+% \trm{rule-contains-only-any}~R \implies \\
+% \jFire{A_{sub}}{S \uplus S_{others}}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+% \end{array}
+% $$
+% \end{theorem}
+
+% \begin{theorem}
+% More permissions for `any' selectors:
+% $$
+% \begin{array}{c}
+% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+% \implies \\
+% \trm{rule-contains-only-any}~R \implies \\
+% \jFire{A_{sub} \cup A_{others}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+% \end{array}
+% $$
+% \end{theorem}
+
+
+% \AMOS{These lemmas are boring, I think. The second is used in the proof of frame constriction.}
+% \begin{lemma}
+% New facts are included in the new store (trivial):
+% $$
+% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+% \implies
+% D_{new}^m \subseteq S'
+% $$
+% \end{lemma}
+% (Using the $\subseteq$ notation to refer to the multiset subset operation here -- would it be better to unroll it as something like $\forall (x,w) \in D_{new}^m.\ (x,w') \in S' \wedge w \le w'$ ?)
+%
+% \begin{lemma}
+% Rules only spend and read values from the store:
+% $$
+% \begin{array}{c}
+% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
+% \implies \\
+% F_{read}^r ~\Cup~ D_{spent}^n \subseteq S
+% \end{array}
+% $$
+% \end{lemma}
