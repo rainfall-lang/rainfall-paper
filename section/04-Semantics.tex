@@ -163,6 +163,7 @@ We have mechanized Rainfall using the Isabelle/HOL interactive theorem prover, a
 
 % -------------------------------------
 \subsubsection{Properties of the Semantics}
+\label{s:PropertiesOfSemantics}
 \begin{theorem}
 Frame Constriction:
 Given an arbitrary store, if a rule can fire using facts from that store, producing a set of facts read, factoids spent, and new factoids created, then the same rule can fire in a store containing only information from those produced sets.
@@ -284,12 +285,8 @@ An example extend weight type is a simple @Present@ / @Absent@ indicator. When m
 In EvFire from Figure~\ref{f:Dynamics}, when a production rule reads a fact but does not consume any weight of it, or gain any authority from it, then the fact appears in the set of facts read $F^r_{read}$, but not the map of factoids spent $D^s_{spend}$. This means the rule can fire if the required fact is present in the store with any non-zero weight. An extension is to allow a rule to wait for a particular weight of a fact to be available before firing, without also needing to consume it. To achieve this we would change the representation of $F^r_{read}$ to also be a map of factoids, and add a (@require@ M) form to $Consume$ specifications, where M is a term that evaluates to the weight the rule must have before firing.
 
 
-
-
 % ----
 % TODO: We could make it so a rule body can only extract the set of other parties that can obs a fact if it is also authorized to spend it..
-
-
 
 
 % \begin{theorem}

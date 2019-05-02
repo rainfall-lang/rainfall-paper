@@ -9,57 +9,50 @@
 
 % ---------------------------------------------------------
 \subsection{Linda-style Tuple Spaces}
-Linda~\cite{Gelernter1985:Linda} is a CSP-like process language where the individual processes communicate by adding, removing and non-destructively reading tuples from a globally shared tuple space. Tuples have named fields, and retrieved using simple, typed patterns. The basic Linda communication model is open, meaning that any party connected to it is free to add and remove tuples at will. The lack of access control or provenance information on data makes it unusable for as a communication medium for mutually distrusting parties.
+Linda~\cite{Gelernter1985:Linda} is a coordination model where processes communicate by adding, removing and non-destructively reading tuples from a globally shared tuple space. The basic Linda model is open, meaning that any party using it is free to add and remove tuples at will. This lack of access control or provenance information makes it unusable for as a communication medium for mutually distrusting parties.
 
-Several extensions to the basic Linda model add meta-data to the tuples so that it can be used in open systems, and this meta-data is similar to the 'by' and 'obs' sets of our own model. SecSpaces~\cite{Busi2003:SecSpaces} adds authority metadata to the tuples, signing them with the private keys of the parties that create them, and specifying the identities of those that can see and consume them. Merrick~\cite{Merrick2000:Scopes} describes a scoping/visibility system for tuple spaces where new scopes can be created at will and combined using a set of scope combinators. Oriol~\cite{Oriol2005:TaggedSets} describes a system of tagged sets where the tuples are identified by a formula in propositional logic, which allows authority and visibility metadata to be encoded uniformly. Udzir~\cite{Udzir2007:MultiCapabilities}~describes a model where the tuples (or collections of them) have unique identifiers, and the client program must provide a matching runtime capability value when accessing them. Each of these extended systems refines the data model only. There is no mechanism for parties to combine authorized facts to produce new facts that are transitively authorized by any other party accept themselves. The ability to do this is the main contribution of our own system.
-
-
-%For example, we could retrieve (input) a tuple that specifies the price of apples with the following pattern:
-% \begin{code}
-%    in(name("Apple"), price(?p))
-% \end{code}
-% Processes that try to retrieve a tuple that matches some pattern block until one is available. If multiple tuples match a given pattern then one is selected nondeterministically.
-
-% For example, given a tuple:
-% \begin{code}
-%    (giver("Alice"), receiver("Bob"), amount(100))
-% \end{code}
-% There is no guarantee that Alice was the one that added this tuple to the system, and there is nothing preventing a third party from removing before the workflow completes and Bob gets his money.
-
+Several extensions to the basic Linda model add metadata to the tuples that are similar to the `by' and `obs' authority sets of our own Rainfall model. SecSpaces~\cite{Busi2003:SecSpaces} signs tuples with the private keys of parties that create them, and adds metadata that specifies the identities of those that can see and consume them. Merrick~\cite{Merrick2000:Scopes} describes a scoping/visibility system for tuple spaces where new scopes can be created at will and combined using a set of scope combinators. Oriol~\cite{Oriol2005:TaggedSets} describes a model of tagged sets where the tuples are identified by a formula in propositional logic that allows authority and visibility information to be encoded uniformly. Udzir~\cite{Udzir2007:MultiCapabilities}~describes a model where collections of tuples have unique identifiers, and the client program must provide a matching runtime capability when accessing them. These systems refine the Linda data model, but do not provide a mechanism to allow parties using the system to combine authorized tuples to produce new ones that are authorized by any other party except themselves. The ability to do this is the main contribution of our own system.
 
 
 % ---------------------------------------------------------
 \subsection{Law Governed Linda}
-Law Governed Linda~(LGL)~\cite{Minsky1994:LawGovernedLinda, Minsky2001:SafeTupleSpace} takes the basic Linda model and inserts a \emph{controller} between the tuple space and each communicating process. Each controller has a copy of a communication law, written in a fragment of Prolog, that specifies the allowable interactions with the tuple space. For example, the law may specify that a process can only add a tuple such as the above to the space, when the @giver@ field is set to the identify of the process that adds it. In this way, the codified law specifies the allowable \emph{interaction} with the communication medium. The controllers themselves are assumed to run on a trusted computing platform, either as part of the server that provides the tuple space, or on a secure co-processor~\cite{Minsky2001:SafeTupleSpace}. In contrast, the rules in our Rainfall model do not seek to limit the form of data added to the system. Instead, they specify how authorized facts that are already in the system may be combined to generate new authorized facts.
+Law Governed Linda~(LGL)~\cite{Minsky1994:LawGovernedLinda, Minsky2001:SafeTupleSpace} takes the basic Linda data model and inserts a \emph{controller} between the tuple space and each communicating process. Each controller has a copy of a communication law, written in a fragment of Prolog, that specifies the allowable interactions with the tuple space. For example, the law could  state that a process may only create a tuple that includes a @from@ field, when the value in that field is its own process identifier.
 
-% TODO: check this is described earlier.
-% In Rainfall there is nothing stopping a party from adding a fact to the system which says ``I have a million dollars", just with their own authority. Additionally, the rules in our model are executed as part of transaction validation, on the computers of the individual parties. A nefarious party could form an invalid transaction that transfers themselves a million dollars, but honest parties will not confirm the transaction views they are sent that disagree with their own understanding of the facts.
+The codified law specifies the allowable \emph{interaction} a process may have with the communication medium. The controllers are assumed to run on a trusted computing base, either as part of the physical server that provides the tuple space, or on a secure co-processor~\cite{Minsky2001:SafeTupleSpace}. In contrast, the production rules in our Rainfall model do not limit the form of data added to the system. Instead, they specify how authorized facts that are already in the store may be combined to produce new authorized facts. The Authority Flow theorem of \S\ref{s:PropertiesOfSemantics} also ensures we do not need to rely on a trusted computing base to enforce the rules of the system.
 
 
 % ---------------------------------------------------------
 \subsection{Extended Shared Prolog}
-Extended Shared Prolog (ESP)~\cite{Ciancarini1993:Coordinating, Ciancarini1994:LogicTupleSpaces} combines the Linda coordination model with rules written in a restricted subset of Prolog. In contrast to Law Governed Linda, the rules are stored as special \emph{program tuples} in the main tuple space, and describe how existing tuples can be combined, rather than being a mediator between the tuple space and its clients. The structure of the program tuples has the same basic structure as Rainfall rules, with a section to collect matching tuples, one to decide which ones should be consumed, and a section to compute new tuples. Rainfall takes extends the basic ESP model with an authority mechanism to track which parties authorize the production of which facts, which allows the safe execution of multiparty contracts. ESP program rules are also anonymous, where the Rainfall system relies on them having names so that these names can be mentioned in the facts.
+Like LGL, Extended Shared Prolog (ESP)~\cite{Ciancarini1993:Coordinating, Ciancarini1994:LogicTupleSpaces} also combines the Linda coordination model with rules written in a restricted subset of Prolog. In this case the rules are stored as special \emph{program tuples} in the main tuple space. The rules describe how existing tuples can be combined, rather than controlling the interaction between the tuple space and its clients. The format of each rule is similar to Rainfall production rules, including a section to gather matching tuples, a section to decide which ones should be consumed, and a section to compute new tuples. Program tuples behave like triggers in an active database~\cite{Paton1999:Active}, where the rule is activated when the tuples it was waiting for become available. However, as with the basic Linda coordination model, there is no mechanism to enforce transitive authority, or track the provenance of created tuples.
 
-Another minor difference is that the ESP fact matching system does not have direct support for aggregation operators as used in \REF. Aggregation is a key operation in regular database query languages, though usually not a primitive operation in Prolog style systems based around matching of Horn clauses. However, one can imagine support for aggregations being added via \emph{view tuples}, where the act of matching invokes an aggregation operation across some larger subset of the tuple space, as per LighTS~\cite{Balzarotti2007:LighTS}.
+% Rainfall takes extends the basic ESP model with an authority mechanism to track which parties authorize the production of which facts, which allows the safe execution of multiparty contracts. ESP program rules are also anonymous, where the Rainfall system relies on them having names so that these names can be mentioned in the facts.
+
+% Another minor difference is that the ESP fact matching system does not have direct support for aggregation operators as used in \REF. Aggregation is a key operation in regular database query languages, though usually not a primitive operation in Prolog style systems based around matching of Horn clauses. However, one can imagine support for aggregations being added via \emph{view tuples}, where the act of matching invokes an aggregation operation across some larger subset of the tuple space, as per LighTS~\cite{Balzarotti2007:LighTS}.
+
+
+% ---------------------------------------------------------
+\subsection{Permissioned Distributed Ledgers}
+\label{s:RelatedPermissioned}
+DAML~\cite{DA2019:DAML}, Corda~\cite{Hearn2016:Corda}, and Hyperledger Fabric~\cite{Androulaki2018:Fabric} are permissioned distributed ledgers that have some of the authorization and privacy properties of own Rainfall model.
+
+
+Cite Corda uses a determinised JVM to specify its contracts. This is like defining our rule bodies in JVM bytecode. More on DAML, talk about problems with contract ids becoming dangling~\cite{DA2019:DAML}.
+
 
 
 
 % ---------------------------------------------------------
 \subsection{Actors}
-Our rules have a passing similarity to Actors~\cite{Agha92:ActorTheory}, but the computation framework is quite different. The rules do not have their own private state, or process identity in the sense that they are addressable by mailbox or channel names. It would be straightforward to embed an Actor model \emph{into} Rainfall, by building facts that represent the local state of each actor, but it would be a full compilation process much like compiling a functional language onto a procedural one. Actor languages such as Erlang have extensions~\cite{Sulzmann2008:MultiHeaded} that support the sort of multi-headed pattern matching provided by Rainfall rules, but perform deterministic matching on streams of incoming messages, rather than selecting candidates from an unordered soup of tuples. ActorSpaces~\cite{Agha1993:ActorSpace} is a model where communication is still done by message passing, but messages can be broadcast to all actors in a group, rather than just a single one as in point-to-point communication.
+Rainfall production rules have a passing similarity to Actors~\cite{Agha92:ActorTheory}, but the computation framework is quite different. Production rules do not maintain their own private state, or have instance identity in the sense that they are addressable by mailbox or channel names. However, one embed an actor program \emph{into} Rainfall, by building facts that represent the local state of each actor, and defining production rules to handle the messages. A proposed extension to Erlang provides the multi-headed pattern supported by production rules~\cite{Sulzmann2008:MultiHeaded}, but performs matching on ordered streams of incoming messages rather selecting from an unordered soup of tuples. ActorSpaces~\cite{Agha1993:ActorSpace} is a related model where communication is still done by message passing, but messages can be broadcast to all actors in a group, rather than just a single one as in point-to-point communication.
 
 % Rainfall system is not directly reactive, in the sense that there are concurrent processes waiting to receive messages and provide responses. As described in \REF, in normal use a submitting party decides when to perform a transaction according to one of the rules, and is free to disambiguate any non-determinism in pattern matching as they see fit.
-\TODO{compare with constraint handling rules:likewise CHR specifies a particular matching order for constraints, (is that right?)}
+
+% \TODO{compare with constraint handling rules:likewise CHR specifies a particular matching order for constraints, (is that right?)}
 
 
 % ---------------------------------------------------------
-\subsection{Production Engines}
-Our rules are closer to those used by production rule engines OPS~\cite{Forgy1981:OPS5} latter versions CLIPS~\cite{Riley2017:CLIPS} and Drools~\cite{Proctor2008:Drools} do perform non-deterministic matching. Implementations based on the RETE~\cite{Forgy1981:RETE} algorithm and enhancements \cite{Doorenbos1995:ProductionMatching} of it. Our system is similar to a production rule engine, but with the facts annotated by sets of parties and other authority metadata. In systems like OPS the facts are part of a global set. In our system we annotate facts with sets of parties that control visiblity.
-
-
-% ---------------------------------------------------------
-\subsection{UTXO Based Ledgers}
-\TODO{Describe DAML model. Has authority model that allows currencies to be defined, not baked in. }
+% \subsection{Production Engines}
+% Our rules are closer to those used by production rule engines OPS~\cite{Forgy1981:OPS5} latter % versions CLIPS~\cite{Riley2017:CLIPS} and Drools~\cite{Proctor2008:Drools} do perform % non-deterministic matching. Implementations based on the RETE~\cite{Forgy1981:RETE} algorithm and % enhancements \cite{Doorenbos1995:ProductionMatching} of it. Our system is similar to a production % rule engine, but with the facts annotated by sets of parties and other authority metadata. In % systems like OPS the facts are part of a global set. In our system we annotate facts with sets of % parties that control visiblity.
 
 
 % ---------------------------------------------------------
@@ -71,8 +64,7 @@ In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cit
 
 % ---------------------------------------------------------
 \subsection{Petri-net Systems}
-\TODO{Describe AdjointIO FCL model. Has baked in currency}
-
+FCL~\cite{Adjoint2019:FCL} uses a petri net model with a baked in transaction system.
 
 Business Process Execution Language (BPEL)~\cite{Andrews2003:BPEL} itself lacks a formal semantics. Various efforts to assign semantics, eg using Petri Nets~\cite{Lohmann2009:PetriBPEL} and Abstract State Machines \cite{Fahland2005:SemanticsBPEL}. Much of the effort is in managing compensating transactions~\cite{Colombo2011:Compensating} which are a higher level language concern.
 
@@ -82,12 +74,6 @@ Business Process Execution Language (BPEL)~\cite{Andrews2003:BPEL} itself lacks 
 The Join Calculus~\cite{Cedric1996:Reflexive} and Chemical Abstract Machine~\cite{Berry1992:Chemical} Process algebras that model local interaction of code and data. CHAM has very explicit rules about grouping (cooling) and ungrouping (heating) facts to form compounds. For our application we want to model locality but it's sufficient to use a seggregated global ``top level'' store, rather than than explicit nesting of stores.
 
 TODO: describe Deon Digital DSL and "Compositional Specification of Commercial Contracts", Henglein.
-
-% ---------------------------------------------------------
-\subsection{Permissioned Distributed Ledgers}
-\label{s:RelatedPermissioned}
-Cite Corda uses a determinised JVM to specify its contracts. This is like defining our rule bodies in JVM bytecode.
-More on DAML, talk about problems with contract ids becoming dangling~\cite{DA2019:DAML}.
 
 % ---------------------------------------------------------
 \subsection{Authorization Logics}
