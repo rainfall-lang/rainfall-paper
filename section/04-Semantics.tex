@@ -224,30 +224,26 @@ This key property of our authorization system implies that the submitter of a tr
 
 \eject{}
 % -----------------------------------------------------------------------------
-\subsubsection{Properties of the auction example}
-For the auction example, we define an invariant over the store.
-The invariant states that each order has at most one associated budget.
-For each budget, the invariant states that the total amount of bids, invoices and offers associated with the budget must not exceed the budget total.
-The invariant also states that the remaining budget is the difference between the total amounts and the budget total.
-
-We show that the invariant is established initially for newly created budgets with no bids, invoices or offers.
-We also show that the invariant is preserved by each rule individually.
-The following theorem shows that the @reserve@ rule preserves the invariant, by stating that if the rule executes from store $S$ to $S'$, and the invariant holds for the original store $S$, then the invariant also holds for the updated store $S'$:
+\subsubsection{Properties of the market example}
+We have also mechanized the market example in \S\ref{s:Selection} in Isabelle/HOL and proven the following business level theorem:
 
 \begin{theorem}
-Reserve rule preserves budget invariant
-$$
-\begin{array}{c}
-\jFire{A_{sub}}{S}{@reserve@}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-\implies \\
-\trm{store-ok}~{S} \implies \\
-\trm{store-ok}~{S'}
-\end{array}
-$$
+No Budget Blowout: The total value of invoices a broker recieves for items bought on behalf of a client, does not exceed the budget specified in the client's original order.
 \end{theorem}
 
+We prove this by first specifying an invariant over all facts in the store, and then proving that all possible firings of each rule in the workflow preserve the invariant. For example, the top-level statement for the @reserve@ production rule is as follows:
+\begin{tabbing}
+M \= MMx \= MMMMMM \kill
+\> If   \> $\jFire{A_{sub}}{S}{@reserve@}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
+\> ~and \> $\trm{store-ok}~{S}$ \hspace{1ex} then \hspace{1ex} $\trm{store-ok}~{S'}$
+\end{tabbing}
+
+The statement of the invariant is available in the appendix. We also prove that the invariant is established for newly created budgets with no initial associated bids, invoices or offers.
+
+Rainfall's production rule based programming model makes it easy to approach proofs of these sorts of business level properties. Provided one can write down a suitable invariant, the task then decomposes automatically into a separate subgoal for each rule.
 
 
+% -----------------------------------------------------------------------------
 \subsection{Extensions}
 
 \begin{figure}
@@ -266,25 +262,27 @@ $$
         {\jStoreUp{S}{D^n}{S'}}
 \end{array}
 $$
+\vspace{-1em}
 \caption{Store Modification}
 \label{f:StoreModification}
 \end{figure}
 
 
 % -----------------------------------------------------------------------------
+The semantics described in this section has a few natural extensions that we have elected to omit to avoid obscuring the presentation.
+
 \subsubsection{Extended Weight Types}
-There is no particular reason why the weight of each fact must be restricted to being a natural number as per \REF. Our dynamic semantics only depend on the exact representation of weights in three places: to combine the weights of factoids in EvMatchCons and EvStoreUp, and in the subset test and set difference operators in EvStoreDown.
+There is no particular reason why the weight of each fact must be restricted to being a natural number as per~\S\ref{s:Weights}. Our dynamic semantics only depends on the representation of weights in three places: to combine the weights of factoids in EvMatchCons and EvStoreUp, and in the subset test and set difference operators in EvStoreDown.
 
-In general it is sufficient to use an Abelian group which also has a partial order. The Abelian group provides a weight combining operator that is associative, commutative and invertible. Requiring weight combining operator to be associative and commutative allows the facts needed by a rule to be matched in arbitrary order, which supports efficient implementations based on the RETE algorithm mentioned in \REF. We need the partial order to determine if a weight of the required value is present in the store, and the weight combining operator needs to be invertable so we can reduce the weight of facts in the store when they are spent.
+In general it would sufficient to use an Abelian group which also has a partial order. An Abelian group provides a weight combining operator that is associative, commutative and invertible. Requiring weight combining operator to be associative and commutative allows the facts needed by a rule to be matched in arbitrary order. We need the partial order to determine if a weight of the required value is present in the store, and the weight combining operator needs to be invertable so we can reduce the weight of facts in the store when they are spent.
 
-An example non-numeric weight type is a simple @Present@ / @Absent@ indicator. If multiple facts are added with a weight of @Present@ then the resulting fact is still @Present@. If this @Present@ fact is then spent then it becomes @Absent@. Using such a weight is useful for situation where a fact represents a statement like ``someone needs to water the plants''. As the plants should only be watered once it does not make sense to allow a weight greater than one, and once a real-world party actually gets around to watering the plants, then the whole fact can be removed from the store.
+An example extend weight type is a simple @Present@ / @Absent@ indicator. When multiple facts are added with a weight of @Present@ then the resulting fact is still @Present@. If this @Present@ fact is then consumed it becomes @Absent@. Such a weight type helps to encode facts like ``someone needs to water the plants''. As the plants should only be watered once, it does not make sense to allow a numeric weight with value greater than one. Later, when a real-world party actually gets around to watering the plants, then the whole fact can be removed from the store.
 
 
 % -----------------------------------------------------------------------------
 \subsubsection{Minimum Weight Thresholds}
-In our current system, rules can match on visible facts that do not have that rule in their use set, provided they do not try to consume any weight of that fact or gain any authority from it. This is sympathetic to the intended physical implementation, where party using the system holds a copy of all facts they can observe -- so there is no reason to stop the transactions they submit from reading this data.
+In EvFire from Figure~\ref{f:Dynamics}, when a production rule reads a fact but does not consume any weight of it, or gain any authority from it, then the fact appears in the set of facts read $F^r_{read}$, but not the map of factoids spent $D^s_{spend}$. This means the rule can fire if the required fact is present in the store with any non-zero weight. An extension is to allow a rule to wait for a particular weight of a fact to be available before firing, without also needing to consume it. To achieve this we would change the representation of $F^r_{read}$ to also be a map of factoids, and add a (@require@ M) form to $Consume$ specifications, where M is a term that evaluates to the weight the rule must have before firing.
 
-When a rule reads a fact but does not consume weight or gain authority from it then the fact appears in the set of facts read ($F^r_{read}$ in EvFire), but not the set of facts spent ($D^s_{spend}$). This means the rule can fire if the required fact is present in the store with any non-zero weight. A natural extension is then to change this set of facts read to be a map of fact to the weight required before the rule can fire, perhaps by extending the grammar of $Consume$ specifications with a (@require M@) form, where M is a term that evaluates to the weight the rule should weight for before firing.
 
 
 
