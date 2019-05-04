@@ -36,14 +36,14 @@ Like LGL, Extended Shared Prolog (ESP)~\cite{Ciancarini1993:Coordinating, Cianca
 DAML~\cite{DA2019:DAML}, Corda~\cite{Hearn2016:Corda}, and Hyperledger Fabric~\cite{Androulaki2018:Fabric} are permissioned distributed ledgers that have some of the authorization and privacy properties of own Rainfall model.
 
 
-Cite Corda uses a determinised JVM to specify its contracts. This is like defining our rule bodies in JVM bytecode. More on DAML, talk about problems with contract ids becoming dangling~\cite{DA2019:DAML}.
+\TODO{Cite Corda uses a determinised JVM to specify its contracts. This is like defining our rule bodies in JVM bytecode. More on DAML, talk about problems with contract ids becoming dangling~\cite{DA2019:DAML}.}
 
 
 
 
 % ---------------------------------------------------------
 \subsection{Actors}
-Rainfall production rules have a passing similarity to Actors~\cite{Agha92:ActorTheory}, but the computation framework is quite different. Production rules do not maintain their own private state, or have instance identity in the sense that they are addressable by mailbox or channel names. However, one embed an actor program \emph{into} Rainfall, by building facts that represent the local state of each actor, and defining production rules to handle the messages. A proposed extension to Erlang provides the multi-headed pattern supported by production rules~\cite{Sulzmann2008:MultiHeaded}, but performs matching on ordered streams of incoming messages rather selecting from an unordered soup of tuples. ActorSpaces~\cite{Agha1993:ActorSpace} is a related model where communication is still done by message passing, but messages can be broadcast to all actors in a group, rather than just a single one as in point-to-point communication.
+Rainfall production rules have a passing similarity to Actors~\cite{Agha92:ActorTheory}, but the computation framework is quite different. Production rules do not maintain their own private state, or have instance identity in the sense that they are addressable by mailbox or channel names. However, one could embed an actor program \emph{into} Rainfall, by building facts that represent the local state of each actor, and defining production rules to handle the messages. A proposed extension to Erlang provides the multi-headed pattern supported by production rules~\cite{Sulzmann2008:MultiHeaded}, but performs matching on ordered streams of incoming messages rather selecting from an unordered soup of tuples. ActorSpaces~\cite{Agha1993:ActorSpace} is a related model where communication is still done by message passing, but messages can be broadcast to all actors in a group, rather than just a single one as in point-to-point communication.
 
 % Rainfall system is not directly reactive, in the sense that there are concurrent processes waiting to receive messages and provide responses. As described in \REF, in normal use a submitting party decides when to perform a transaction according to one of the rules, and is free to disambiguate any non-determinism in pattern matching as they see fit.
 
@@ -73,7 +73,7 @@ Business Process Execution Language (BPEL)~\cite{Andrews2003:BPEL} itself lacks 
 \subsection{Process Algebras}
 The Join Calculus~\cite{Cedric1996:Reflexive} and Chemical Abstract Machine~\cite{Berry1992:Chemical} Process algebras that model local interaction of code and data. CHAM has very explicit rules about grouping (cooling) and ungrouping (heating) facts to form compounds. For our application we want to model locality but it's sufficient to use a seggregated global ``top level'' store, rather than than explicit nesting of stores.
 
-TODO: describe Deon Digital DSL and "Compositional Specification of Commercial Contracts", Henglein.
+\TODO{describe Deon Digital DSL and "Compositional Specification of Commercial Contracts", Henglein.}
 
 % ---------------------------------------------------------
 \subsection{Authorization Logics}
