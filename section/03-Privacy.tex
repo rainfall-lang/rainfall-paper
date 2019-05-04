@@ -26,7 +26,7 @@ Assume that Alice, Bob, Mona and Isabelle all have their own computers in their 
 Transaction
  seq    = ... sequence number ...
  rule   = ... hash of the transfer rule ...
- input  = [ Offer [id = '1234, terms = "To purchase a Guitar"
+ input  = [ Offer [id = '1234, terms = "To purchase a Guitar",
                    giver = !Alice, receiver = !Bob]
             by  {!Alice}            obs {!Mona, !Bob}
             use {'transfer}         num  1
@@ -59,7 +59,7 @@ Alice cannot send the complete transaction to all parties as they are not all en
 
 % -----------------------------------------------------------------------------
 \subsection{Transaction Views}
-We abbreviate the four weighted facts in the transaction structure as $d_1, d_2, d_3, d_4$. The letter $d$ is a mnemonic or \emph{factoid} --- being an ``unreliable'' fact, because the weight might be zero. We express the complete transaction as the following tuple, using $h(X)$ to mean the hash of value $X$.
+We abbreviate the four weighted facts in the transaction structure as $d_1, d_2, d_3, d_4$. The letter $d$ is a mnemonic for \emph{factoid} --- being an ``unreliable'' fact, because the weight might be zero. We express the complete transaction as the following tuple, using $h(X)$ to mean the hash of value $X$, and $tx$ to denote the name of the transfer rule:
 $$
  (seq,~ h(tx), [d_1, d_2, d_3], [d_4])
 $$
@@ -150,7 +150,7 @@ For the transaction from \S\ref{s:Transactions}, although Alice was the one that
 \subsection{Fact Selection and Checking}
 \label{s:Query}
 \label{s:Selection}
-In the coin transfer rules discussed so far, each pattern matching clause has only gathered a single fact at a time. Consider instead a market workflow where rules need to perform more complex queries, such selecting the cheapest item that matches some criteria. Figure~\ref{f:AuctionVisibility} shows the fact visibility for an example workflow. Mark runs the market, Brendan is a broker, and Alice is a client who wishes to buy some items. Alice must interact with Mark through Brendan, instead of communicating directly, like so:
+In the coin transfer rules discussed so far, each pattern matching clause has only gathered a single fact at a time. Consider instead a market workflow where rules need to perform more complex queries, such as selecting the cheapest item that matches some criteria. Figure~\ref{f:AuctionVisibility} shows the fact visibility for an example workflow. Mark runs the market, Brendan is a broker, and Alice is a client who wishes to buy some items. Alice must interact with Mark through Brendan, instead of communicating directly, like so:
 
 \begin{enumerate}
 \item Mark maintains @Item@ facts that describe items available for sale, along with their asking price. Brendan can pay the asking price to buy an item immediately, or bid below the asking price, which Mark may or may not accept.
@@ -159,7 +159,7 @@ In the coin transfer rules discussed so far, each pattern matching clause has on
 
 \item Brendan attempts to fulfill Alice's orders by bidding on multiple items concurrently. Brendan maintains a local @Budget@ fact recording how much of Alice's total budget has not yet been committed to bids. This ensures he does not accidentally bid on items that Alice is not prepared to pay for.
 
-\item When Brendan wishes enter a new bid he creates a local @Reserve@ fact, which indicates that some of Alice's budget needs to be reserved for this bid. This causes one of Brendan's business rules to fire, which first checks enough @Budget@ is available, and if so, subtracts from the current @Budget@, then sends an active @Bid@ to Mark.
+\item When Brendan wishes enter a new bid he creates a local @Reserve@ fact, which indicates that some of Alice's budget needs to be reserved for this bid. This causes one of Brendan's business rules to fire, which first checks that enough @Budget@ is available, and if so, subtracts from the current @Budget@, then sends an active @Bid@ to Mark.
 
 \item On Mark's side, one of Mark's business rules finds the cheapest available @Item@ that matches the description in Brendan's @Bid@, and if the bid price is lower than the ask price, converts the bid to an outstanding @Offer@.
 
@@ -192,7 +192,7 @@ An interesting aspect of this workflow is that different parties in the system w
 \end{code}
 \end{small}
 
-The @Order@ pattern has a @consume none@ clause to indicate that we only want to read the fact data, rather then consume any weight of it, as the complete order might not be fulfilled yet. The @Order@ pattern does not mention the @budget@ field as this particular rule does not use it. The @Item@ pattern has a @select first a@ clause to indicate the all items that match the description in the order should be sorted by the asking price @a@, and the first one selected. Brendan should only bid on the cheapest matching item available. The @Reserve@ pattern has a @where@ clause to check the bid being placed is no more than Alice's price limit, no more than the market asking price, and no more than the remaining budget for Alice.
+The @Order@ pattern has a @consume none@ clause to indicate that we only want to read the fact data, rather then consume any weight of it, as the complete order might not be fulfilled yet. The @Order@ pattern does not mention the @budget@ field as this particular rule does not use it. The @Item@ pattern has a @select first a@ clause to indicate that all items that match the description in the order should be sorted by the asking price @a@, and the first one selected. Brendan should only bid on the cheapest matching item available. The @Reserve@ pattern has a @where@ clause to check the bid being placed is no more than Alice's price limit, no more than the market asking price, and no more than the remaining budget for Alice.
 
 As the rule matches on facts it will @gain@ the authority of the client and broker. The output @Budget@ only needs to be authorized by Brendan as this is part of his internal accounting. The output @Bid@ is authorized jointly by Brendan and Alice, as Brendan is entering the bid on behalf of Alice. Finally, in the pattern for @Item@, the rule @check@s that this fact has been authorized by Mark rather than trying to @gain@ his authority. The @check@ clause allows patterns to match on observable facts without the rule name being mentioned in the use-set of that fact. Mark should not need to concern himself with Brendan's accounting, so the @Item@ facts that Mark creates do not need to mention Brendan's rules. Brendan's @reserve@ rule can still execute because it is not consuming any facts authorized by Mark, or producing any that are authorized in his name.
 
