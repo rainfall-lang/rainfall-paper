@@ -23,7 +23,8 @@ The codified law specifies the allowable \emph{interaction} a process may have w
 
 % ---------------------------------------------------------
 \subsection{Extended Shared Prolog}
-Like LGL, Extended Shared Prolog (ESP)~\cite{Ciancarini1993:Coordinating, Ciancarini1994:LogicTupleSpaces} also combines the Linda coordination model with rules written in a restricted subset of Prolog. In this case the rules are stored as special \emph{program tuples} in the main tuple space. The rules describe how existing tuples can be combined, rather than controlling the interaction between the tuple space and its clients. The format of each rule is similar to Rainfall production rules, including a section to gather matching tuples, a section to decide which ones should be consumed, and a section to compute new tuples. Program tuples behave like triggers in an active database~\cite{Paton1999:Active}, where the rule is activated when the tuples it was waiting for become available. However, as with the basic Linda coordination model, there is no mechanism to enforce transitive authority, or track the provenance of created tuples.
+\label{s:RelatedESP}
+Like LGL, Extended Shared Prolog (ESP)~\cite{Ciancarini1993:Coordinating, Ciancarini1994:LogicTupleSpaces} combines the Linda coordination model with rules written in a restricted subset of Prolog. In this case the rules are stored as special \emph{program tuples} in the main tuple space, and the rules describe how existing tuples can be combined, rather than controlling the interaction between the tuple space and its clients. The format of each rule is similar to a Rainfall production rule, including a section to gather matching tuples, a section to decide which should be consumed, and a section to compute new tuples. Program tuples behave like triggers in an active database~\cite{Paton1999:Active}, where a rule is activated when all tuples it was waiting for become available. However, as with the basic Linda coordination model, there is no mechanism to enforce transitive authority, or track the provenance of created tuples.
 
 % Rainfall takes extends the basic ESP model with an authority mechanism to track which parties authorize the production of which facts, which allows the safe execution of multiparty contracts. ESP program rules are also anonymous, where the Rainfall system relies on them having names so that these names can be mentioned in the facts.
 
@@ -33,21 +34,47 @@ Like LGL, Extended Shared Prolog (ESP)~\cite{Ciancarini1993:Coordinating, Cianca
 % ---------------------------------------------------------
 \subsection{Permissioned Distributed Ledgers}
 \label{s:RelatedPermissioned}
-DAML~\cite{DA2019:DAML}, Corda~\cite{Hearn2016:Corda}, and Hyperledger Fabric~\cite{Androulaki2018:Fabric} are permissioned distributed ledgers that have some of the authorization and privacy properties of own Rainfall model.
+As mentioned in \S\ref{s:NestedTransactions}, DAML combines facts and rules into a \emph{contract instance}, which is similar to an object in an Object-Oriented (OO) model. Objects are referred to by \emph{contract identifiers}, which are equivalent to typed references in the OO model. The DAML coordination model is based on UTxO~\cite{Zahnentferner2018:UTxO}, so invoking a method on an object typically causes it to create some new objects, then consume/delete that object. Deleting an object causes any existing references to it to become dangling, and following a dangling reference at runtime causes an exception. In contrast, our Rainfall model identifies facts by their content, rather than using a physical reference or pointer value. If a particular fact is not available with sufficient weight then this inhibits rule firing, rather than being treated as an execution failure.
 
+A DAML method can invoke methods on other objects that it already has a reference to, but cannot query the ledger state directly. This is restriction is standard in OO coordination models, where method code cannot directly query the runtime heap to discover other objects based on their field data. Objects typically communicate using shared references to mutable data. However, as the DAML programming model purposefully does not include shared mutable data, the usual OO programming patterns are unavailable. In practice, ledger queries are performed by ``nanobots'', which are driver routines written in an external language. The query performed by a nanobot yields a set of references to active DAML contract instances (objects), which are then passed back to the DAML code as arguments on method invocations. The Rainfall model was specifically developed to avoid the need for nanobots, while providing an authority system similar the one in DAML.
 
-Cite Corda uses a determinised JVM to specify its contracts. This is like defining our rule bodies in JVM bytecode. More on DAML, talk about problems with contract ids becoming dangling~\cite{DA2019:DAML}.
+% Source level DAML programs could be converted to the Rainfall model by representing active DAML contract instances as facts listing their fields, and splitting each method into a separate rule. A party wishing to invoke a method would add a fact listing the arguments to that method, and the associated rule would consume both facts.
 
+Corda~\cite{Hearn2016:Corda}, and Hyperledger Fabric~\cite{Androulaki2018:Fabric} are related permissioned distributed ledgers. Instead of defining a specific contract language, both systems allow custom procedures to be installed that accept transactions directly and report whether they are valid. In Corda the validation procedures are expressed in a version of JVM bytecode that has been modified to ensure execution is deterministic. In Hyperledger Fabric the validation procedures can be arbitrary native code encapsulated in a Docker~\cite{Docker2019} container. These systems both provide the networking layer for a distributed ledger system, but purposefully do not specify a programming model in sufficient detail to prove safety properties such as those in \S\ref{s:Properties}. Leaving this as a separate implementation design choice.
 
 
 
 % ---------------------------------------------------------
-\subsection{Actors}
-Rainfall production rules have a passing similarity to Actors~\cite{Agha92:ActorTheory}, but the computation framework is quite different. Production rules do not maintain their own private state, or have instance identity in the sense that they are addressable by mailbox or channel names. However, one embed an actor program \emph{into} Rainfall, by building facts that represent the local state of each actor, and defining production rules to handle the messages. A proposed extension to Erlang provides the multi-headed pattern supported by production rules~\cite{Sulzmann2008:MultiHeaded}, but performs matching on ordered streams of incoming messages rather selecting from an unordered soup of tuples. ActorSpaces~\cite{Agha1993:ActorSpace} is a related model where communication is still done by message passing, but messages can be broadcast to all actors in a group, rather than just a single one as in point-to-point communication.
+\subsection{Actors, Process Algebras, and Constraints}
+Production rule systems like Rainfall have a passing similarity to the Actor~\cite{Agha92:ActorTheory} model, but the computation framework is quite different. Production rules do not maintain their own private state, or have instance identity in the sense that they are addressable by mailbox or channel names. However, one could compile an actor program \emph{into} Rainfall, by building facts that represent the local state of each actor, and defining production rules to handle the messages. A proposed extension to Erlang provides the multi-headed pattern matching needed by production rules~\cite{Sulzmann2008:MultiHeaded}, though matching is performed on ordered streams of incoming messages, rather selecting from an unordered soup of tuples. ActorSpaces~\cite{Agha1993:ActorSpace} is a related model that uses message passing communication while also allowing messages to be broadcast to all actors in a group.
+
+Existing process languages such as the Join Calculus~\cite{Cedric1996:Reflexive} and the Chemical Abstract Machine~(CHAM)~\cite{Berry1992:Chemical} allow processes to wait for multiple related facts (messages) to become available before activating. Similar functionality is available from of Constraint Handling Rules (CHR)~\cite{Fruthwirth1998:CHRs}. However, as with Extended Shared Prolog~(\S\ref{s:RelatedESP}) these systems do not have a builtin authority or provenance mechanism that could be used to guide data privacy as described in \S\ref{s:Privacy}.
+
+
+% ---------------------------------------------------------
+\subsection{Authorization Logics}
+The Dependency Core Calculus (DCC)~\cite{Abadi1999:DCC} extends Moggi's computational lambda calculus with an extra judgment form that indicates the value produced by a computation is protected at a given security level. Abadi~\cite{Abadi2007:AccessControl} studies DCC applied to access control and tracking in a distributed system. This work uses a proposition $(P~\trm{says}~A)$, where $P$ is some principle/party that affirms statement $A$. The 'says' former abstracts away from the details of what exactly is being authenticated or authorized. The statement $(P~\trm{says}~A)$ can variously be interpreted as ``$P$ has caused $A$ to be said'', ``$A$ has been said on $P$'s behalf'' or ``$P$ supports $A$''. Garg~\cite{Garg2006:Constructive} gives a sequent style presentation with two judgement forms $(A~\trm{true})$ and $(P~\trm{affirms}~A)$. The `affirms' form is internalized as a proposition $(P~\trm{says}~A)$. Garg's system comes with meta theory of Affirmation Flow, meaning that unless a principle P affirms a particular statement, no affirmations of the form $(P~\trm{affirms}~A)$ can be derived from it. Bowers~\cite{Bowers2007:Consumable} gives a Gentzen style presentation that also has a $(P~\trm{signed}~A)$ form to model a message being cryptograpically signed.
+
+DCC and related systems are logics rather than programming languages that have a direct operational interpretation. The Aura language~\cite{Jia2008:Aura} then specifies a functional operational semantics, as well as a proof term assignment for a version of DCC. Proofs of authority can be passed to functions as pure proof terms. Rainfall is directly inspired by the DCC family of logics and languages. Instead of building functional proof terms to demonstrate authority, we gather it in stages, incrementally writing authorized facts back to the ledger. Our ledger then can be viewed as a distributed proof of authority, where versions of DCC style logical properties still apply. For example, our Authority Flow theorem (\S\ref{s:Properties}) is the operational version of Garg's~\cite{Garg2006:Constructive} Affirmation Flow.
+
+
+% TODO: describe Deon Digital DSL and "Compositional Specification of Commercial Contracts", Henglein.
+
+
+% Garg 2006~\cite{Garg2006:Constructive} presents a system in sequent style with two judgement forms (A true) and (K affirms A), where K is a principle (party) and A is a proposition. The 'affirms' judgement is then internalised into a proposition as (K says A). The meanings of the connectives are defined by the rules that introduce and eliminate them, rather than a concrete operationa semantics. This system comes with meta theory of affirmation flow, meaning that unless a principle K affirms a statement, no affirmations of the form (K affirms A) can be derived from it.
+
+% Bowers 2007~\cite{Bowers2007:Consumable} contains a Gentzen style presentation of Garg 2006 that adds a linear environment to enforce that particular statements (K says A) are only used once in a given authority proof. It also has a (A signed F) form to model a message being cryptograpically signed. Includes an informal discussion of how linear uses of predicates can be enforced in a distributed environment by reling on a central ratifier to check the proofs.
+
+% Aura~\cite{Jia2008:Aura} is a dependently typed language that includes the (A says P) form of DCC~\cite{Abadi1999:DCC} and provides a proof term assignment for the earlier pure authorization logics. The proof language is restricted to only contain proofs with no redexes, which simplifies type checking and ensures proof construction code does not perform effects. Proofs of authority are passed as pure proof terms so that fact that a given function may capture authority in its closure is not visible in its type.
+
+
 
 % Rainfall system is not directly reactive, in the sense that there are concurrent processes waiting to receive messages and provide responses. As described in \REF, in normal use a submitting party decides when to perform a transaction according to one of the rules, and is free to disambiguate any non-determinism in pattern matching as they see fit.
 
 % \TODO{compare with constraint handling rules:likewise CHR specifies a particular matching order for constraints, (is that right?)}
+
+
+
 
 
 % ---------------------------------------------------------
@@ -56,35 +83,13 @@ Rainfall production rules have a passing similarity to Actors~\cite{Agha92:Actor
 
 
 % ---------------------------------------------------------
-\subsection{Account Based Ledgers}
-In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cite{Lee2018:EOSIO} all data on the ledger is visible to all parties. In these systems each account is associated with a contract that has its own mutable state. The contract code can export methods which are callable by other parties in the system. Authority is managed programatically, where method code must check at runtime that the party that calls a particular method is permitted to do so. Contracts that require authority from multiple parties to perform some action can use local mutable state to build a set of parties that have provided their consent so far. In our system the authority to create and consume facts is managed at the meta level as this also affects the whether each party can see the data.
+%\subsection{Account Based Ledgers}
+% In public account ledgers like Ethereum~\cite{Wood2014:Ethereum} and EOS.IO~\cite{Lee2018:EOSIO} all data on the ledger is visible to all parties. In these systems each account is associated with a contract that has its own mutable state. The contract code can export methods which are callable by other parties in the system. Authority is managed programatically, where method code must check at runtime that the party that calls a particular method is permitted to do so. Contracts that require authority from multiple parties to perform some action can use local mutable state to build a set of parties that have provided their consent so far. In our system the authority to create and consume facts is managed at the meta level as this also affects the whether each party can see the data.
 
 % Rules are free to perform their own ``business level'' checks, such as ensuring that only a given set of parties can activate the rule.
 
 
 % ---------------------------------------------------------
-\subsection{Petri-net Systems}
-FCL~\cite{Adjoint2019:FCL} uses a petri net model with a baked in transaction system.
-
-Business Process Execution Language (BPEL)~\cite{Andrews2003:BPEL} itself lacks a formal semantics. Various efforts to assign semantics, eg using Petri Nets~\cite{Lohmann2009:PetriBPEL} and Abstract State Machines \cite{Fahland2005:SemanticsBPEL}. Much of the effort is in managing compensating transactions~\cite{Colombo2011:Compensating} which are a higher level language concern.
-
-
-% ---------------------------------------------------------
-\subsection{Process Algebras}
-The Join Calculus~\cite{Cedric1996:Reflexive} and Chemical Abstract Machine~\cite{Berry1992:Chemical} Process algebras that model local interaction of code and data. CHAM has very explicit rules about grouping (cooling) and ungrouping (heating) facts to form compounds. For our application we want to model locality but it's sufficient to use a seggregated global ``top level'' store, rather than than explicit nesting of stores.
-
-TODO: describe Deon Digital DSL and "Compositional Specification of Commercial Contracts", Henglein.
-
-% ---------------------------------------------------------
-\subsection{Authorization Logics}
-\TODO{Cut back descriptions of auth logic, don't use so much space as Rainfall is more operational, and not a logic.}
-
-The Dependency Core Calculus (DCC)~\cite{Abadi1999:DCC} extends Moggi's computational lambda calculus with an extra judgment to say that a value produced from a computation is protected at a given security level. The computation types are written (T l a) where T is the computation type former, l an element from a lattice describing authority levels, and a the return type. The calculus has rules for monadic 'lift' and 'bind' operators to ensure results computed by bind are annotated with the required authority. The terms are given a denotational semantics, but not an operational one that dynamically checks the running term has the required authority.
-
-Abadi 2006~\cite{Abadi2007:AccessControl} studies the use of DCC for access control and tracking in a distributed system. It uses a proposition (A says s) where 'A' is some principle/party that affirms statement 's'. The 'says' former abstracts away from the precise details of what is being authenticated or authorized. The statement (A says s) can be interpreted variously as "A has caused s to be said", "s has been said on A's behalf" or "A supports s". This work uses polymorphism to introduce delegation, providn terms of type (forall X. (A says X) implies (B says X)). As per the previous work \cite{Abadi1999:DCC} the system is presented as a logic rather than a programming language with operational meaning.
-
-% Garg 2006~\cite{Garg2006:Constructive} presents a system in sequent style with two judgement forms (A true) and (K affirms A), where K is a principle (party) and A is a proposition. The 'affirms' judgement is then internalised into a proposition as (K says A). The meanings of the connectives are defined by the rules that introduce and eliminate them, rather than a concrete operationa semantics. This system comes with meta theory of affirmation flow, meaning that unless a principle K affirms a statement, no affirmations of the form (K affirms A) can be derived from it.
-
-% Bowers 2007~\cite{Bowers2007:Consumable} contains a Gentzen style presentation of Garg 2006 that adds a linear environment to enforce that particular statements (K says A) are only used once in a given authority proof. It also has a (A signed F) form to model a message being cryptograpically signed. Includes an informal discussion of how linear uses of predicates can be enforced in a distributed environment by reling on a central ratifier to check the proofs.
-
-% Aura~\cite{Jia2008:Aura} is a dependently typed language that includes the (A says P) form of DCC~\cite{Abadi1999:DCC} and provides a proof term assignment for the earlier pure authorization logics. The proof language is restricted to only contain proofs with no redexes, which simplifies type checking and ensures proof construction code does not perform effects. Proofs of authority are passed as pure proof terms so that fact that a given function may capture authority in its closure is not visible in its type.
+% \subsection{Petri-net Systems}
+% FCL~\cite{Adjoint2019:FCL} uses a petri net model with a baked in transaction system.
+% Business Process Execution Language (BPEL)~\cite{Andrews2003:BPEL} itself lacks a formal semantics. Various efforts to assign semantics, eg using Petri Nets~\cite{Lohmann2009:PetriBPEL} and Abstract State Machines \cite{Fahland2005:SemanticsBPEL}. Much of the effort is in managing compensating transactions~\cite{Colombo2011:Compensating} which are a higher level language concern.

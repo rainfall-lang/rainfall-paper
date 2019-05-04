@@ -158,6 +158,7 @@ Rule EvSay evaluates its arguments and produces the corresponding factoid. The r
 % -----------------------------------------------------------------------------
 \eject{}
 \subsection{Properties}
+\label{s:Properties}
 We have mechanized Rainfall using the Isabelle/HOL interactive theorem prover, and proved several useful isolation and authorization properties. Using this theory as a basis, we have also mechanized the market example from \S\ref{s:Selection} to demonstrate how to prove safety properties of business logic encoded in our system.
 
 
@@ -186,7 +187,7 @@ In our formalization we use multisets for both the set of facts read $F^r_{read}
 
 % -------------------------------------
 \begin{theorem}
-No Poltergeists: Facts that are not visible to a submitting party do not influence rule firing:
+Focused Firing: Facts that are not visible to a submitting party do not influence rule firing:
 \end{theorem}
 \begin{tabbing}
 M \= MMx \= MMMMM \= MMM \kill
@@ -196,7 +197,7 @@ M \= MMx \= MMMMM \= MMM \kill
 \end{tabbing}
 
 \begin{theorem}
-No Exorcism: A rule firing cannot influence facts that are not visible to the submitting party.
+Visible Spending: A rule firing cannot influence facts that are not visible to the submitting party.
 \end{theorem}
 \begin{tabbing}
 MMM \= MMx \= MMMMMMM \= MM \kill
@@ -229,10 +230,10 @@ This key property of our authorization system implies that the submitter of a tr
 We have also mechanized the market example in \S\ref{s:Selection} in Isabelle/HOL and proven the following business level theorem:
 
 \begin{theorem}
-No Budget Blowout: The total value of invoices a broker recieves for items bought on behalf of a client, does not exceed the budget specified in the client's original order.
+Budget Adherence: The total value of invoices a broker receives for items bought on behalf of a client, never exceeds the budget specified in the client's original order.
 \end{theorem}
 
-We prove this by first specifying an invariant over all facts in the store, and then proving that all possible firings of each rule in the workflow preserve the invariant. For example, the top-level statement for the @reserve@ production rule is as follows:
+We prove this by first specifying an invariant over all facts in the store, and then proving that the possible firings of each rule in the workflow all preserve the invariant. For example, the top-level statement for the @reserve@ production rule is:
 \begin{tabbing}
 M \= MMx \= MMMMMM \kill
 \> If   \> $\jFire{A_{sub}}{S}{@reserve@}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
@@ -241,7 +242,7 @@ M \= MMx \= MMMMMM \kill
 
 The statement of the invariant is available in the appendix. We also prove that the invariant is established for newly created budgets with no initial associated bids, invoices or offers.
 
-Rainfall's production rule based programming model makes it easy to approach proofs of these sorts of business level properties. Provided one can write down a suitable invariant, the task then decomposes automatically into a separate subgoal for each rule.
+Rainfall's production rule based programming model makes it easy to approach proofs of business level properties like this. Provided one can write down a suitable invariant, the task then decomposes automatically into a separate subgoal for each rule.
 
 
 % -----------------------------------------------------------------------------
