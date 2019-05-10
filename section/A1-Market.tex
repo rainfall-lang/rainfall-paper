@@ -1,0 +1,49 @@
+\appendix
+\section{Market example}
+
+The market example introduced in~\S\ref{s:Selection} used the ``\trm{store-ok}'' invariant to ensure that, if the budgets are adhered to in a particular store, then after execution of any of the market rules, any updated budgets in the new store are also adhered to.
+A budget is adhered to when the total value of invoices issued to a broker for a particular client do not exceed the client's specified budget limit.
+
+\begin{tabbing}
+M \= For all rules \= MMMMMM \kill
+\> For all rules \> $r \in \{@accept@, @bid@, @reserve@\}$, \\
+\> ~if   \> $\jFire{A_{sub}}{S}{r}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
+\> ~and \> $\trm{store-ok}~{S}$ \hspace{1ex} then \hspace{1ex} $\trm{store-ok}~{S'}$
+\end{tabbing}
+
+The definition of the invariant for stores finds all orders in the store, and ensures that for each order the order invariants are satisfied:
+
+\begin{tabbing}
+M \= M \= For all orders \= MMMMMM \kill
+\> $\trm{store-ok}~{S} = $ \\
+\> \> For all orders \> $@Order@~o \in S$, \\
+\> \> require \> $\trm{order-ok}~{S}~o$
+\end{tabbing}
+
+The order invariant ensures that an order has at most one budget, and that the budget invariants are satisfied. An order with no associated budget is valid:
+
+\begin{tabbing}
+M \= M \= For all budgets \= MMMMMM \kill
+\> $\trm{order-ok}~{S}~o = $ \\
+\> \> For all budgets \> $@Budget@~b \in \trm{budgets-for-order}~S~o$, \\
+\> \> require \> $\trm{unique}~S~b$ \\
+\> \> and require \> $\trm{budget-ok}~{S}~b$
+\end{tabbing}
+
+While our desired property is to show that the total value of invoices does not exceed the budget limit, our invariant must show a stronger property, which is that the total value of bids, invoices and offers must not exceed the budget limit.
+This stronger property is required as bids and offers can eventually result in invoices, as bids are transformed to offers, and offers are accepted. 
+The budget invariant finds all associated bids, invoices and offers, and sums their prices to compute the total amount reserved by the budget. This total must not exceed the budget limit, and the remaining budget must be the difference between the total and the budget limit:
+
+\begin{tabbing}
+M \= M \= and require \= invoices \= \kill
+\> $\trm{budget-ok}~{S}~b = $ \\
+\> \> Require \> $\mathit{total} \le \trm{budget-total}~b$ \\
+\> \> and require \> $\trm{budget-total}~b - \mathit{total} = \trm{budget-remain}~b$ \\
+\> \> where \> $\mathit{total}$ \> $= \mathit{bids} + \mathit{invoices} + \mathit{offers}$, \\
+\> \> and \> $\mathit{bids}$ \> $= \sum_{d \in \trm{bids-for-budget}~S~b} \trm{bid-price}~d$ \\
+\> \> and \> $\mathit{invoices}$ \> $= \sum_{i \in \trm{invoices-for-budget}~S~b} \trm{invoice-price}~i$ \\
+\> \> and \> $\mathit{offers}$ \> $= \sum_{o \in \trm{offers-for-budget}~S~b} \trm{offer-price}~o$ \\
+\end{tabbing}
+
+The functions \trm{bids-for-budget}, \trm{invoices-for-budget} and \trm{offers-for-budget} compute the multiset of associated bids, invoices or offers, for a particular budget. 
+The functions \trm{budget-total}, \trm{budget-remain}, \trm{bid-price}, and so on, are accessor functions to retrieve components of the fact values.
