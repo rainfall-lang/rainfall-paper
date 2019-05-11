@@ -166,7 +166,8 @@ In the coin transfer rules discussed so far, each pattern matching clause has on
 \item Later, if Mark decides to accept Brendan's lower offer, then Mark creates a local @Accept@ fact. One of Mark's business rules matches the @Accept@ with the corresponding @Offer@ and @Item@, consumes all three, and creates an @Invoice@ which is visible to all three parties.
 \end{enumerate}
 
-An interesting aspect of this workflow is that different parties in the system will naturally want to maintain their own local business rules, and corresponding fact declarations. The way Brendan accounts for bids he has placed on Alice's behalf is of no concern to Mark, but expressing all rules in the same framework means they can communicate directly. Here is the rule Brendan uses to check the @Budget@ and produce a @Bid@.
+An interesting aspect of this workflow is that different parties in the system will naturally want to maintain their own local business rules, and corresponding fact declarations. The way Brendan accounts for bids he has placed on Alice's behalf is of no concern to Mark, but expressing all rules in the same framework means they can communicate directly. Here is the rule Brendan uses to check the @Budget@ and produce a @Bid@. The others are available in the online appendices at
+\url{http://github.com/rainfall-lang/rainfall-paper}.
 
 \begin{small}
 \begin{code}
