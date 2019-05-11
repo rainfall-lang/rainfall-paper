@@ -104,20 +104,20 @@ For the transaction in \S\ref{s:Transactions}, Isabelle's view is constructed by
 
 \begin{small}
 \begin{code}
-  rule  agreeOnOffer
+  rule  agreeOffer
   await Offer  [id = ?i, giver = ?g, receiver = ?r] gain {g}
     and Accept [id = i,  accepter = r]              gain {r}
   to
     say Agreed [giver = g, receiver = r]
-     by {g,r}  obs {!Mona,!Isabelle}
+     by {g,r}  obs {!Mona,!Isabelle} use {'performTransfer}
 
-  rule  doTheTransfer
+  rule  performTransfer
   await Agreed [giver = ?g, receiver = ?r]        gain {g,r}
    and  Coin   [issuer = !Isabelle, holder = g]
         gain {!Isabelle,g}
   to
     say Coin   [issuer = !Isabelle, holder = r]
-     by {!Isabelle,r} obs {!Mona}
+     by {!Isabelle,r} obs {!Mona} use ...
 \end{code}
 \end{small}
 
