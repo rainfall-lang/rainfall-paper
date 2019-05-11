@@ -8,7 +8,7 @@ This repository contains the latex source code for the paper describing the Rain
  [distro/Rainfall-PPDP2019-with-appendices.pdf](https://github.com/rainfall-lang/rainfall-paper/blob/master/distro/Rainfall-PPDP2019-with-appendices.pdf)
  
 * An interpreter implementation is at
- [https://github.com/rainfall-lang/rainfall-model](https://github.com/rainfall-lang/rainfall-model)
+ [https://github.com/rainfall-lang/rainfall-model](https://github.com/rainfall-lang/rainfall-model), which includes executable versions of the examples described in the paper.
  
 * Proof scripts for the formalization are at 
  [https://github.com/rainfall-lang/rainfall-model/tree/master/proof](https://github.com/rainfall-lang/rainfall-model/tree/master/proof)
