@@ -11,4 +11,4 @@ This repository contains the latex source code for the paper describing the Rain
  [https://github.com/rainfall-lang/rainfall-model](https://github.com/rainfall-lang/rainfall-model), which includes executable versions of the examples described in the paper.
  
 * Proof scripts for the formalization are at 
- [https://github.com/rainfall-lang/rainfall-model/tree/master/proof](https://github.com/rainfall-lang/rainfall-model/tree/master/proof)
+ [https://github.com/rainfall-lang/rainfall-model/tree/master/proof](https://github.com/rainfall-lang/rainfall-model/tree/master/proof). A HTML version of the same is at [http://www.cse.unsw.edu.au/~amosr/rainfall-isa/Rainfall/](http://www.cse.unsw.edu.au/~amosr/rainfall-isa/Rainfall/)
