@@ -32,18 +32,19 @@ M \= M \= For all budgets \= MMMMMM \kill
 
 While our desired property is to show that the total value of invoices does not exceed the budget limit, our invariant must show a stronger property, which is that the total value of bids, invoices and offers must not exceed the budget limit.
 This stronger property is required as bids and offers can eventually result in invoices, as bids are transformed to offers, and offers are accepted. 
-The budget invariant finds all associated bids, invoices and offers, and sums their prices to compute the total amount reserved by the budget. This total must not exceed the budget limit, and the remaining budget must be the difference between the total and the budget limit:
+The budget invariant finds all associated bids, invoices and offers, and sums their prices to compute the total amount reserved by the budget.
+This total reserved amount plus the remaining budget must equal the budget limit:
 
 \begin{tabbing}
-M \= M \= and require \= invoices \= \kill
+M \= M \= Require \= invoices \= \kill
 \> $\trm{budget-ok}~{S}~b = $ \\
-\> \> Require \> $\mathit{total} \le \trm{budget-total}~b$ \\
-\> \> and require \> $\trm{budget-total}~b - \mathit{total} = \trm{budget-remain}~b$ \\
+\> \> Require \> $\trm{budget-total}~b = \mathit{total} + \trm{budget-remain}~b$ \\
 \> \> where \> $\mathit{total}$ \> $= \mathit{bids} + \mathit{invoices} + \mathit{offers}$, \\
 \> \> and \> $\mathit{bids}$ \> $= \sum_{d \in \trm{bids-for-budget}~S~b} \trm{bid-price}~d$ \\
 \> \> and \> $\mathit{invoices}$ \> $= \sum_{i \in \trm{invoices-for-budget}~S~b} \trm{invoice-price}~i$ \\
 \> \> and \> $\mathit{offers}$ \> $= \sum_{o \in \trm{offers-for-budget}~S~b} \trm{offer-price}~o$ \\
 \end{tabbing}
 
+This invariant ensures that the reserved amount is less than or equal to the total budget, as all numbers are non-negative natural numbers.
 The functions \trm{bids-for-budget}, \trm{invoices-for-budget} and \trm{offers-for-budget} compute the multiset of associated bids, invoices or offers, for a particular budget. 
 The functions \trm{budget-total}, \trm{budget-remain}, \trm{bid-price}, and so on, are accessor functions to retrieve components of the fact values.
