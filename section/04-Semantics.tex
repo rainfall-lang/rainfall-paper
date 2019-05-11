@@ -25,7 +25,7 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 
 \\[1ex]
    $T,$ \> $Type$       \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
-\\ \>                   \> ~|  \> $\kSet~ Type~ |~ \kFact~ Type~ |~ \kFactoid$
+\\ \>                   \> ~|  \> $\kSet~ Type~ |~ \kSets~ Type~ |~ \kFact~ Type~ |~ \kFACT$
 \\ \>                   \> ~|  \> $[ (Label : Type)* ] ~|~ Type \to Type~$
 
 \\[1ex]
@@ -38,7 +38,7 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 \\[1ex]
   $V,$   \> $Value$     \> ::= \> $Literal~ |~ \lambda Var : Type.~ Term$
 \\       \>             \> ~|  \> $[ (Label = Value)* ] ~|~ \{ Value* \}$
-\\       \>             \> ~|  \> $Fact ~|~ (Fact, Weight)$
+\\       \>             \> ~|  \> $Fact ~|~ \{ Fact \mapsto Weight \}$
 
 \\[1ex]
   $L,$   \> $Literal$   \> ::= \> $\kunit$ ~|~ $Bool$ ~|~ $Nat$ ~|~ $Text$ ~|~ $Symbol$ ~|~ $Party$
@@ -50,10 +50,11 @@ Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
 \end{flushleft}
 \begin{tabbing}
 MMMMMMMM \= Mx \= MMMMM \kill
-   @fact'payload@$_T$ \> $:: @Fact@~ T \to T$
-\\ @fact'by@$_T$      \> $:: @Fact@~ T \to \kSet~ \kParty$
-\\ @fact'obs@$_T$     \> $:: @Fact@~ T \to \kSet~ \kParty$
-\\ @fact'use@$_T$     \> $:: @Fact@~ T \to \kSet~ \kSymbol$
+   @fact'payload@$_T$ \> $:: \kFact~ T \to T$
+\\ @fact'by@$_T$      \> $:: \kFact~ T \to \kSet~ \kParty$
+\\ @fact'obs@$_T$     \> $:: \kFact~ T \to \kSet~ \kParty$
+\\ @fact'use@$_T$     \> $:: \kFact~ T \to \kSet~ \kSymbol$
+\\ @sets'union@$_T$    \> $:: \kSets~ T \to \kSets~ T \to \kSets~ T$
 \end{tabbing}
 
 \medskip
@@ -87,12 +88,11 @@ await offer  from Offer
        where coin.issuer     == !Isabelle &&
              coin.holder     == offer.receiver
        select any  consume 1  gain \{!Isabelle, offer.giver\}
-to \{
+to
      say Coin [ issuer = !Isabelle
               , holder = offer.receiver ]
       by  \{!Isabelle,offer.receiver\}  obs \{!Mona\}
       use \{'transfer\}                 num 1
-   \}
 \end{alltt}
 \end{small}
 
@@ -116,7 +116,7 @@ In the term language we require a few primitive operators to split out the compo
 % -----------------------------------------------------------------------------
 \eject{}
 \subsection{Static Semantics}
-Our type language is standard. In Figure~\ref{f:Grammar} the type ($@Fact@~ Type$) classifies fact values whose payload has type $Type$. The type @Factoid@ classifies factoid values which are written $(Fact, Weight)$. This type omits a parameter for the payload so that rule bodies can produce sets of factoids of differing sorts.
+Our type language is standard. In Figure~\ref{f:Grammar} type ()$@Sets@~ Type$) classifies multisets. The type ($@Fact@~ Type$) classifies fact values whose payload has type $Type$. The @FACT@ type is used as the supertype of all such fact types, omitting a parameter for the payload type so that rule bodies can produce sets of factoids of differing sorts.
 
 The typing rules are in Figure~\ref{f:Statics}. Most judgment forms use two environments: $Decls$ ($\Sigma$) which maps fact names to their payload types, and $Env$ ($\Gamma$) which maps variable names to their types. The grammar for the environment are back in Figure~\ref{f:Grammar}. In the source language example in Figure~\ref{f:CoinTransfer} we specified the payload type of each fact using the @fact@ keyword. In the static semantics here we assume all such types are added to the initial @Decls@ environment.
 

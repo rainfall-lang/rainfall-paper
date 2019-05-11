@@ -3,10 +3,6 @@
 \label{s:Related}
 \section{Related Work}
 
-% TODO: Distinguish between authorized fact production and contract pricing systems. Rainfall isn't about pricing
-
-% TODO: Describe how Rainfall rules have no breach state. Does not fit well into framework of Deontic or Defeasible logic, even though these are commonly used to describe contracts.
-
 % ---------------------------------------------------------
 \subsection{Linda-style Tuple Spaces}
 Linda~\cite{Gelernter1985:Linda} is a coordination model where processes communicate by adding, removing and non-destructively reading tuples from a globally shared tuple space. The basic Linda model is open, meaning that any party using it is free to add and remove tuples at will. This lack of access control or provenance information makes it unusable for as a communication medium for mutually distrusting parties.
@@ -36,7 +32,7 @@ Like LGL, Extended Shared Prolog (ESP)~\cite{Ciancarini1993:Coordinating, Cianca
 \label{s:RelatedPermissioned}
 As mentioned in \S\ref{s:NestedTransactions}, DAML combines facts and rules into a \emph{contract instance}, which is similar to an object in an Object-Oriented (OO) model. Objects are referred to by \emph{contract identifiers}, which are equivalent to typed references in the OO model. The DAML coordination model is based on UTxO~\cite{Zahnentferner2018:UTxO}, so invoking a method on an object typically causes it to create some new objects, then consume/delete that object. Deleting an object causes any existing references to it to become dangling, and following a dangling reference at runtime causes an exception. In contrast, our Rainfall model identifies facts by their content, rather than using a physical reference or pointer value. If a particular fact is not available with sufficient weight then this inhibits rule firing, rather than being treated as an execution failure.
 
-A DAML method can invoke methods on other objects that it already has a reference to, but cannot query the ledger state directly. This restriction is standard in the OO coordination model, where method code cannot directly query the runtime heap to discover other objects based on their field data. Instead, objects typically communicate using shared references to mutable data. However, as the DAML programming model purposefully does not include shared mutable data, the usual OO programming patterns are unavailable. In practice, ledger are performed by ``nanobots'', which are driver routines written in an external language. The query performed by a nanobot yields a set of contract identifiers, which are then passed back to the DAML code as arguments to method invocations. The Rainfall model was specifically developed to avoid the need for nanobots, while providing an authority system similar the one in DAML.
+A DAML method can invoke methods on other objects that it already has a reference to, but cannot query the ledger state directly. This restriction is standard in the OO coordination model, where method code cannot directly query the runtime heap to discover other objects based on their field data. Instead, objects typically communicate using shared references to mutable data. However, as the DAML programming model purposefully does not include shared mutable data, the usual OO programming patterns are unavailable. In practice, ledger actions are performed by ``nanobots'', which are driver routines written in an external language. The query performed by a nanobot yields a set of contract identifiers, which are then passed back to the DAML code as arguments to method invocations. The Rainfall model was specifically developed to avoid the need for nanobots, while providing an authority system similar the one in DAML.
 
 % Source level DAML programs could be converted to the Rainfall model by representing active DAML contract instances as facts listing their fields, and splitting each method into a separate rule. A party wishing to invoke a method would add a fact listing the arguments to that method, and the associated rule would consume both facts.
 
@@ -56,8 +52,9 @@ The Dependency Core Calculus (DCC)~\cite{Abadi1999:DCC} extends Moggi's computat
 
 DCC and related systems are logics rather than programming languages that have a direct operational interpretation. The Aura language~\cite{Jia2008:Aura} then specifies a functional operational semantics, as well as a proof term assignment for a version of DCC. Proofs of authority can be passed to functions as pure proof terms. Rainfall is directly inspired by the DCC family of logics and languages. Instead of building functional proof terms to demonstrate authority, we gather it in stages, incrementally writing authorized facts back to the ledger. Our ledger then can be viewed as a distributed proof of authority, where versions of DCC style logical properties still apply. For example, our Authority Flow theorem (\S\ref{s:Properties}) is the operational version of Garg's~\cite{Garg2006:Constructive} Affirmation Flow.
 
+% -- cuts
+% Rainfall rules have no breach state. Does not fit well into framework of Deontic or Defeasible logic, even though these are commonly used to describe contracts.
 
-% TODO: describe Deon Digital DSL and "Compositional Specification of Commercial Contracts", Henglein.
 
 
 % Garg 2006~\cite{Garg2006:Constructive} presents a system in sequent style with two judgement forms (A true) and (K affirms A), where K is a principle (party) and A is a proposition. The 'affirms' judgement is then internalised into a proposition as (K says A). The meanings of the connectives are defined by the rules that introduce and eliminate them, rather than a concrete operationa semantics. This system comes with meta theory of affirmation flow, meaning that unless a principle K affirms a statement, no affirmations of the form (K affirms A) can be derived from it.
@@ -66,11 +63,8 @@ DCC and related systems are logics rather than programming languages that have a
 
 % Aura~\cite{Jia2008:Aura} is a dependently typed language that includes the (A says P) form of DCC~\cite{Abadi1999:DCC} and provides a proof term assignment for the earlier pure authorization logics. The proof language is restricted to only contain proofs with no redexes, which simplifies type checking and ensures proof construction code does not perform effects. Proofs of authority are passed as pure proof terms so that fact that a given function may capture authority in its closure is not visible in its type.
 
-
-
 % Rainfall system is not directly reactive, in the sense that there are concurrent processes waiting to receive messages and provide responses. As described in \REF, in normal use a submitting party decides when to perform a transaction according to one of the rules, and is free to disambiguate any non-determinism in pattern matching as they see fit.
 
-% \TODO{compare with constraint handling rules:likewise CHR specifies a particular matching order for constraints, (is that right?)}
 
 
 % ---------------------------------------------------------
