@@ -1,0 +1,63 @@
+
+
+\appendix
+\section{Appendices}
+\subsection{Market Example}
+This section includes the full rule definitions of the market example that appears in \S\ref{s:Query}.
+An executable version is available online.
+
+\begin{small}
+\begin{code}
+
+fact Order   [desc: Text, limit: Nat,  budget: Nat]
+fact Item    [lot:  Nat,  desc:  Text, ask: Nat]
+fact Accept  [lot:  Nat,  price: Nat]
+fact Offer   [lot:  Nat,  price: Nat]
+fact Bid     [lot:  Nat,  offer: Nat]
+fact Budget  [desc: Text, total: Nat, remain: Nat]
+fact Reserve [lot:  Nat,  bid:   Nat]
+fact Invoice [seller: Party, buyer: Party, desc: Text, amount: Nat]
+
+
+-- Brendan reserves a portion of the budget allotted to
+-- Alice, and forwards a bid to Mark.
+rule  reserve
+await Order     [desc  = ?d, limit = ?l]
+      consume none                       gain  {!Alice}
+ and  Item      [lot   = ?o, desc = d, ask = ?a]
+      select first a  consume none       check {!Mark}
+ and  Budget    [desc  = ?d, total = ?t, remain = ?m]
+      gain  {!Brendan}
+ and  Reserve   [lot   = o,  bid    = ?b]
+      where b <= l && b <= a && b <= m   gain {!Brendan}
+ to union
+      (say Budget [desc = d, total = t, remain = m - a]
+       by {!Brendan} use {'reserve})
+      (say Bid    [lot   = o, offer = b]
+       by {!Brendan, !Alice} obs {!Mark} use {'bid})
+
+
+-- Mark converts bids that Brendan has placed that are below
+-- the asking price of the item into resting offers.
+rule  bid
+await Bid    [lot = ?o, offer = ?b]   gain {!Brendan}
+  and Item   [lot = o,  ask   = ?a]
+      where b < a  consume none       gain {!Mark}
+ to
+      say Offer [lot = o, price = b]
+      by {!Brendan, !Mark} use {'accept}
+
+
+-- Mark accepts a resting offer, removes the item listing
+-- and produces an invoice for the sale price.
+rule  accept
+await Accept [lot = ?o, price = ?p]  gain {!Mark}
+  and Offer  [lot = o,  price = p]   gain {!Brendan, !Mark}
+  and Item   [lot = o,  desc  = ?d]
+      consume 1                      check {!Mark}
+ to
+      say Invoice [ seller = !Mark, buyer = !Brendan
+                  , desc = d, amount = p]
+      by  {!Mark, !Brendan}
+\end{code}
+\end{small}

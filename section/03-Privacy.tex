@@ -170,11 +170,11 @@ An interesting aspect of this workflow is that different parties in the system w
 
 \begin{small}
 \begin{code}
-  fact Item    [lot:   Nat,  desc:   Text, ask: Nat]
-  fact Bid     [lot:   Nat,  offer:  Nat]
-  fact Order   [desc:  Text, limit:  Nat,  budget: Nat]
-  fact Budget  [total: Nat,  remain: Nat]
-  fact Reserve [lot:   Nat,  bid:    Nat]
+  fact Item    [lot:  Nat,  desc:   Text, ask: Nat]
+  fact Bid     [lot:  Nat,  offer:  Nat]
+  fact Order   [desc: Text, limit:  Nat,  budget: Nat]
+  fact Budget  [desc: Text, total: Nat,  remain: Nat]
+  fact Reserve [lot:  Nat,  bid:    Nat]
 
   rule  reserve
   await Order   [desc  = ?d, limit  = ?l]
@@ -184,11 +184,11 @@ An interesting aspect of this workflow is that different parties in the system w
     and Budget  [total = ?t, remain = ?m] gain  {!Brendan}
     and Reserve [lot   = o,  bid    = ?b]
         where b <= l && b <= a && b <= m  gain  {!Brendan}
-   to {
-    say Budget  [total = t,  remain = m - a]
-        by {!Brendan}  use ...,
-    say Bid     [lot   = o,  price  = a]
-        by {!Brendan, !Alice}  obs {!Mark}  use ... }
+   to union
+    (say Budget  [desc  = d,  total = t,  remain = m - a]
+        by {!Brendan}  use ...)
+    (say Bid     [lot   = o,  price  = a]
+        by {!Brendan, !Alice}  obs {!Mark}  use ... })
 \end{code}
 \end{small}
 
@@ -207,7 +207,7 @@ As a final example, in practical workflows it is usually necessary to upgrade da
   rule   upgrade
   await  Coin [issuer = ?s, holder = ?h]      gain {s,h}
      and LetsUpgrade [party = s, rules = ?rs] gain {s}
-     and LetsUpgrade [party = h, rules = ?rs] gain {h}
+     and LetsUpgrade [party = h, rules =  rs] gain {h}
   to say Coin [issuer = s, holder = h]
       by {s,h} use rs
 \end{code}
