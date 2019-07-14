@@ -1,47 +1,52 @@
 
+
 % -----------------------------------------------------------------------------
 \section{Semantics}
-The Rainfall semantics is defined in terms of a core language where pattern matching is expressed as set comprehension style generators. For expositional purposes we express rule bodies using a version of Simply Typed Lambda Calculus (STLC) with records and sets, but a production implementation could also use a more expressive language like System-F, or a well defined bytecode. The key ideas of our system are embodied in the rule structure and authority mechanism, while the language of rule bodies is arbitrary.
+The Rainfall semantics is defined in terms of a core language where pattern matching is expressed as set comprehension style generators. For expositional purposes we express rule bodies using a version of Simply Typed Lambda Calculus (STLC) with records and sets, but a production implementation could also use a more expressive language like System-F, or a well defined byte code. The key ideas of our system are embodied in the rule structure and authority mechanism, while the language of rule bodies is arbitrary.
 
 
 % -----------------------------------------------------------------------------
 \begin{figure}
 \begin{tabbing}
 Mx \= MMMMx \= Mx \= MMM \= MMMM \kill
-\\  $N,$ \> $Name$       \> ::= \> ...
-\\  $L,$ \> $Label$      \> ::= \> ...
-\\  $X,$ \> $Var$        \> ::= \> ...
+\\  $N,$ \> $\iName$    \> ::= \> ...
+\\  $L,$ \> $\iLabel$   \> ::= \> ...
+\\  $X,$ \> $\iVar$     \> ::= \> ...
 
 \\[1ex]
-    $R,$ \> $Rule$      \> ::= \> $\krule~ Name~ \kawait~ Match+~ \kto~ Term$
+    $R,$ \> $\iRule$    \> ::= \> $\krule~ \iName~ \kawait~ \iMatch+~ \kto~ \iTerm$
 \\[0.5ex]
-    $H,$ \> $Match$     \> ::= \> $Var~ \kfrom~ Name~ \kwhere~ Term$
+    $H,$ \> $\iMatch$   \> ::= \> $\iVar~ \kfrom~ \iName~ \kwhere~ \iTerm$
 \\      \>              \>     \> \hspace{1.6em}
-                                  $\kselect~ Select~ \kconsume~ Consume~ \kgain~ Gain$
+                                  $\kselect~ \iSelect~ \kconsume~ \iConsume~ \kgain~ \iGain$
 \\[0.5ex]
-   $C,$ \> $Select$     \> ::= \> $\kany~ |~ \kfirst~ Term~ ~|~ \klast~ Term$
-\\ $U,$ \> $Consume$    \> ::= \> $\knone~ |~ Term$
-\\ $I,$ \> $Gain$       \> ::= \> $\knone~ |~ Term$
+   $C,$ \> $\iSelect$   \> ::= \> $\kany~ |~ \kfirst~ \iTerm~ ~|~ \klast~ \iTerm$
+\\ $U,$ \> $\iConsume$  \> ::= \> $\knone~ |~ \iTerm$
+\\ $I,$ \> $\iGain$     \> ::= \> $\knone~ |~ \iTerm$
 
 \\[1ex]
-   $T,$ \> $Type$       \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
-\\ \>                   \> ~|  \> $\kSet~ Type~ |~ \kSets~ Type~ |~ \kFact~ Type~ |~ \kFACT$
-\\ \>                   \> ~|  \> $[ (Label : Type)* ] ~|~ Type \to Type~$
+   $T,$ \> $\iType$
+        \> ::= \> $\kUnit~ |~ \kBool~ |~ \kNat~ |~ \kText~ |~ \kSymbol~ |~ \kParty$
+\\ \>   \> ~|  \> $\kSet~ \iType~ |~ \kSets~ \iType~ |~ \kFact~ \iType~ |~ \kFACT$
+\\ \>   \> ~|  \> $[ (\iLabel : \iType)* ] ~|~ \iType \to \iType~$
 
 \\[1ex]
-  $M,$   \> $Term$      \> ::= \> $Literal~ |~ Var~ |~ Term~ Term~ |~ \lambda Var : Type.~ Term$
-\\ \>                   \> ~|  \> $[ (Label = Term)* ]~ |~ Term~ .~ Label ~|~ \{|~ Term* |\}$
+  $M,$  \> $\iTerm$
+        \> ::=  \> $\iLiteral~ |~ \iVar~ |~ \iTerm~ \iTerm~ |~ \lambda \iVar : \iType.~ \iTerm$
+\\ \>   \> ~|   \> $[ (\iLabel = \iTerm)* ]~ |~ \iTerm~ .~ \iLabel ~|~ \{|~ \iTerm* |\}$
 
-\\[0.5ex] \>            \> ~|  \> $\ksay~ Name~ Term~$
-\\        \>            \>     \> \hspace{0.5em} $\kby~ Term~ \kobs~ Term~ \kuse~ Term~ \knum~ Term$
-
-\\[1ex]
-  $V,$   \> $Value$     \> ::= \> $Literal~ |~ \lambda Var : Type.~ Term$
-\\       \>             \> ~|  \> $[ (Label = Value)* ] ~|~ \{ Value* \}$
-\\       \>             \> ~|  \> $Fact ~|~ \{ Fact \mapsto Weight \}$
+\\[0.5ex] \>    \> ~|  \> $\ksay~ \iName~ \iTerm~$
+\\        \>    \>     \> \hspace{0.5em} $\kby~ \iTerm~ \kobs~ \iTerm~ \kuse~ \iTerm~ \knum~ \iTerm$
 
 \\[1ex]
-  $L,$   \> $Literal$   \> ::= \> $\kunit$ ~|~ $Bool$ ~|~ $Nat$ ~|~ $Text$ ~|~ $Symbol$ ~|~ $Party$
+  $V,$  \> $\iValue$
+        \> ::=  \> $\iLiteral~ |~ \lambda \iVar : \iType.~ \iTerm$
+\\      \>      \> ~|  \> $[ (\iLabel = \iValue)* ] ~|~ \{ \iValue* \}$
+\\      \>      \> ~|  \> $\iFact ~|~ \{ \iFact \mapsto \iWeight \}$
+
+\\[1ex]
+  $L,$  \> $\iLiteral$
+        \> ::= \> $\kunit$ ~|~ $\iBool$ ~|~ $\iNat$ ~|~ $\iText$ ~|~ $\iSymbol$ ~|~ $\iParty$
 \end{tabbing}
 
 \medskip
@@ -62,8 +67,8 @@ MMMMMMMM \= Mx \= MMMMM \kill
 (environments)
 \begin{tabbing}
 Mx              \= MMMMMx       \= Mx \= MMMMMMM \kill
-   $\Gamma,$       \> $Env$     \> ::= \> $\cdot ~|~ Env,~ Var : Type$
-\\ $\Sigma,$       \> $Decls$   \> ::= \> $\cdot ~|~ Decls,~ Name : [(Label : Type)*]$
+   $\Gamma,$    \> $\iEnv$     \> ::= \> $\cdot ~|~ \iEnv,~ \iVar : \iType$
+\\ $\Sigma,$    \> $\iDecls$   \> ::= \> $\cdot ~|~ \iDecls,~ \iName : [(\iLabel : \iType)*]$
 \end{tabbing}
 \end{flushleft}
 
@@ -104,7 +109,7 @@ to
 % -----------------------------------------------------------------------------
 \subsection{Grammar}
 The grammar for the core language is in Figure~\ref{f:Grammar}. A matching desugared version of the coin transfer rule from Figure~\ref{f:CoinTransfer}, using @!Mona@ as an observer, is in Figure~\ref{f:CoinTransferDesugared}.
-A $Rule$ has a name, pattern matching clauses, and a term for the body to produce a set of new factoids. We use EBNF, so $Match+$ in the production for $Rule$ requires at least one match clause. Each $Match$ clause has form:
+A $\iRule$ has a name, pattern matching clauses, and a term for the body to produce a set of new factoids. We use EBNF, so $\iMatch+$ in the production for $Rule$ requires at least one match clause. Each $\iMatch$ clause has form:
 $$
 X~ @from@~ N~ @where@~ M~ @select@~ C~ @consume@~ U~ @gain@~ I
 $$
@@ -116,11 +121,11 @@ In the term language we require a few primitive operators to split out the compo
 % -----------------------------------------------------------------------------
 \eject{}
 \subsection{Static Semantics}
-Our type language is standard. In Figure~\ref{f:Grammar} type ()$@Sets@~ Type$) classifies multisets. The type ($@Fact@~ Type$) classifies fact values whose payload has type $Type$. The @FACT@ type is used as the supertype of all such fact types, omitting a parameter for the payload type so that rule bodies can produce sets of factoids of differing sorts.
+Our type language is standard. In Figure~\ref{f:Grammar} type ($@Sets@~ Type$) classifies multisets. The type ($@Fact@~ \iType$) classifies fact values whose payload has type $\iType$. The @FACT@ type is used as the supertype of all such fact types, omitting a parameter for the payload type so that rule bodies can produce sets of factoids of differing sorts.
 
-The typing rules are in Figure~\ref{f:Statics}. Most judgment forms use two environments: $Decls$ ($\Sigma$) which maps fact names to their payload types, and $Env$ ($\Gamma$) which maps variable names to their types. The grammar for the environment are back in Figure~\ref{f:Grammar}. In the source language example in Figure~\ref{f:CoinTransfer} we specified the payload type of each fact using the @fact@ keyword. In the static semantics here we assume all such types are added to the initial @Decls@ environment.
+The typing rules are in Figure~\ref{f:Statics}. Most judgment forms use two environments: $\iDecls$ ($\Sigma$) that maps fact names to their payload types, and $\iEnv$ ($\Gamma$) that maps variable names to their types. The grammars for the environments are back in Figure~\ref{f:Grammar}. In the source language example in Figure~\ref{f:CoinTransfer} we specified the payload type of each fact using the @fact@ keyword. In the static semantics here we assume all such types are added to the initial $\iDecls$ environment.
 
-The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the premises we check the sequence of pattern matches, producing a type environment $\Gamma$, that lists the types of variables that are in scope in the body of the rule. The body $M$ produces a set of new factoids. The judgment ($\jTypeMatch{\Sigma}{\Gamma}{X ; N ; M}{\Gamma'}$) checks the \emph{gather} part of the pattern match, where $X$ is bound to to each fact of name $N$ in turn, and we keep the facts that match the boolean predicate $M$. The premise $(N:T) \in \Sigma$ retrieves the payload type $T$ of the fact, which is used to construct the type of $X$ which is in scope in the rule body $M$. Checking of $Select$, $Consume$, $Gain$ and $Term$ expressions straightforward.
+The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the premises we check the sequence of pattern matches, producing a type environment $\Gamma$, that lists the types of variables that are in scope in the body of the rule. The body $M$ produces a multiset of new factoids. The judgment ($\jTypeMatch{\Sigma}{\Gamma}{X~ \kfrom~ N~ \kwhere~ M~ ...}{\Gamma'}$) checks a single pattern match, where $X$ is bound to to each fact of name $N$ in turn, and we keep the facts that match the boolean predicate $M$. The premise $(N:T) \in \Sigma$ retrieves the payload type $T$ of the fact, which is used to construct the type of $X$ which is in scope in the rule body $M$. Checking of $\iSelect$, $\iConsume$, $\iGain$ and $\iTerm$ expressions is straightforward.
 
 
 % -----------------------------------------------------------------------------
@@ -129,19 +134,18 @@ The judgment ($\jOk{\Sigma}{R}$) checks that rule $R$ is well typed. In the prem
 
 % -----------------------------------------------------------------------------
 \subsection{Dynamic Semantics}
-The evaluation rules are in Figure~\ref{f:Dynamics}. We use the abbreviation $Auth$ to mean a set of party values that authorize some fact, $Facts$ to mean a set of facts and $Factoids$ a map of facts to their weights. We use $Store$ to also map facts to their weights, but name it differently to hint that this is the current ledger state used for rule evaluation. We use $Env$ to map variable names to their values. In the notation we indicate that a variable stands for a collection by including a superscript that indicates the size of that collection, so $F^n$ would stand for a set of facts with size $n$.
+The evaluation rules are in Figure~\ref{f:Dynamics}. We use the abbreviation $\iAuth$ to mean a set of party values that authorize some fact, $\iFacts$ to mean a set of facts and $\iFactoids$ a map of facts to their weights. We use $\iStore$ to also map facts to their weights, but name it differently to hint that this is the current ledger state used for rule evaluation. We use $\iEnv$ to map variable names to their values. In the notation we indicate that a variable stands for a collection by including a superscript that indicates the size of that collection, so $F^n$ would stand for a set of facts with size $n$.
 
-This semantics can be used to both execute rules to produce a transaction as per~\S\ref{s:Transactions}, and also to validate that a transaction is well formed. The semantic rules are non-deterministic. Given a particular store and production rule definition, it may be possible to execute that production rule by matching several different subsets of facts, and the semantic rules do not specify which particular subset to use. When a particular party builds a transaction and submits the views to others, it is up to the submitter to resolve any  non-determinism as they see fit. Rainfall is also a \emph{contract system} in the sense of specifying a range of valid behavior, rather than an abstract machine that fixes a single order for rule evaluation.
+This semantics can be used to both execute rules to produce a transaction as per~\S\ref{s:Transactions}, and also to validate that a transaction is well formed. The semantic rules are non-deterministic. Given a particular store and production rule definition, it may be possible to execute that production rule by matching several different subsets of facts, and the semantic rules do not specify which particular subset to use. When a particular party builds a transaction and submits the views to others, it is up to the submitter to resolve any  non-determinism as they see fit. Rainfall is a \emph{contract system} also in the sense of specifying a range of valid behavior, rather than an abstract machine that fixes a single order for rule evaluation.
 
 In Figure~\ref{f:Dynamics}, starting with the top-level EvFire rule, the judgment: \\
-($\jFire{A_{sub}}{S}{R}{F^r_{read}}{D^s_{spend}}{D^n_{new}}{S'}$) says that a submitting party with authority $A_{sub}$ and initial store $S$ can execute rule $R$, which reads facts $F^r_{read}$, spends factoids $D^s_{spend}$, creates new factoids $D^n_{new}$, producing a new store $S'$. The result sets can be used to produce (or check) a transaction structure, where the input list in the transaction is formed from both $F^r_{read}$ and $D^s_{spend}$, using zero valued weights for facts listed in $F^r_{read}$ which are read but not consumed.
+($\jFire{A_{\isub}}{S}{R}{F^r_{\iread}}{D^s_{\ispend}}{D^n_{\inew}}{S'}$) says that a submitting party with authority $A_{\isub}$ and initial store $S$ can execute rule $R$, which reads facts $F^r_{\iread}$, spends factoids $D^s_{\ispend}$, creates new factoids $D^n_{\inew}$, producing a new store $S'$. The result sets can be used to produce (or check) a transaction structure, where the input list in the transaction is formed from both $F^r_{\iread}$ and $D^s_{\ispend}$, using zero valued weights for facts listed in $F^r_{\iread}$ which are read but not consumed.
 
-The semantics is specified from a global point of view, where the $Store$ includes the complete set of factoids visible to all parties. The particular subset of facts visible to a submitting party is controlled by $A_{sub}$, which is the authority of that party. In the premises of EvFire, we apply the pattern matches to produce a set of read, and spent fact, along with the gained authority $A_{gain}$, which must cover the by-authority of all new factoids $D^n_{new}$ produced by the body of the rule. The premise $\jStoreDown{S}{D^s_{spend}}{S'}$ checks that factoids needing to be spent are available in the store $S$ with sufficient weight, and then removes them from the store, producing a new store $S'$. Similarly $\jStoreUp{S'}{D^n_{new}}{S''}$ adds the new facts produced by the rule body. The corresponding rules are in Figure~\ref{f:StoreModification}.
+The semantics is specified from a global point of view, where the $\iStore$ includes the complete set of factoids visible to all parties. The particular subset of facts visible to a submitting party is controlled by $A_{\isub}$, which is the authority of that party. In the premises of EvFire, we apply the pattern matches to produce a set of read and spent facts, along with the gained authority $A_{\igain}$, which must cover the by-authority of all new factoids $D^n_{\inew}$ produced by the body of the rule. The premise $\jStoreDown{S}{D^s_{\ispend}}{S'}$ checks that factoids needing to be spent are available in the store $S$ with sufficient weight, and then removes them from the store, producing a new store $S'$. Similarly $\jStoreUp{S'}{D^n_{\inew}}{S''}$ adds the new facts produced by the rule body. The corresponding rules are in Figure~\ref{f:StoreModification}.
 
-Rules EvMatchNil/Cons apply the pattern matches to the store, gathering the set of facts read factoids spent, authority gained and the environment containing the matched facts. We use $\uplus$ operator to mean multiset union, where the weights of identical facts are summed. Rule EvMatchOne performs a single pattern match, performing the gather/select/consume/gain stages to produce the fact selected, a factoid also mentioning the weight consumed, and the authority gained from that fact. If a fact is to be read but not consumed then the weight $W_{spend}$ will be zero. The $(F,~ 0)$ factoid produced by EvMatch will be eliminated by the use of $\uplus$ in EvMatchCons, but the fact $F$ will be retained in the set of facts read.
+Rules EvMatchNil/Cons apply the pattern matches to the store, gathering the set of facts read factoids spent, authority gained and the environment containing the matched facts. We use $\uplus$ operator to mean multiset union, where the weights of identical facts are summed. Rule EvMatchOne performs a single pattern match, performing the gather/select/consume/gain stages to produce the fact selected, a factoid also mentioning the weight consumed, and the authority gained from that fact. If a fact is to be read but not consumed then the weight $W_{\ispend}$ will be zero. The $(F,~ 0)$ factoid produced by EvMatch will be eliminated by the use of $\uplus$ in EvMatchCons, but the fact $F$ will be retained in the set of facts read.
 
-% \Amos: I put quotes around "sees": I read it as a regular verb at first. Otherwise maybe a different font for it
-Rule EvGather collects the facts that match the gather predicate. The premise is written as a set comprehension, where the clause ``$\trm{sees}~ A_{sub}~ F$'' ensures we only include facts visible to the submitting party. The ``$\trm{sees}$'' predicate was defined back in \S\ref{s:Transactions}.
+Rule EvGather collects the facts that match the gather predicate. The premise is written as a set comprehension, where the clause ``$\trm{sees}~ A_{\isub}~ F$'' ensures we only include facts visible to the submitting party. The ``$\trm{sees}$'' predicate was defined back in \S\ref{s:Transactions}.
 
 Importantly, we bind the \emph{fact} value instead of the whole \emph{factoid} to avoid confusion about what weight a pattern match should observe when a pattern before it consumes the same fact. Binding the whole factoid would allow rules to check the weights of factoids more directly than using @consume@ clauses, but then interleaving consumption with matching would mean patterns could not be reordered freely. Similar issues arise in related \emph{active database systems}~\cite{Paton1999:Active}. A programmer would ultimately want to specify further behavior, but we leave this to future work.
 
@@ -160,7 +164,7 @@ Rule EvSay evaluates its arguments and produces the corresponding factoid. The r
 \eject{}
 \subsection{Properties}
 \label{s:Properties}
-We have mechanized Rainfall using the Isabelle/HOL interactive theorem prover, and proved several useful isolation and authorization properties. Using this theory as a basis, we have also mechanized the market example from \S\ref{s:Selection} to demonstrate how to prove safety properties of business logic encoded in our system. The proof scripts and full statements of invariants are available at
+We have mechanized the Rainfall semantics using the Isabelle/HOL interactive theorem prover, and proved several useful isolation and authorization properties. Using this theory as a basis, we have also mechanized the market example from \S\ref{s:Selection} to demonstrate how to prove safety properties of business logic encoded in our system. The proof scripts and full statements of invariants are available at
 \url{http://github.com/rainfall-lang}.
 
 
@@ -174,17 +178,15 @@ Given an arbitrary store, if a rule can fire using facts from that store, produc
 \begin{tabbing}
 MMx \= MMMMMM \= MM \kill
 \trm{If}     \> $\jFire{A}{S}
-                       {R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
-\trm{then}   \> $\jFire{A}{F_{read}^r \Cup D_{spent}^n}
-                       {R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S''}$ \\
-             \> \trm{where} $S'' ~=~ D_{new}^m \uplus (F_{read}^r - D_{spent}^n)$
+                       {R}{F_{\iread}^r}{D_{\ispent}^n}{D_{\inew}^m}{S'}$ \\
+\trm{then}   \> $\jFire{A}{F_{\iread}^r \Cup D_{\ispent}^n}
+                       {R}{F_{\iread}^r}{D_{\ispent}^n}{D_{\inew}^m}{S''}$ \\
+             \> \trm{where} $S'' ~=~ D_{\inew}^m \uplus (F_{\iread}^r - D_{\ispent}^n)$
 \end{tabbing}
 
 Frame Constriction guarantees that the (unblinded) transaction structures described in \S\ref{s:Transactions} can always be validated in isolation, without needing the entire state of the ledger that existed at the time the transaction was formed.
 
-In our formalization we use multisets for both the set of facts read $F^r_{read}$ and factoids spent $D^n_{spent}$. When forming the store used for the second rule firing we need to ensure that facts listed in both $F^r_{read}$ and $D^n_{spent}$ are not counted twice. To achieve this we use the $\Cup$ operator which performs a version of multiset union where elements that exist in both of the argument sets are given their maximum weight in the result set, rather than their sum.
-
-% CUT: Similarly, the output store of the second firing $S''$ consists of the new facts created, along with facts from the original store that were read but not spent.
+In our formalization we use multisets for both the set of facts read $F^r_{\iread}$ and factoids spent $D^n_{\ispent}$. When forming the store used for the second rule firing we need to ensure that facts listed in both $F^r_{\iread}$ and $D^n_{\ispent}$ are not counted twice. To achieve this we use the $\Cup$ operator which performs a version of multiset union where elements that exist in both of the argument sets are given their maximum weight in the result set, rather than their sum.
 
 
 % -------------------------------------
@@ -193,18 +195,20 @@ Focused Firing: Facts that are not visible to a submitting party do not influenc
 \end{theorem}
 \begin{tabbing}
 M \= MMx \= MMMMM \= MMM \kill
-\> If     \> $\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
-\> ~and   \> $\forall f \in S_{others}.\ \neg (\trm{sees}~ A_{sub}~ f)$ \\
-\> then   \> $\jFire{A_{sub}}{S \uplus S_{others}}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$
+\> If     \> $\jFire{A_{\isub}}{S}{R}{F_{\iread}^r}{D_{\ispent}^n}{D_{\inew}^m}{S'}$ \\
+\> ~and   \> $\forall f \in S_{\iothers}.\ \neg (\trm{sees}~ A_{\isub}~ f)$ \\
+\> then   \> $\jFire{A_{\isub}}{S \uplus S_{\iothers}}{R}{F_{\iread}^r}{D_{\ispent}^n}{D_{\inew}^m}{S'}$
 \end{tabbing}
 
+
+% -------------------------------------
 \begin{theorem}
 Visible Spending: A rule firing cannot influence facts that are not visible to the submitting party.
 \end{theorem}
 \begin{tabbing}
 MMM \= MMx \= MMMMMMM \= MM \kill
-\> If     \> $\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
-\> then   \> $\forall f \in F_{read}^r \Cup D_{spent}^n.\ \trm{sees}~ A_{sub}~ f$
+\> If     \> $\jFire{A_{\isub}}{S}{R}{F_{\iread}^r}{D_{\ispent}^n}{D_{\inew}^m}{S'}$ \\
+\> then   \> $\forall f \in F_{\iread}^r \Cup D_{\ispent}^n.\ \trm{sees}~ A_{\isub}~ f$
 \end{tabbing}
 
 Focused Firing ensures that the validity of transaction views sent by the submitter to a receiving party will not be influenced by extra facts that are visible to the receiver but not the submitter. Dually, Visible Spending ensures that any extra facts that are visible to the receiver but not the submitter cannot be influenced by those views.
@@ -216,10 +220,10 @@ Authority Flow: If a fact created by a rule firing is authorized by some party, 
 \end{theorem}
 \begin{tabbing}
 M \= MMx \= MMMMMMM \kill
-\> If   \> $\jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
-\> then \> $\forall f \in D_{new}^m.\
+\> If   \> $\jFire{A_{\isub}}{S}{R}{F_{\iread}^r}{D_{\ispent}^n}{D_{\inew}^m}{S'}$ \\
+\> then \> $\forall f \in D_{\inew}^m.\
             \forall a \in \trm{auth-by}~f.\
-            \exists d \in F_{read}^r \Cup D_{spent}^n.$ \\
+            \exists d \in F_{\iread}^r \Cup D_{\ispent}^n.$ \\
 \>      \> \hspace{1em}$a \in \trm{auth-by}~d$
 \end{tabbing}
 
@@ -232,13 +236,13 @@ This key property of our authorization system implies that the submitter of a tr
 We have also mechanized the market example in \S\ref{s:Selection} in Isabelle/HOL and proven the following business level theorem:
 
 \begin{theorem}
-Budget Adherence: The total value of invoices a broker receives for items bought on behalf of a client, never exceeds the budget specified in the client's original order.
+Budget Adherence: The total value of invoices a broker receives for items bought on behalf of a client never exceeds the budget specified in the client's original order.
 \end{theorem}
 
 We prove this by first specifying an invariant over all facts in the store, and then proving that the possible firings of each rule in the workflow all preserve the invariant. For example, the top-level statement for the @reserve@ production rule is:
 \begin{tabbing}
 M \= MMx \= MMMMMM \kill
-\> If   \> $\jFire{A_{sub}}{S}{@reserve@}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
+\> If   \> $\jFire{A_{\isub}}{S}{@reserve@}{F_{\iread}^r}{D_{\ispent}^n}{D_{\inew}^m}{S'}$ \\
 \> ~and \> $\trm{store-ok}~{S}$ \hspace{1ex} then \hspace{1ex} $\trm{store-ok}~{S'}$
 \end{tabbing}
 
@@ -254,9 +258,9 @@ Rainfall's production rule based programming model makes it easy to approach pro
 $$
 \begin{array}{cc}
 %% -- store
-\fbox{$\jStoreDown{Store}{Factoids}{Store}$}
+\fbox{$\jStoreDown{\iStore}{\iFactoids}{\iStore}$}
 &
-\fbox{$\jStoreUp  {Store}{Factoids}{Store}$}
+\fbox{$\jStoreUp  {\iStore}{\iFactoids}{\iStore}$}
 \\[3ex]
 \ruleI  {       D^n \subseteq S
         \quad   S' = S - D^n}
@@ -287,54 +291,3 @@ An example extended weight type is a simple @Present@ / @Absent@ indicator. When
 \subsubsection{Minimum Weight Thresholds}
 In EvFire from Figure~\ref{f:Dynamics}, when a production rule reads a fact but does not consume any weight of it, or gain any authority from it, then the fact appears in the set of facts read $F^r_{read}$, but not the map of factoids spent $D^s_{spend}$. This means the rule can fire if the required fact is present in the store with any non-zero weight. An extension is to allow a rule to wait for a particular weight of a fact to be available before firing, without also needing to consume it. To achieve this we would change the representation of $F^r_{read}$ to also be a map of factoids, and add a (@require@ M) form to $Consume$ specifications, where M is a term that evaluates to the weight the rule must have before firing.
 
-
-% ----
-% TODO: We could make it so a rule body can only extract the set of other parties that can obs a fact if it is also authorized to spend it..
-
-
-% \begin{theorem}
-% Store weakening for `any' selectors:
-% $$
-% \begin{array}{c}
-% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-% \implies \\
-% \trm{rule-contains-only-any}~R \implies \\
-% \jFire{A_{sub}}{S \uplus S_{others}}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-% \end{array}
-% $$
-% \end{theorem}
-
-% \begin{theorem}
-% More permissions for `any' selectors:
-% $$
-% \begin{array}{c}
-% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-% \implies \\
-% \trm{rule-contains-only-any}~R \implies \\
-% \jFire{A_{sub} \cup A_{others}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-% \end{array}
-% $$
-% \end{theorem}
-
-
-% \AMOS{These lemmas are boring, I think. The second is used in the proof of frame constriction.}
-% \begin{lemma}
-% New facts are included in the new store (trivial):
-% $$
-% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-% \implies
-% D_{new}^m \subseteq S'
-% $$
-% \end{lemma}
-% (Using the $\subseteq$ notation to refer to the multiset subset operation here -- would it be better to unroll it as something like $\forall (x,w) \in D_{new}^m.\ (x,w') \in S' \wedge w \le w'$ ?)
-%
-% \begin{lemma}
-% Rules only spend and read values from the store:
-% $$
-% \begin{array}{c}
-% \jFire{A_{sub}}{S}{R}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}
-% \implies \\
-% F_{read}^r ~\Cup~ D_{spent}^n \subseteq S
-% \end{array}
-% $$
-% \end{lemma}

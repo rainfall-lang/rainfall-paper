@@ -9,7 +9,7 @@ $$
 \begin{array}{cl}
 
 % -- Rule -------------------------------------------------
-\fbox{$\jOk{Decls}{Rule}$}
+\fbox{$\jOk{\iDecls}{\iRule}$}
 \\[2ex]
 
 \ruleI  {    \jTypeMatch{\Sigma}{\cdot}{H^n}{\Gamma}
@@ -22,7 +22,7 @@ $$
 % -- Matches ----------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jTypeMatch{Decls}{Env}{\overline{Match}}{Env}$}
+\fbox{$\jTypeMatch{\iDecls}{\iEnv}{\overline{\iMatch}}{\iEnv}$}
 \\[2ex]
 \jTypeMatch{\Sigma}{\Gamma}{\cdot}{\Gamma}
 \\[2ex]
@@ -36,7 +36,7 @@ $$
 % -- Match ------------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jTypeMatch{Decls}{Env}{Match}{Env}$}
+\fbox{$\jTypeMatch{\iDecls}{\iEnv}{\iMatch}{\iEnv}$}
 \\[2ex]
 \ruleI  {\begin{array}{ll}
             (N : T) \in \Sigma \quad \quad \Gamma' = \Gamma,~ X : \kFact~ T
@@ -58,7 +58,7 @@ $$
 % -- Select ---------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jOk{Env}{Select}$}
+\fbox{$\jOk{\iEnv}{\iSelect}$}
 \\[2ex]
 \jOk    {\Gamma}{\kany}
 \qq
@@ -74,7 +74,7 @@ $$
 % -- Consume ----------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jOk{Env}{Consume}$}
+\fbox{$\jOk{\iEnv}{\iConsume}$}
 \\[2ex]
 \jOk    {\Gamma}{\knone}
 \qq
@@ -87,7 +87,7 @@ $$
 % -- Gain -------------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jOk{Env}{Gain}$}
+\fbox{$\jOk{\iEnv}{\iGain}$}
 \\[2ex]
 \jOk    {\Gamma}{\knone}
 \qq
@@ -100,7 +100,7 @@ $$
 % -- Term -------------------------------------------------
 $$
 \begin{array}{cl}
-\fbox{$\jType{Decls}{Env}{Term}{Type}$}
+\fbox{$\jType{\iDecls}{\iEnv}{\iTerm}{\iType}$}
 \\[2ex]
 \ruleI  { (X : T) \in \Gamma }
         {\jType{\Sigma}{\Gamma}{X}{T}}
@@ -142,24 +142,28 @@ $$
         }
 \\[2ex]
 \ruleI  { \begin{array}{ll}
-           (N_{tag} : T) \in \Sigma
+           (N_{\itag} : T) \in \Sigma
            \\   \jType  {\Sigma}{\Gamma}
-                        {M_{payload}} {T}
+                        {M_{\ipayload}} {T}
             &   T = [ l_1 : T_1 \ldots l_n : T_n ]
            \\   \jType  {\Sigma}{\Gamma}
-                        {M_{by}} {\kSet~ \kParty}
+                        {M_{\iby}} {\kSet~ \kParty}
             &   \jType  {\Sigma}{\Gamma}
-                        {M_{obs}}{\kSet~ \kParty}
+                        {M_{\iobs}}{\kSet~ \kParty}
            \\   \jType  {\Sigma}{\Gamma}
-                        {M_{use}}{\kSet~ \kSymbol}
+                        {M_{\iuse}}{\kSet~ \kSymbol}
             &   \jType  {\Sigma}{\Gamma}
-                        {M_{num}}{\kNat~}
+                        {M_{\inum}}{\kNat~}
           \end{array}
         }
         {\begin{array}{ll}
          \Gamma ~|~ \Sigma ~\vdash
-                   & \hspace{-1ex} \ksay~  N_{tag}~ M_{payload}
-                \\ & \hspace{-1ex} \kby~~~ M_{by}  ~~\kobs~ M_{obs} ~~\kuse~ M_{use} ~~\knum~ M_{num}
+                   & \hspace{-1ex} \ksay~  N_{\itag}~ M_{\ipayload}
+                \\ & \hspace{-1ex}
+                          \kby~~~ M_{\iby}
+                        ~~\kobs~  M_{\iobs}
+                        ~~\kuse~  M_{\iuse}
+                        ~~\knum~  M_{\inum}
                 :: \kSets~ \kFACT
          \end{array}
         }

@@ -8,30 +8,30 @@ $
 \begin{array}{cl}
 
 % -- Fire -----------------------------
-\fbox{$\jFire{Auth}{Store}{Rule}{Facts}{Factoids}{Factoids}{Store}$}
+\fbox{$\jFire{\iAuth}{\iStore}{\iRule}{\iFacts}{\iFactoids}{\iFactoids}{\iStore}$}
 \\[2ex]
 \ruleI
 { \begin{array}{ll}
-        \jMatches{N}{A_{sub}}{S}{\cdot}
+        \jMatches{N}{A_{\isub}}{S}{\cdot}
                  {H^m}
-                 {F_{read}^r}{D_{spend}^s}{A_{gain}}{E}
-  \quad  \jStoreDown{S}{D_{spend}^s}{S'}
+                 {F_{\iread}^r}{D_{\ispend}^s}{A_{\igain}}{E}
+  \quad  \jStoreDown{S}{D_{\ispend}^s}{S'}
   \\[1ex]
-        \jEval{E}{M}{D_{new}^n}
-  \quad \bigwedge \{ A_{gain} \supseteq \trm{auth-by}~D~|~D \in D_{new}^n \}
-  \hspace{1.8em} \jStoreUp{S'}{D_{new}^n}{S''}
+        \jEval{E}{M}{D_{\inew}^n}
+  \quad \bigwedge \{ A_{\igain} \supseteq \trm{auth-by}~D~|~D \in D_{\inew}^n \}
+  \hspace{1.8em} \jStoreUp{S'}{D_{\inew}^n}{S''}
   \end{array}
 }
-{\jFire {A_{sub}}{S}
+{\jFire {A_{\isub}}{S}
         {\krule~N~\kawait~H^m~\kto~M}
-        {F_{read}^r}{D_{spend}^s}{D_{new}^n}{S''}
+        {F_{\iread}^r}{D_{\ispend}^s}{D_{\inew}^n}{S''}
 }
 & (\trm{EvFire})
 \\[3ex]
 
 
 % -- matches --------------------------
-\fbox{$\jMatches{Name}{Auth}{Store}{Env}{Matches}{Facts}{Factoids}{Auth}{Env}$}
+\fbox{$\jMatches{\iName}{\iAuth}{\iStore}{\iEnv}{\iMatches}{\iFacts}{\iFactoids}{\iAuth}{\iEnv}$}
 \\[2ex]
 
 \jMatches{N}{A}{S}{E}{\cdot}{\emptyset}{\emptyset}{\emptyset}{E}
@@ -40,20 +40,20 @@ $
 
 \ruleI
 { \begin{array}{ll}
-       \jMatch  {N_{rule}}{A_{sub}}{S~}{E~}
+       \jMatch  {N_{\irule}}{A_{\isub}}{S~}{E~}
                 {H~~}
-                {F}{D}{A_{gain}}{E'}
+                {F}{D}{A_{\igain}}{E'}
   \\[0.5ex]
-       \jMatches{N_{rule}}{A_{sub}}{S}{E'}
+       \jMatches{N_{\irule}}{A_{\isub}}{S}{E'}
                 {H^n}
-                {F^e}{D^s}{A_{gain}'}{E''}
+                {F^e}{D^s}{A_{\igain}'}{E''}
   \end{array}
 }
-{       \jMatches{N_{rule}}{A_{sub}}{S}{E}
+{       \jMatches{N_{\irule}}{A_{\isub}}{S}{E}
                 {H ~ H^n}
                 {\{F\} \cup F^e}
                 {\{D\} \uplus D^s}
-                {A_{gain} \cup A_{gain}'}
+                {A_{\igain} \cup A_{\igain}'}
                 {E''}
 }
 & (\trm{EvMatchCons})
@@ -61,27 +61,27 @@ $
 
 
 % -- match ----------------------------
-\fbox{$\jMatch{Name}{Auth}{Store}{Env}{Match}{Fact}{Factoid}{Auth}{Env}$}
+\fbox{$\jMatch{\iName}{\iAuth}{\iStore}{\iEnv}{\iMatch}{\iFact}{\iFactoid}{\iAuth}{\iEnv}$}
 \\[2ex]
 
 \ruleI
 { \begin{array}{rl}
   &     E' = E, X \mapsto F
   \\    \jSelect  {F^n}{E}{X ~;~ C}{F~~}
-  &     \jConsume {N_{rule}}{F}{E'}{U}{W_{spend}}
-  \\    \jGather  {A_{sub}} {S}{E} {X ~;~ N_{fact} ~;~ M}{F^n}
-  &     \jGain    {N_{rule}}{F}{E'}{I}{A_{gain}}
+  &     \jConsume {N_{\irule}}{F}{E'}{U}{W_{\ispend}}
+  \\    \jGather  {A_{\isub}} {S}{E} {X ~;~ N_{\ifact} ~;~ M}{F^n}
+  &     \jGain    {N_{\irule}}{F}{E'}{I}{A_{\igain}}
   \end{array}
 }
 { \begin{array}{rl}
-          N_{rule} ~|~ A_{sub} ~|~ S ~|~ E \hspace{-1ex}
+          N_{\irule} ~|~ A_{\isub} ~|~ S ~|~ E \hspace{-1ex}
         & \vdash \hspace{1ex} X~
-                \kfrom~    N_{fact}~
+                \kfrom~    N_{\ifact}~
                 \kwhere~   M~
                 \kselect~  C~
                 \kconsume~ U~
                 \kgain~    I
-        \\ & \Rightarrow F ~|~ (F,~ W_{spend}) ~|~ A_{gain} ~|~ E'
+        \\ & \Rightarrow F ~|~ (F,~ W_{\ispend}) ~|~ A_{\igain} ~|~ E'
   \end{array}
 }
 & (\trm{EvMatchOne})
@@ -89,27 +89,27 @@ $
 
 
 % -- gather ----------------------------
-\fbox{$\jGather{Auth}{Store}{Env}{Var ~;~ Name ~;~ Term}{Facts}$}
+\fbox{$\jGather{\iAuth}{\iStore}{\iEnv}{\iVar ~;~ \iName ~;~ \iTerm}{\iFacts}$}
 \\[2ex]
 
 \ruleI
 { F^n = \left \{
   \begin{array}{rll}
         F & |~~ F \in \trm{dom}~ S
-     \\    & ,~~ \trm{name}~ F = N_{fact}
-             ,~~ \trm{sees}~ A_{sub}~ F
+     \\    & ,~~ \trm{name}~ F = N_{\ifact}
+             ,~~ \trm{sees}~ A_{\isub}~ F
      \\    & ,~~ (\jEval{E,~X \mapsto F}{M}{\ktrue})
      \end{array}
   \right \}
 }
-{   \jGather{A_{sub}}{S}{E}{X ~;~ N_{fact} ~;~ M}{F^n}
+{   \jGather{A_{\isub}}{S}{E}{X ~;~ N_{\ifact} ~;~ M}{F^n}
 }
 & (\trm{EvGather})
 \\[3ex]
 
 
 %% -- select ---------------------------
-\fbox{$\jSelect{Facts}{Env}{Var ~;~ Select}{Fact}$}
+\fbox{$\jSelect{\iFacts}{\iEnv}{\iVar ~;~ \iSelect}{\iFact}$}
 \\[2ex]
 
 \ruleI
@@ -130,48 +130,48 @@ $
 
 
 %% -- consume --------------------------
-\fbox{$\jConsume{Name}{Fact}{Env}{Consume}{Weight}$}
+\fbox{$\jConsume{\iName}{\iFact}{\iEnv}{\iConsume}{\iWeight}$}
 \\[2ex]
-        \jConsume{N_{rule}}{F}{E}{\knone}{0}
+        \jConsume{N_{\irule}}{F}{E}{\knone}{0}
 \qq
 \ruleI
-{       N_{rule} \in \trm{rules}~ F
+{       N_{\irule} \in \trm{rules}~ F
  \qq    \jEval{E}{M}{W}
 }
-{       \jConsume{N_{rule}}{F}{E}{M}{W}
+{       \jConsume{N_{\irule}}{F}{E}{M}{W}
 }
 & (\trm{EvConsumeNone/Some})
 \\[3ex]
 
 
 %% -- gain ----------------------------
-\fbox{$\jGain{Name}{Fact}{Env}{Gain}{Auth}$}
+\fbox{$\jGain{\iName}{\iFact}{\iEnv}{\iGain}{\iAuth}$}
 \\[2ex]
-        \jGain{N_{rule}}{F}{E}{\knone}{\emptyset}
+        \jGain{N_{\irule}}{F}{E}{\knone}{\emptyset}
 \qq
 \ruleI
-{       N_{rule} \in \trm{rules}~ F
+{       N_{\irule} \in \trm{rules}~ F
  \quad  \jEval{E}{M}{A}
  \quad  A \subseteq \trm{auth-by}~ F
 }
-{       \jGain{N_{rule}}{F}{E}{M}{A}
+{       \jGain{N_{\irule}}{F}{E}{M}{A}
 }
 & (\trm{EvGainNone/Some})
 \\[3ex]
 
 
 %% -- eval ----------------------------
-\fbox{$\jEval{Env}{Term}{Value}$}
+\fbox{$\jEval{\iEnv}{\iTerm}{\iValue}$}
 
 \\[2ex]
 \ruleI
-{       F = (N_{fact}, V_{payload}, A_{by}, A_{obs}, V_{use})
-  \quad \jEval{E}{M_{payload}}{V_{payload}}
+{       F = (N_{\ifact}, V_{\ipayload}, A_{\iby}, A_{\iobs}, V_{\iuse})
+  \quad \jEval{E}{M_{\ipayload}}{V_{\ipayload}}
   \quad \dots
 }
 {       \jEval {E}
-                {\ksay~ N_{fact}~ M_{payload}~ M_{by}~ M_{obs}~ M_{use}~ M_{num}}
-                {\{ F \mapsto V_{num}\}}
+         {\ksay~ N_{\ifact}~ M_{\ipayload}~ M_{\iby}~ M_{\iobs}~ M_{\iuse}~ M_{\inum}}
+         {\{ F \mapsto V_{\inum}\}}
 }
 & (\trm{EvSay})
 
