@@ -1,0 +1,109 @@
+----------------------- REVIEW 1 ---------------------
+SUBMISSION: 12
+TITLE: Smart Contracts as Authorized Production Rules
+AUTHORS: Ben Lippmeier, Amos Robinson and Andrae Muys
+
+----------- Overall evaluation -----------
+SCORE: 0 (borderline paper)
+----- TEXT:
+Title: Smart Contracts as Authorized Production Rules
+
+Authors: Ben Lippmeier, Amos Robinson, Andrae Muys
+
+Overall evaluation of the paper: 0 (borderline)
+
+---------Summary of the paper---------
+
+This paper studied the problem of authorization and query function of smart contracts. For this, their main contribution is a programming model named as "Rainfall", which consists of a tuple space of authorized facts, and a set of production rules. And they presented a core language design for Rainfall model, introducing essential grammar and semantics.
+
+In solving authorization, they designed different authority set indicating multiple users' access permission to facts. In addition, once rules match on authorized facts, new facts can be generated with a subset of the gained authority. Especially, this kind of authorization system supports privacy control.
+
+To make the query operation on facts more efficient, they built a production rule framework to define a workflow that performs queries over all facts visible to some party.
+
+---------Detailed evaluation---------
+
+- This paper is well-written and the presented examples are easy to follow. But it would be better if authors could explain more about the real implementation of this model on blockchain platforms.
+
+- I am wondering whether the central party like "Mona" in line 376 would break the law of "uncentralized" design idea of blockchain shared ledger.
+
+- I am not sure the tentative underlying blockchain platform where this model can be applied. The paper would be much stronger if it discussed how permissioned/ permissionless blockchain could support "Rainfall" model.
+
+- Minor typos:
+
+In line 621, the market might be modified as "Mark".
+In line 673, "rather then" might be "rather than".
+
+---------Questions to the authors---------
+
+- In building the initial base facts, how to get the authority from two or more parties? Or how to collect facts from multiple authorized parties at first?
+
+- The underlying blockchain platform of smart contracts generally consists of many nodes or participants. But in the examples discussed in this paper (e.g., in Sec 3.1), it seems that no other party could join in claimed transactions. How do the ledger views for these kinds of nodes look like?
+
+- As referred in Sec 3.1, some facts and rules are hidden from some parties. How could they achieve verification on shared ledger since the ledger they have is actually incomplete?
+
+- The blockchain requires that all party should have the same ledger. Considering restricted views and the principle that a user doesn't send the complete transaction to all parties, how can this model support be called "shared ledger"?
+
+---------Pros and cons of the paper---------
+
+Pros:
+
+- detailed illustration of the idea
+
+- core language definition of Rainfall semantics
+
+Cons:
+
+less implementation discussed, especially in how it relates real applications on existing blockchain platforms
+
+
+
+----------------------- REVIEW 2 ---------------------
+SUBMISSION: 12
+TITLE: Smart Contracts as Authorized Production Rules
+AUTHORS: Ben Lippmeier, Amos Robinson and Andrae Muys
+
+----------- Overall evaluation -----------
+SCORE: 2 (accept)
+----- TEXT:
+The paper presents a programming model called rainfall and argues that it is suitable for describing smart contracts.
+The rainfall model is based on 'production rules'. The program is a set of rules that modifies a global database of facts.
+The rules are conditioned of presence of certain facts, and firing of a rule causes changes to these facts.
+
+The argument is that this setting is natural for smart contracts in which most programs manipulate accounts , wallets, or other sets of facts.
+
+The authors present the language, multiple examples of small contracts, type checking, and formal operational semantics. The language has been formalized in HOL and various useful properties of the language are established.
+
+As a non-expert in production rules, it is hard for me to judge the novelty and contribution of the paper from that perspective.
+
+From the perspective of smart contracts, the paper proposes a new, quite restricted, language and a programming model. The main advantage over a less restrictive language is enhanced ability to reason about contracts and (potentially) faster / easier / trustworthy creation of new contracts.
+
+The examples are nice, but it is hard to judge whether the language is sufficiently expressive. The work would have been stronger if the authors considered how to compile their language into an existing language, such as solidity or EVM bytecode. This would have shown a way to integrate the current proposal into the existing smart contract ecosystem without disrupting it. Currently, the work is positioned as an alternative, and it is unclear how general and complete this alternative is.
+
+From the technical perspective, the presentation appears to be fairly straightforward. The semantics of the language are as expected. I am not sure how complex the proofs in Section 4.4 are since only the theorems are stated but no proofs themselves are provided.
+
+Overall, it is an interesting proposal for a language that is suitable for some applications of smart contracts. It is definitely more refreshing than the typical languages used for the purpose today.
+
+
+
+----------------------- REVIEW 3 ---------------------
+SUBMISSION: 12
+TITLE: Smart Contracts as Authorized Production Rules
+AUTHORS: Ben Lippmeier, Amos Robinson and Andrae Muys
+
+----------- Overall evaluation -----------
+SCORE: 2 (accept)
+----- TEXT:
+The paper presents the Rainfall smart contract programming model that enables the processing and sharing of facts by multiple distrusted parties. In particular, data is managed along distributed stores of different parties containing authorized subsets of overall available facts. The facts are evolved by transactions in terms of production rules; transactions are consuming and producing facts where, speaking simply, the authorization of the input is the authorization of the output. Privacy is assured by adding salt values to parts of a transaction. Thereby, the overall transaction is available for everyone and can not be neglected but some critical parts remain hidden.
+
+I recommend the paper for publication. I think the work manages to simplify the understanding, the definition, the realization and the proof of smart contracts by a good combination of techniques. In the following, I will add additional reasons why I think this paper should be published and some hints on minor improvements:
+
+- The idea and the contribution of this paper is very relevant for modern software development.
+- I was missing a better definition of the italic terms (e.g., 'token') in the introduction; however, the introduction is very good and understandable as it is.
+- I like the simple description of production rule frameworks in the introduction that gets it to the point.
+- Section 2 and 3, containing the most relevant parts of the approach, are understandable and contain good examples.
+- The related work section is very good (maybe due to the persons listed in the acknowledgment). To my point of view, it covers the important areas and does a sharp distinction of the related approaches.
+- The proposed formalization seems to be expressible enough to describe complex business logic. I think criticizing the generalizability of the approach is not appropriate.
+- All relevant pointers for an efficient implementation are given (e.g., RETE or translation into relational algebra).
+- The sections on static and dynamic semantics are the only two that are hard to follow. The contained definition seems to be valid but I did not check this in details; anyhow, the definition includes an automatic proof. The benefit of gaining proofs on business level seems to be worth the effort of reading both sections.
+- Covering extensions in a separate section is a good idea to handle more complex ideas (and you are right with using abelian group as weight types).
+- The related work section (in 'Extended Shared Prolog') lists an approach that represents programs as facts. Would it be suitable to represent the transition rules as facts in this approach? I am asking for bootstrapping of the approach which may remove some complexity induced by evolving rules -- unifying the authority system of facts and transitions. Obviously this is a topic for future work and maybe also relevant for the related work section.

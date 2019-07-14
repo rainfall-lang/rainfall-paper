@@ -1,0 +1,38 @@
+
+Thank you for the helpful reviews, We've tried to address the main points below:
+
+* Review 1: "The blockchain requires that all party should have the same ledger. Considering restricted views and the principle that a user doesn't send the complete transaction to all parties, how can this model support be called 'shared ledger'"?
+
+It is true that in "Public Blockchain" systems based on the Bitcoin architecture, all data recorded by the shared ledger is visible to all parties connected to the system. However, more recent "Permissioned Distributed Ledger" systems have a richer architecture, where not all data needs to be visible to all parties. These systems typically use the Raft or Paxos algorithms to ensure that data is in sync across different subset of nodes, rather than using an explicit Blockchain structure. The focus of our paper is on Private Permissioned Distributed Ledger systems, rather than Public Blockchains. Two related systems are Corda and Hyperledger Fabric, which are described in S5.4 of the paper. Another is Quorum [1], which is a layer over the public Ethereum system that adds data privacy.
+
+In Rainfall, the "shared ledger" is the union of all subsets of facts that are visible to all parties. Although a particular party may only see a subset / fragment of the overall ledger, the validity of their transactions is not affected by facts they cannot see. This is ensured by Theorem 4.2 Focused Firing described in the paper.
+
+We can highlight the difference between private permissioned ledgers and globally shared ledgers in the final version of the paper.
+
+[1] https://github.com/jpmorganchase/quorum
+
+
+* Review 1: "I am not sure the tentative underlying blockchain platform where this model can be applied. The paper would be much stronger if it discussed how permissioned / permissionless blockchain could support "Rainfall" model." Review 2 makes a similar point: " ... [this] would have shown a way to integrate the current proposal into the existing smart contract ecosystem without disrupting it"
+
+As mentioned above, our paper concerns the richer "Permissioned Distributed Ledger" architecture, rather than "Public Blockchain". As described in S5.4 of the paper, both Corda and Hyperledger Fabric are frameworks for building permissioned distributed ledger systems that can be configured with custom code to validate transactions. These systems do not themselves provide a programming model or smart contract language, but could be used to implement Rainfall by adding a transaction validator as described in S3.1 of the paper. Note that Corda uses a system of elected notaries to achieve consensus, rather than the blockchain mechanism.
+
+We can highlight this implementation path in the final version of the paper. We agree that the discussion would feel more concrete if the existing configurable ledger frameworks like Corda and Hyperledger Fabric were discussed earlier.
+
+
+* Review 1: "- I am wondering whether the central party like "Mona" in line 376 would break the law of "uncentralized" design idea of blockchain shared ledger.", a related question is "As referred in Sec 3.1, some facts and rules are hidden from some parties. How could they achieve verification on shared ledger since the ledger they have is actually incomplete?"
+
+In this example, Mona is a trusted logical party that happens to be able to see all facts used in this workflow. To achieve decentralization at the physical level, we could have several network nodes that all operate with the authority of Mona, so if one goes offline the system continues to work. To achieve decentralization at the logical level, we could slightly extend the workflow to include several distinct monitoring parties. These monitoring parties would also see all the facts in the workflow, but privacy would be maintained between end users (like Alice and Bob). In the existing literature, such systems are sometimes called "Federated Distributed Ledgers", an example of which is the Chain protocol [2]. There are also systems called "Consortium Blockchains" where only a small set of trusted monitoring parties validate transactions, though many more parties may submit transactions. The Corda framework can be used in this mode by installing a suitable transaction validator.
+
+We can highlight this distinction in the final version of the paper, and make sure to add Federated Distributed Ledgers such as Chain to the related work section.
+
+[2] https://chain.com/docs/1.2/protocol/papers/federated-consensus
+
+
+* Review 1: "In building the initial base facts, how to get the authority from two or more parties? Or how to collect facts from multiple authorized parties at first?"
+
+Facts that are authorized by multiple parties must be created by combining facts that are authorized by each party individually. An example of this is "agreeOffer" at the start of S3.4 in the paper. In this example the "Offer" fact is authorized only by the giver, and the "Accept" fact is authorized only by the accepter. The resulting "Agreed" fact is authorized by both parties.
+
+
+* Review 3: "The related work section (in 'Extended Shared Prolog') lists an approach that represents programs as facts. Would it be suitable to represent the transition rules as facts in this approach?"
+
+In Rainfall, rules are separate from facts because 1) a rule cannot match on the definition (AST) of another rule, and 2) rules cannot be consumed. We agree that it could be helpful for a concrete representation to encode rules as special sorts of facts, but in our semantics they have been separated mainly for these two reasons.
