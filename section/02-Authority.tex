@@ -24,7 +24,7 @@ to
 \end{figure}
 
 
-% -------------------------------------------------------------------------------------------------
+% -----------------------------------------------------------------------------
 \section{Facts, Rules, and Authority}
 \label{s:FactsWeights}
 The Rainfall programming model uses a ledger of facts and a set of rules. Parties using the system add facts to the ledger, cryptographically signing them to demonstrate that they authorize their contents. Rules match on subsets of facts and create new facts, possibly consuming matched facts in the process. Rules can gain authority from matched facts, and the newly created facts can then be given a subset of the authority gained from the matched facts. The set of facts visible to each party is controlled by the authority system, so not all facts need to be visible to all parties. In this section we describe facts, rules and the authority system, finishing with the formal definition of the data model.
@@ -151,7 +151,5 @@ $$
 \end{array}
 $$
 When the ledger state includes a fact with weight zero we treat this as identical to a state without that fact included at all. We could equivalently specify the state as being a \emph{multiset} of facts, but in most cases we find using a map from facts to weights to be more intuitive. Note the $\iState$ here is the current \emph{active state} of the ledger. In related work, the \emph{ledger} itself is often defined as a sequence of transactions that describe the full history of changes. Given the sequence of transactions starting from the empty state, it is always possible to rebuild the active state after any prefix of those transactions has been applied~\cite{Zahnentferner2018:Chimeric}.
-
-% TODO: if we retain discussion of differing weight types then add a forward reference here, when we mention multisets.
 
 
