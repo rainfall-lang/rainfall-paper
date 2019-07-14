@@ -16,7 +16,8 @@ fact Offer   [lot:  Nat,  price: Nat]
 fact Bid     [lot:  Nat,  offer: Nat]
 fact Budget  [desc: Text, total: Nat, remain: Nat]
 fact Reserve [lot:  Nat,  bid:   Nat]
-fact Invoice [seller: Party, buyer: Party, desc: Text, amount: Nat]
+fact Invoice [seller: Party, buyer: Party,
+              desc: Text,    amount: Nat]
 
 
 -- Brendan reserves a portion of the budget allotted to
