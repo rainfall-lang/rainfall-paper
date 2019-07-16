@@ -80,7 +80,7 @@ A budget is adhered to when the total value of invoices issued to a broker for a
 \begin{tabbing}
 M \= For all rules \= MMMMMM \kill
 \> For all rules \> $r \in \{@accept@, @bid@, @reserve@\}$, \\
-\> ~if   \> $\jFire{A_{sub}}{S}{r}{F_{read}^r}{D_{spent}^n}{D_{new}^m}{S'}$ \\
+\> ~if   \> $\jFire{A_{\isub}}{S}{r}{F_{\iread}^r}{D_{\ispent}^n}{D_{\inew}^m}{S'}$ \\
 \> ~and \> $\trm{store-ok}~{S}$ \hspace{1ex} then \hspace{1ex} $\trm{store-ok}~{S'}$
 \end{tabbing}
 
@@ -112,10 +112,10 @@ This total reserved amount plus the remaining budget must equal the budget limit
 M \= M \= Require \= invoices \= \kill
 \> $\trm{budget-ok}~{S}~b = $ \\
 \> \> Require \> $\trm{budget-total}~b = \mathit{total} + \trm{budget-remain}~b$ \\
-\> \> where \> $\mathit{total}$ \> $= \mathit{bids} + \mathit{invoices} + \mathit{offers}$, \\
-\> \> and \> $\mathit{bids}$ \> $= \sum_{d \in \trm{bids-for-budget}~S~b} \trm{bid-price}~d$ \\
-\> \> and \> $\mathit{invoices}$ \> $= \sum_{i \in \trm{invoices-for-budget}~S~b} \trm{invoice-price}~i$ \\
-\> \> and \> $\mathit{offers}$ \> $= \sum_{o \in \trm{offers-for-budget}~S~b} \trm{offer-price}~o$ \\
+\> \> where   \> $\mathit{total}$       \> $= \mathit{bids} + \mathit{invoices} + \mathit{offers}$, \\
+\> \> and     \> $\mathit{bids}$        \> $= \sum_{d \in \trm{bids-for-budget}~S~b} \trm{bid-price}~d$ \\
+\> \> and     \> $\mathit{invoices}$    \> $= \sum_{i \in \trm{invoices-for-budget}~S~b} \trm{invoice-price}~i$ \\
+\> \> and     \> $\mathit{offers}$      \> $= \sum_{o \in \trm{offers-for-budget}~S~b} \trm{offer-price}~o$ \\
 \end{tabbing}
 
 This invariant ensures that the reserved amount is less than or equal to the total budget, as all numbers are non-negative natural numbers.
